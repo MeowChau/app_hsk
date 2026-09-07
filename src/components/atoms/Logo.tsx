@@ -12,7 +12,7 @@ const Logo = ({ variant = 'primary' }: LogoProps) => {
   const isPrimary = variant === 'primary';
   const circleColor = isPrimary ? colors.primary : colors.primaryLight;
   const hskColor = isPrimary ? '#FFFFFF' : '#000000';
-  const mastaColor = '#000000';
+  const mastaColor = isPrimary ? '#000000' : '#FFFFFF';
 
   return (
     <View style={[layout.row, layout.itemsCenter]}>

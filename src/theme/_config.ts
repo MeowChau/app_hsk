@@ -16,6 +16,7 @@ const colorsLight = {
   accentCyan: '#33C9FC',
   accentPink: '#FFDAE9',
   accentLightCyan: '#C5F1EF',
+  accentLightBlue: '#DFF3FF',
 
   // --- Màu mặc định của Boilerplate (giữ lại để tránh lỗi) ---
   gray100: '#DFDFDF',
@@ -40,6 +41,7 @@ const colorsDark = {
   accentCyan: '#33C9FC',
   accentPink: '#FFDAE9',
   accentLightCyan: '#C5F1EF',
+  accentLightBlue: '#DFF3FF', // Dark version của DFF3FF (bạn có thể thay đổi sau nếu muốn thẻ có màu khác ở chế độ tối)
 
   // --- Màu mặc định của Boilerplate (giữ lại để tránh lỗi) ---
   gray100: '#000000',

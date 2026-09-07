@@ -128,10 +128,10 @@ function Example() {
             <View>
               <Text style={[fonts.bold, gutters.marginBottom_16]}>4. Thẻ tiến trình nhỏ (ProgressTracingCard)</Text>
               <View style={[layout.row, layout.wrap, layout.justifyCenter, { gap: 16 }]}>
-                <ProgressTracingCard title="reading" subtitle="50\nQuestions" variant="reading" />
-                <ProgressTracingCard title="Writing" subtitle="35\nQuestions" variant="writing" />
-                <ProgressTracingCard title="flashcards" subtitle="12\nword" variant="flashcards" />
-                <ProgressTracingCard title="Listening" subtitle="15\nQuestions" variant="listening" />
+                <ProgressTracingCard title="reading" subtitle={"50\nQuestions"} variant="reading" />
+                <ProgressTracingCard title="Writing" subtitle={"35\nQuestions"} variant="writing" />
+                <ProgressTracingCard title="flashcards" subtitle={"12\nword"} variant="flashcards" />
+                <ProgressTracingCard title="Listening" subtitle={"15\nQuestions"} variant="listening" />
               </View>
             </View>
           )}

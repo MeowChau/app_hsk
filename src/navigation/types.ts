@@ -9,4 +9,10 @@ export type RootScreenProps<
 export type RootStackParamList = {
   [Paths.Example]: undefined;
   [Paths.Startup]: undefined;
+  [Paths.Onboarding]: undefined;
+  [Paths.Login]: undefined;
+  [Paths.Register]: undefined;
+  [Paths.Home]: { tab?: 'home' | 'learn' | 'game' | 'stats' | 'profile' } | undefined;
+  [Paths.Statistics]: undefined;
+  [Paths.Profile]: undefined;
 };
