@@ -3,20 +3,20 @@ import type { RootScreenProps } from '@/navigation/types';
 import React, { useState } from 'react';
 import {
   ScrollView,
-  Switch,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
-import Svg, { Circle, Path, Rect } from 'react-native-svg';
+import Svg, { Path } from 'react-native-svg';
 
+import { UserProfileCard } from './UserProfileCard';
+import { DisplaySettingsCard } from './DisplaySettingsCard';
+import { PrivacySettingsCard } from './PrivacySettingsCard';
 import { SafeScreen } from '@/components/templates';
 import { Paths } from '@/navigation/paths';
 import { useTheme, hs, vs, ms } from '@/theme';
 
 export function ProfileContent({ onLogout }: { onLogout?: () => void }) {
-  const { layout } = useTheme();
 
   const [displayName, setDisplayName] = useState('Hoàng Văn Hùng');
   const [email] = useState('hunghv@gmail.com');
@@ -33,8 +33,8 @@ export function ProfileContent({ onLogout }: { onLogout?: () => void }) {
             {/* Title */}
             <Text
               style={{
-                color: '#111827',
-                fontSize: ms(22),
+                color: '#000000',
+                fontSize: ms(28),
                 fontWeight: '800',
                 marginBottom: vs(4),
               }}
@@ -45,8 +45,8 @@ export function ProfileContent({ onLogout }: { onLogout?: () => void }) {
             {/* Subtitle */}
             <Text
               style={{
-                color: '#4B5563',
-                fontSize: ms(13),
+                color: '#000000',
+                fontSize: ms(16),
                 lineHeight: ms(18),
               }}
             >
@@ -56,379 +56,27 @@ export function ProfileContent({ onLogout }: { onLogout?: () => void }) {
 
           {/* ================= CARD 1: HỒ SƠ ================= */}
           <View style={{ paddingHorizontal: hs(16), marginBottom: vs(16) }}>
-            <View
-              style={{
-                backgroundColor: '#FFFFFF',
-                borderColor: '#F0F2F5',
-                borderRadius: ms(16),
-                borderWidth: 1,
-                elevation: 1.5,
-                padding: ms(16),
-                shadowColor: '#000',
-                shadowOffset: { width: hs(0), height: vs(2) },
-                shadowOpacity: 0.05,
-                shadowRadius: 5,
-              }}
-            >
-              {/* Title & Subtitle */}
-              <Text
-                style={{
-                  color: '#111827',
-                  fontSize: ms(15),
-                  fontWeight: '700',
-                  marginBottom: vs(2),
-                }}
-              >
-                Hồ sơ
-              </Text>
-              <Text
-                style={{
-                  color: '#6B7280',
-                  fontSize: ms(12),
-                  marginBottom: vs(16),
-                }}
-              >
-                Tên và ảnh đại diện của bạn hiển thị trên bảng xếp hạng trò chơi.
-              </Text>
-
-              {/* Avatar Section */}
-              <View style={{ alignItems: 'center', marginBottom: vs(16) }}>
-                {/* Circular Avatar */}
-                <View
-                  style={{
-                    alignItems: 'center',
-                    backgroundColor: '#F3E8FF',
-                    borderColor: '#E9D5FF',
-                    borderRadius: ms(44),
-                    borderWidth: 1.5,
-                    height: vs(88),
-                    justifyContent: 'center',
-                    marginBottom: vs(12),
-                    overflow: 'hidden',
-                    width: hs(88),
-                  }}
-                >
-                  <Svg height="88" viewBox="0 0 100 100" width="88">
-                    {/* Background */}
-                    <Rect fill="#FDF4FF" height="100" width="100" />
-                    {/* Head / Hair */}
-                    <Circle cx="50" cy="46" fill="#3E2723" r="28" />
-                    {/* Face */}
-                    <Circle cx="50" cy="50" fill="#FFDFC4" r="20" />
-                    {/* Anime hair front */}
-                    <Path
-                      d="M32 40c4-10 14-16 26-14 8 2 14 8 16 16-4-2-9-2-14 1-5 3-10 3-14-1-6-1-10 0-14-2z"
-                      fill="#2D1B16"
-                    />
-                    {/* Eyes */}
-                    <Circle cx="44" cy="50" fill="#2D1B16" r="3.5" />
-                    <Circle cx="56" cy="50" fill="#2D1B16" r="3.5" />
-                    <Circle cx="45" cy="49" fill="#FFFFFF" r="1.2" />
-                    <Circle cx="57" cy="49" fill="#FFFFFF" r="1.2" />
-                    {/* Smile */}
-                    <Path
-                      d="M48 57c1 1 3 1 4 0"
-                      fill="none"
-                      stroke="#A35948"
-                      strokeLinecap="round"
-                      strokeWidth="1.5"
-                    />
-                    {/* Clothes */}
-                    <Path
-                      d="M26 88c2-12 12-18 24-18s22 6 24 18z"
-                      fill="#374151"
-                    />
-                    <Path
-                      d="M44 70l6 8 6-8z"
-                      fill="#FFDFC4"
-                    />
-                  </Svg>
-                </View>
-
-                {/* Avatar Action Buttons */}
-                <View style={[layout.row, layout.itemsCenter]}>
-                  <TouchableOpacity
-                    activeOpacity={0.7}
-                    style={{
-                      alignItems: 'center',
-                      backgroundColor: '#FAF8F5',
-                      borderColor: '#E5E7EB',
-                      borderRadius: ms(8),
-                      borderWidth: 1,
-                      flexDirection: 'row',
-                      paddingHorizontal: hs(12),
-                      paddingVertical: vs(6),
-                    }}
-                  >
-                    <Svg height="14" style={{ marginRight: hs(6) }} viewBox="0 0 24 24" width="14">
-                      <Path
-                        d="M12 15.2a3.2 3.2 0 100-6.4 3.2 3.2 0 000 6.4z"
-                        fill="#374151"
-                      />
-                      <Path
-                        d="M9 2L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-3.17L15 2H9zm3 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z"
-                        fill="#374151"
-                      />
-                    </Svg>
-                    <Text style={{ color: '#374151', fontSize: ms(12), fontWeight: '600' }}>
-                      Đổi ảnh
-                    </Text>
-                  </TouchableOpacity>
-
-                  {/* Delete Button */}
-                  <TouchableOpacity
-                    activeOpacity={0.7}
-                    style={{
-                      alignItems: 'center',
-                      height: vs(32),
-                      justifyContent: 'center',
-                      marginLeft: hs(10),
-                      width: hs(32),
-                    }}
-                  >
-                    <Svg height="16" viewBox="0 0 24 24" width="16">
-                      <Path
-                        d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
-                        fill="#EF4444"
-                      />
-                    </Svg>
-                  </TouchableOpacity>
-                </View>
-
-                {/* File format hint */}
-                <Text
-                  style={{
-                    color: '#9CA3AF',
-                    fontSize: ms(10),
-                    marginTop: vs(8),
-                    textAlign: 'center',
-                  }}
-                >
-                  JPG, PNG hoặc WebP. Ảnh sẽ được cắt vuông tự động.
-                </Text>
-              </View>
-
-              {/* Input: Tên hiển thị */}
-              <View style={{ marginBottom: vs(12) }}>
-                <Text
-                  style={{
-                    color: '#374151',
-                    fontSize: ms(12),
-                    fontWeight: '600',
-                    marginBottom: vs(6),
-                  }}
-                >
-                  Tên hiển thị
-                </Text>
-                <TextInput
-                  onChangeText={setDisplayName}
-                  style={{
-                    backgroundColor: '#FFFFFF',
-                    borderColor: '#E5E7EB',
-                    borderRadius: ms(8),
-                    borderWidth: 1,
-                    color: '#111827',
-                    fontSize: ms(13),
-                    paddingHorizontal: hs(12),
-                    paddingVertical: vs(9),
-                  }}
-                  value={displayName}
-                />
-              </View>
-
-              {/* Input: Email */}
-              <View style={{ marginBottom: vs(16) }}>
-                <Text
-                  style={{
-                    color: '#374151',
-                    fontSize: ms(12),
-                    fontWeight: '600',
-                    marginBottom: vs(6),
-                  }}
-                >
-                  Email
-                </Text>
-                <TextInput
-                  editable={false}
-                  style={{
-                    backgroundColor: '#F9FAFB',
-                    borderColor: '#E5E7EB',
-                    borderRadius: ms(8),
-                    borderWidth: 1,
-                    color: '#9CA3AF',
-                    fontSize: ms(13),
-                    paddingHorizontal: hs(12),
-                    paddingVertical: vs(9),
-                  }}
-                  value={email}
-                />
-              </View>
-
-              {/* Bottom Actions Row */}
-              <View style={[layout.row, { columnGap: hs(10) }]}>
-                {/* Save Changes Button */}
-                <TouchableOpacity
-                  activeOpacity={0.8}
-                  style={{
-                    alignItems: 'center',
-                    backgroundColor: '#64748B',
-                    borderRadius: ms(8),
-                    justifyContent: 'center',
-                    paddingHorizontal: hs(18),
-                    paddingVertical: vs(10),
-                  }}
-                >
-                  <Text style={{ color: '#FFFFFF', fontSize: ms(12), fontWeight: '700' }}>
-                    Lưu thay đổi
-                  </Text>
-                </TouchableOpacity>
-
-                {/* Change Password Button */}
-                <TouchableOpacity
-                  activeOpacity={0.8}
-                  style={{
-                    alignItems: 'center',
-                    backgroundColor: '#FAF8F5',
-                    borderColor: '#E5E7EB',
-                    borderRadius: ms(8),
-                    borderWidth: 1,
-                    flexDirection: 'row',
-                    paddingHorizontal: hs(16),
-                    paddingVertical: vs(10),
-                  }}
-                >
-                  <Svg height="14" style={{ marginRight: hs(6) }} viewBox="0 0 24 24" width="14">
-                    <Path
-                      d="M12.65 10A5.99 5.99 0 007 6c-3.31 0-6 2.69-6 6s2.69 6 6 6a5.99 5.99 0 005.65-4H17v4h4v-4h2v-4H12.65zM7 14c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"
-                      fill="#4B5563"
-                    />
-                  </Svg>
-                  <Text style={{ color: '#374151', fontSize: ms(12), fontWeight: '700' }}>
-                    Đổi mật khẩu
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            </View>
+            <UserProfileCard
+              displayName={displayName}
+              email={email}
+              setDisplayName={setDisplayName}
+            />
           </View>
 
           {/* ================= CARD 2: HIỂN THỊ KHI HỌC ================= */}
           <View style={{ paddingHorizontal: hs(16), marginBottom: vs(16) }}>
-            <View
-              style={{
-                backgroundColor: '#FFFFFF',
-                borderColor: '#F0F2F5',
-                borderRadius: ms(16),
-                borderWidth: 1,
-                elevation: 1.5,
-                padding: ms(16),
-                shadowColor: '#000',
-                shadowOffset: { width: hs(0), height: vs(2) },
-                shadowOpacity: 0.05,
-                shadowRadius: 5,
-              }}
-            >
-              <Text
-                style={{
-                  color: '#111827',
-                  fontSize: ms(15),
-                  fontWeight: '700',
-                  marginBottom: vs(2),
-                }}
-              >
-                Hiển thị khi học
-              </Text>
-              <Text
-                style={{
-                  color: '#6B7280',
-                  fontSize: ms(12),
-                  marginBottom: vs(14),
-                }}
-              >
-                Cách các bài học hiển thị mặc định trên mọi thiết bị của bạn.
-              </Text>
-
-              {/* Toggle Setting Row */}
-              <View style={[layout.row, layout.justifyBetween, layout.itemsCenter, { marginBottom: vs(6) }]}>
-                <Text style={{ color: '#111827', fontSize: ms(13), fontWeight: '700' }}>
-                  Hiện pinyin trong bài học
-                </Text>
-                <Switch
-                  onValueChange={setShowPinyin}
-                  thumbColor="#FFFFFF"
-                  trackColor={{ false: '#D1D5DB', true: '#1E293B' }}
-                  value={showPinyin}
-                />
-              </View>
-              <Text
-                style={{
-                  color: '#6B7280',
-                  fontSize: ms(11),
-                  lineHeight: ms(16),
-                }}
-              >
-                Tắt để ẩn pinyin ngay từ đầu ở trang bài học và trang chủ đề, giúp bạn tập nhớ mặt chữ. Khi cần, bạn vẫn bấm được nút <Text style={{ fontWeight: '700' }}>Hiện pinyin</Text> ngay trên trang để xem tạm thời.
-              </Text>
-            </View>
+            <DisplaySettingsCard
+              setShowPinyin={setShowPinyin}
+              showPinyin={showPinyin}
+            />
           </View>
 
           {/* ================= CARD 3: QUYỀN RIÊNG TƯ ================= */}
           <View style={{ paddingHorizontal: hs(16), marginBottom: vs(20) }}>
-            <View
-              style={{
-                backgroundColor: '#FFFFFF',
-                borderColor: '#F0F2F5',
-                borderRadius: ms(16),
-                borderWidth: 1,
-                elevation: 1.5,
-                padding: ms(16),
-                shadowColor: '#000',
-                shadowOffset: { width: hs(0), height: vs(2) },
-                shadowOpacity: 0.05,
-                shadowRadius: 5,
-              }}
-            >
-              <Text
-                style={{
-                  color: '#111827',
-                  fontSize: ms(15),
-                  fontWeight: '700',
-                  marginBottom: vs(2),
-                }}
-              >
-                Quyền riêng tư
-              </Text>
-              <Text
-                style={{
-                  color: '#6B7280',
-                  fontSize: ms(12),
-                  marginBottom: vs(14),
-                }}
-              >
-                Kiểm soát thông tin hiển thị công khai trên trang chủ.
-              </Text>
-
-              {/* Toggle Setting Row */}
-              <View style={[layout.row, layout.justifyBetween, layout.itemsCenter, { marginBottom: vs(6) }]}>
-                <Text style={{ color: '#111827', fontSize: ms(13), fontWeight: '700' }}>
-                  Hiển thị hoạt động ẩn danh trên trang chủ
-                </Text>
-                <Switch
-                  onValueChange={setAnonymousActivity}
-                  thumbColor="#FFFFFF"
-                  trackColor={{ false: '#D1D5DB', true: '#1E293B' }}
-                  value={anonymousActivity}
-                />
-              </View>
-              <Text
-                style={{
-                  color: '#6B7280',
-                  fontSize: ms(11),
-                  lineHeight: ms(16),
-                }}
-              >
-                Khi bật, hoạt động của bạn (đăng ký, tải worksheet, luyện chữ) sẽ hiển thị trên trang chủ với tên ẩn danh: <Text style={{ fontWeight: '700' }}>Ng***n V. A.</Text> Tên đầy đủ và email không bao giờ bị tiết lộ.
-              </Text>
-            </View>
+            <PrivacySettingsCard
+              anonymousActivity={anonymousActivity}
+              setAnonymousActivity={setAnonymousActivity}
+            />
           </View>
 
           {/* ================= LOGOUT ACTION BUTTON ================= */}

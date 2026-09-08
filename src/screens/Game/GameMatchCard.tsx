@@ -10,7 +10,7 @@ interface GameMatchCardProps {
 export const GameMatchCard = ({ onSearch }: GameMatchCardProps) => {
   return (
     <View style={{ alignItems: 'center', marginBottom: vs(24) }}>
-      <Text style={{ fontSize: ms(22), fontWeight: '800', color: '#111827', marginBottom: vs(20) }}>
+      <Text style={{ fontSize: ms(28), fontWeight: '800', color: '#111827', marginBottom: vs(20) }}>
         Bạn đã sẵn sàng?
       </Text>
       <TouchableOpacity
@@ -25,7 +25,7 @@ export const GameMatchCard = ({ onSearch }: GameMatchCardProps) => {
           alignItems: 'center',
         }}
       >
-        <Text style={{ color: '#FFFFFF', fontSize: ms(15), fontWeight: '700', marginRight: hs(8), letterSpacing: 0.5 }}>
+        <Text style={{ color: '#FFFFFF', fontSize: ms(18), fontWeight: '700', marginRight: hs(8), letterSpacing: 0.5 }}>
           BẮT ĐẦU TÌM NGƯỜI
         </Text>
         <Svg height="16" viewBox="0 0 24 24" width="16" style={{ marginTop: vs(1) }}>

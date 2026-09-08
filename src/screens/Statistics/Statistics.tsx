@@ -3,10 +3,10 @@ import { ScrollView, Text, View } from 'react-native';
 
 import { useTheme, hs, vs, ms } from '@/theme';
 
-import { LearningTimeCard } from '@/components/molecules/cards/LearningTimeCard';
-import { WeeklyChartCard } from '@/components/molecules/cards/WeeklyChartCard';
-import { ActivityTimeCard } from '@/components/molecules/cards/ActivityTimeCard';
-import { VocabularyStatsCard } from '@/components/molecules/cards/VocabularyStatsCard';
+import { LearningTimeCard } from './LearningTimeCard';
+import { WeeklyChartCard } from './WeeklyChartCard';
+import { ActivityTimeCard } from './ActivityTimeCard';
+import { VocabularyStatsCard } from '@/screens/Home/VocabularyStatsCard';
 
 export function StatisticsContent() {
   const { layout } = useTheme();
@@ -22,7 +22,7 @@ export function StatisticsContent() {
           <Text
             style={{
               color: '#111827',
-              fontSize: ms(22),
+              fontSize: ms(28),
               fontWeight: '800',
               marginBottom: vs(4),
             }}
@@ -32,7 +32,7 @@ export function StatisticsContent() {
           <Text
             style={{
               color: '#4B5563',
-              fontSize: ms(13),
+              fontSize: ms(16),
               lineHeight: ms(18),
             }}
           >

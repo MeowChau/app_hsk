@@ -21,26 +21,28 @@ export function ActivityTimeCard() {
           shadowRadius: 5,
         }}
       >
-        <Text
-          style={{
-            color: '#111827',
-            fontSize: ms(14),
-            fontWeight: '700',
-            marginBottom: vs(14),
-          }}
-        >
-          Thời gian theo hoạt động
-        </Text>
+        <View style={[layout.row, layout.itemsCenter, { marginBottom: vs(16) }]}>
+          <Text
+            style={{
+              color: '#000000',
+              fontSize: ms(16),
+              fontWeight: '700',
+              marginLeft: hs(12),
+            }}
+          >
+            Thời gian theo hoạt động
+          </Text>
+        </View>
 
         {/* Progress List */}
         <View style={{ rowGap: vs(14) }}>
           {/* Activity 1: Ôn tập */}
           <View>
             <View style={[layout.row, layout.justifyBetween, { marginBottom: vs(4) }]}>
-              <Text style={{ color: '#374151', fontSize: ms(12), fontWeight: '600' }}>
+              <Text style={{ color: '#000000', fontSize: ms(14), fontWeight: '600' }}>
                 Ôn tập
               </Text>
-              <Text style={{ color: '#9CA3AF', fontSize: ms(11) }}>
+              <Text style={{ color: '#9CA3AF', fontSize: ms(12) }}>
                 {'<1 phút • 0%'}
               </Text>
             </View>
@@ -57,10 +59,10 @@ export function ActivityTimeCard() {
           {/* Activity 2: Bài học */}
           <View>
             <View style={[layout.row, layout.justifyBetween, { marginBottom: vs(4) }]}>
-              <Text style={{ color: '#374151', fontSize: ms(12), fontWeight: '600' }}>
+              <Text style={{ color: '#000000', fontSize: ms(14), fontWeight: '600' }}>
                 Bài học
               </Text>
-              <Text style={{ color: '#6B7280', fontSize: ms(11) }}>
+              <Text style={{ color: '#6B7280', fontSize: ms(12) }}>
                 1 giờ 1 phút • 63%
               </Text>
             </View>
@@ -87,10 +89,10 @@ export function ActivityTimeCard() {
           {/* Activity 3: Chép chính tả */}
           <View>
             <View style={[layout.row, layout.justifyBetween, { marginBottom: vs(4) }]}>
-              <Text style={{ color: '#374151', fontSize: ms(12), fontWeight: '600' }}>
+              <Text style={{ color: '#000000', fontSize: ms(14), fontWeight: '600' }}>
                 Chép chính tả
               </Text>
-              <Text style={{ color: '#9CA3AF', fontSize: ms(11) }}>
+              <Text style={{ color: '#9CA3AF', fontSize: ms(12) }}>
                 {'<1 phút • 0%'}
               </Text>
             </View>
@@ -107,10 +109,10 @@ export function ActivityTimeCard() {
           {/* Activity 4: Luyện gõ */}
           <View>
             <View style={[layout.row, layout.justifyBetween, { marginBottom: vs(4) }]}>
-              <Text style={{ color: '#374151', fontSize: ms(12), fontWeight: '600' }}>
+              <Text style={{ color: '#000000', fontSize: ms(14), fontWeight: '600' }}>
                 Luyện gõ
               </Text>
-              <Text style={{ color: '#6B7280', fontSize: ms(11) }}>
+              <Text style={{ color: '#6B7280', fontSize: ms(12) }}>
                 35 phút • 36%
               </Text>
             </View>

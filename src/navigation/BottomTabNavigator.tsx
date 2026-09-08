@@ -43,7 +43,11 @@ export function BottomTabNavigator() {
               else if (tab === 'stats') targetRoute = Paths.Statistics;
               else if (tab === 'profile') targetRoute = Paths.Profile;
               
-              props.navigation.navigate(targetRoute);
+              if (tab === 'game') {
+                props.navigation.navigate(targetRoute, { targetView: 'main', timestamp: Date.now() });
+              } else {
+                props.navigation.navigate(targetRoute);
+              }
             }}
           />
         );
@@ -54,13 +58,13 @@ export function BottomTabNavigator() {
         children={(props) => (
           <View style={{ flex: 1, backgroundColor: '#FFF' }}>
             <HomeContent 
-              onSwitchTab={(tab) => {
+              onSwitchTab={(tab, params) => {
                 let targetRoute: Paths = Paths.Home;
                 if (tab === 'learn') targetRoute = Paths.Learn;
                 else if (tab === 'game') targetRoute = Paths.Game;
                 else if (tab === 'stats') targetRoute = Paths.Statistics;
                 else if (tab === 'profile') targetRoute = Paths.Profile;
-                props.navigation.navigate(targetRoute);
+                props.navigation.navigate(targetRoute, params as any);
               }}
               onNavigateToProfile={() => props.navigation.navigate(Paths.Profile)} 
             />
@@ -70,7 +74,7 @@ export function BottomTabNavigator() {
       <Tab.Screen name={Paths.Learn} component={EducationContent} />
       <Tab.Screen 
         name={Paths.Game} 
-        children={() => <GameContent targetView="main" />} 
+        component={GameContent} 
       />
       <Tab.Screen name={Paths.Statistics} component={StatisticsContent} />
       <Tab.Screen 

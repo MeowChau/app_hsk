@@ -48,7 +48,7 @@ export const ContinueLearningCard = ({ onContinue }: ContinueLearningCardProps) 
           <Text
             style={{
               color: '#111827',
-              fontSize: ms(15),
+              fontSize: ms(16),
               fontWeight: '700',
               marginLeft: hs(12),
             }}
@@ -81,7 +81,7 @@ export const ContinueLearningCard = ({ onContinue }: ContinueLearningCardProps) 
           <Text
             style={{
               color: '#FFFFFF',
-              fontSize: ms(15),
+              fontSize: ms(18),
               fontWeight: '700',
               letterSpacing: 0.5,
             }}

@@ -130,7 +130,7 @@ function Register({ navigation }: RootScreenProps<Paths.Register>) {
               layout.row,
               layout.itemsCenter,
               layout.justifyCenter,
-              { marginVertical: 28 },
+              { marginVertical: vs(28) },
             ]}
           >
             <View style={{ backgroundColor: '#2B2B2B', flex: 1, height: 1.5 }} />

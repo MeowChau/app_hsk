@@ -48,17 +48,18 @@ export function WeeklyChartCard() {
           shadowRadius: 5,
         }}
       >
-        {/* Header */}
-        <Text
-          style={{
-            color: '#111827',
-            fontSize: ms(14),
-            fontWeight: '700',
-            marginBottom: vs(12),
-          }}
-        >
-          7 ngày gần nhất
-        </Text>
+        <View style={[layout.row, layout.itemsCenter, { marginBottom: vs(16) }]}>
+          <Text
+            style={{
+              color: '#000000',
+              fontSize: ms(16),
+              fontWeight: '700',
+              marginLeft: hs(12),
+            }}
+          >
+            7 ngày gần nhất
+          </Text>
+        </View>
 
         {/* Bar Chart Visualization */}
         <View
@@ -86,7 +87,7 @@ export function WeeklyChartCard() {
         <Text
           style={{
             color: '#94A3B8',
-            fontSize: ms(10),
+            fontSize: ms(12),
             marginBottom: vs(14),
           }}
         >
@@ -106,10 +107,10 @@ export function WeeklyChartCard() {
                 paddingVertical: vs(10),
               }}
             >
-              <Text style={{ color: '#6B7280', fontSize: ms(10) }}>
+              <Text style={{ color: '#000000', fontSize: ms(14) }}>
                 Trung bình mỗi ngày học
               </Text>
-              <Text style={{ color: '#111827', fontSize: ms(13), fontWeight: '700', marginTop: vs(2) }}>
+              <Text style={{ color: '#000000', fontSize: ms(16), fontWeight: '700', marginTop: vs(2) }}>
                 "Số lượng"
               </Text>
             </View>
@@ -122,10 +123,10 @@ export function WeeklyChartCard() {
                 paddingVertical: vs(10),
               }}
             >
-              <Text style={{ color: '#6B7280', fontSize: ms(10) }}>
+              <Text style={{ color: '#000000', fontSize: ms(14) }}>
                 Số ngày có học
               </Text>
-              <Text style={{ color: '#111827', fontSize: ms(13), fontWeight: '700', marginTop: vs(2) }}>
+              <Text style={{ color: '#000000', fontSize: ms(16), fontWeight: '700', marginTop: vs(2) }}>
                 "Số lượng"
               </Text>
             </View>
@@ -142,10 +143,10 @@ export function WeeklyChartCard() {
                 paddingVertical: vs(10),
               }}
             >
-              <Text style={{ color: '#6B7280', fontSize: ms(10) }}>
+              <Text style={{ color: '#000000', fontSize: ms(14) }}>
                 Ngày học nhiều nhất
               </Text>
-              <Text style={{ color: '#111827', fontSize: ms(13), fontWeight: '700', marginTop: vs(2) }}>
+              <Text style={{ color: '#000000', fontSize: ms(16), fontWeight: '700', marginTop: vs(2) }}>
                 "Số lượng"
               </Text>
             </View>
@@ -158,10 +159,10 @@ export function WeeklyChartCard() {
                 paddingVertical: vs(10),
               }}
             >
-              <Text style={{ color: '#6B7280', fontSize: ms(10) }}>
+              <Text style={{ color: '#000000', fontSize: ms(14) }}>
                 Chuỗi ngày dài nhất
               </Text>
-              <Text style={{ color: '#111827', fontSize: ms(13), fontWeight: '700', marginTop: vs(2) }}>
+              <Text style={{ color: '#000000', fontSize: ms(16), fontWeight: '700', marginTop: vs(2) }}>
                 "Số lượng"
               </Text>
             </View>

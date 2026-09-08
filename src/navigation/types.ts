@@ -9,7 +9,7 @@ export type RootScreenProps<
 export type RootTabParamList = {
   [Paths.Home]: undefined;
   [Paths.Learn]: undefined;
-  [Paths.Game]: undefined;
+  [Paths.Game]: { targetView?: 'main' | 'rules' | 'leaderboard' | 'matching' | 'battle'; timestamp?: number } | undefined;
   [Paths.Statistics]: undefined;
   [Paths.Profile]: undefined;
 };
@@ -23,7 +23,7 @@ export type RootStackParamList = {
   [Paths.MainTabs]: undefined;
   [Paths.Home]: undefined;
   [Paths.Learn]: undefined;
-  [Paths.Game]: undefined;
+  [Paths.Game]: { targetView?: 'main' | 'rules' | 'leaderboard' | 'matching' | 'battle'; timestamp?: number } | undefined;
   [Paths.Statistics]: undefined;
   [Paths.Profile]: undefined;
 };

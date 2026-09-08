@@ -26,8 +26,8 @@ export function VocabularyStatsCard({ onPressDetail }: VocabularyStatsCardProps)
       }}
     >
       <View style={[layout.row, layout.itemsCenter, { marginBottom: vs(14) }]}>
-        <View style={{ backgroundColor: '#DFF0FE', borderRadius: ms(16), height: vs(32), width: hs(32) }} />
-        <Text style={{ color: '#111827', fontSize: ms(14), fontWeight: '700', marginLeft: hs(10) }}>
+        <View style={{ backgroundColor: '#DFF0FE', borderRadius: ms(21), height: vs(42), width: hs(42) }} />
+        <Text style={{ color: '#000000', fontSize: ms(16), fontWeight: '700', marginLeft: hs(12) }}>
           Thống kê học tập từ vựng
         </Text>
       </View>
@@ -35,23 +35,23 @@ export function VocabularyStatsCard({ onPressDetail }: VocabularyStatsCardProps)
       <View style={{ rowGap: vs(8) }}>
         <View style={[layout.row, { columnGap: hs(8) }]}>
           <View style={{ alignItems: 'center', backgroundColor: '#F5F6F8', borderRadius: ms(10), flex: 1, paddingVertical: vs(12) }}>
-            <Text style={{ color: '#111827', fontSize: ms(13), fontWeight: '700' }}>"Số lượng"</Text>
-            <Text style={{ color: '#6B7280', fontSize: ms(11), marginTop: vs(2) }}>Đã học</Text>
+            <Text style={{ color: '#000000', fontSize: ms(14), fontWeight: '700' }}>"Số lượng"</Text>
+            <Text style={{ color: '#000000', fontSize: ms(16), fontWeight: '800', marginTop: vs(2) }}>Đã học</Text>
           </View>
           <View style={{ alignItems: 'center', backgroundColor: '#F5F6F8', borderRadius: ms(10), flex: 1, paddingVertical: vs(12) }}>
-            <Text style={{ color: '#111827', fontSize: ms(13), fontWeight: '700' }}>"Số lượng"</Text>
-            <Text style={{ color: '#6B7280', fontSize: ms(11), marginTop: vs(2) }}>Đã thuộc</Text>
+            <Text style={{ color: '#000000', fontSize: ms(14), fontWeight: '700' }}>"Số lượng"</Text>
+            <Text style={{ color: '#000000', fontSize: ms(16), fontWeight: '800', marginTop: vs(2) }}>Đã thuộc</Text>
           </View>
         </View>
 
         <View style={[layout.row, { columnGap: hs(8) }]}>
           <View style={{ alignItems: 'center', backgroundColor: '#F5F6F8', borderRadius: ms(10), flex: 1, paddingVertical: vs(12) }}>
-            <Text style={{ color: '#111827', fontSize: ms(13), fontWeight: '700' }}>"Số lượng"</Text>
-            <Text style={{ color: '#6B7280', fontSize: ms(11), marginTop: vs(2) }}>Đang học</Text>
+            <Text style={{ color: '#000000', fontSize: ms(14), fontWeight: '700' }}>"Số lượng"</Text>
+            <Text style={{ color: '#000000', fontSize: ms(16), fontWeight: '800', marginTop: vs(2) }}>Đang học</Text>
           </View>
           <View style={{ alignItems: 'center', backgroundColor: '#F5F6F8', borderRadius: ms(10), flex: 1, paddingVertical: vs(12) }}>
-            <Text style={{ color: '#111827', fontSize: ms(13), fontWeight: '700' }}>"Số lượng"</Text>
-            <Text style={{ color: '#6B7280', fontSize: ms(11), marginTop: vs(2) }}>Cần ôn</Text>
+            <Text style={{ color: '#000000', fontSize: ms(14), fontWeight: '700' }}>"Số lượng"</Text>
+            <Text style={{ color: '#000000', fontSize: ms(16), fontWeight: '800', marginTop: vs(2) }}>Cần ôn</Text>
           </View>
         </View>
       </View>
@@ -63,9 +63,9 @@ export function VocabularyStatsCard({ onPressDetail }: VocabularyStatsCardProps)
           onPress={onPressDetail}
           style={{ alignItems: 'center', backgroundColor: '#F5F6F8', borderRadius: ms(10), flexDirection: 'row', justifyContent: 'space-between', marginTop: vs(12), paddingHorizontal: hs(14), paddingVertical: vs(10) }}
         >
-          <Text style={{ color: '#374151', fontSize: ms(12), fontWeight: '600' }}>Xem thống kê chi tiết</Text>
+          <Text style={{ color: '#000000', fontSize: ms(16), fontWeight: '700' }}>Xem thống kê chi tiết</Text>
           <Svg height="14" viewBox="0 0 24 24" width="14">
-            <Path d="M9 5l7 7-7 7" fill="none" stroke="#6B7280" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" />
+            <Path d="M9 5l7 7-7 7" fill="none" stroke="#000000" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" />
           </Svg>
         </TouchableOpacity>
       )}

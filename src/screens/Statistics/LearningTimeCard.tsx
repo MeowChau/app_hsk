@@ -23,21 +23,21 @@ export function LearningTimeCard() {
         }}
       >
         {/* Header */}
-        <View style={[layout.row, layout.itemsCenter, { marginBottom: vs(14) }]}>
+        <View style={[layout.row, layout.itemsCenter, { marginBottom: vs(16) }]}>
           <View
             style={{
               backgroundColor: '#DFF0FE',
-              borderRadius: ms(16),
-              height: vs(32),
-              width: hs(32),
+              borderRadius: ms(21),
+              height: vs(42),
+              width: hs(42),
             }}
           />
           <Text
             style={{
-              color: '#111827',
-              fontSize: ms(14),
+              color: '#000000',
+              fontSize: ms(16),
               fontWeight: '700',
-              marginLeft: hs(10),
+              marginLeft: hs(12),
             }}
           >
             Thời gian học
@@ -57,10 +57,10 @@ export function LearningTimeCard() {
                 paddingVertical: vs(12),
               }}
             >
-              <Text style={{ color: '#111827', fontSize: ms(13), fontWeight: '700' }}>
+              <Text style={{ color: '#000000', fontSize: ms(14), fontWeight: '700' }}>
                 "Số lượng"
               </Text>
-              <Text style={{ color: '#6B7280', fontSize: ms(11), marginTop: vs(2) }}>
+              <Text style={{ color: '#000000', fontSize: ms(16), marginTop: vs(2), fontWeight: '800' }}>
                 Hôm nay
               </Text>
             </View>
@@ -73,10 +73,10 @@ export function LearningTimeCard() {
                 paddingVertical: vs(12),
               }}
             >
-              <Text style={{ color: '#111827', fontSize: ms(13), fontWeight: '700' }}>
+              <Text style={{ color: '#000000', fontSize: ms(14), fontWeight: '700' }}>
                 "Số lượng"
               </Text>
-              <Text style={{ color: '#6B7280', fontSize: ms(11), marginTop: vs(2) }}>
+              <Text style={{ color: '#000000', fontSize: ms(16), marginTop: vs(2), fontWeight: '800' }}>
                 7 ngày qua
               </Text>
             </View>
@@ -91,10 +91,10 @@ export function LearningTimeCard() {
               paddingVertical: vs(12),
             }}
           >
-            <Text style={{ color: '#111827', fontSize: ms(13), fontWeight: '700' }}>
+            <Text style={{ color: '#000000', fontSize: ms(14), fontWeight: '700' }}>
               "Số lượng"
             </Text>
-            <Text style={{ color: '#6B7280', fontSize: ms(11), marginTop: vs(2) }}>
+            <Text style={{ color: '#000000', fontSize: ms(16), marginTop: vs(2), fontWeight: '800' }}>
               Tổng cộng
             </Text>
           </View>
@@ -123,7 +123,7 @@ export function LearningTimeCard() {
             style={{
               color: '#4B5563',
               flex: 1,
-              fontSize: ms(11),
+              fontSize: ms(12),
               lineHeight: ms(16),
             }}
           >

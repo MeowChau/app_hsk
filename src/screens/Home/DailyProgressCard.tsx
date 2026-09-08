@@ -21,7 +21,7 @@ export const DailyProgressCard = ({ userName, onStartLearning }: DailyProgressCa
         <Text
           style={{
             color: '#111827',
-            fontSize: ms(22),
+            fontSize: ms(24),
             fontWeight: '700',
             marginBottom: vs(4),
           }}
@@ -31,7 +31,7 @@ export const DailyProgressCard = ({ userName, onStartLearning }: DailyProgressCa
         <Text
           style={{
             color: '#1F4086',
-            fontSize: ms(22),
+            fontSize: ms(24),
             fontWeight: '700',
             marginBottom: vs(10),
           }}
@@ -41,7 +41,7 @@ export const DailyProgressCard = ({ userName, onStartLearning }: DailyProgressCa
         <Text
           style={{
             color: '#111827',
-            fontSize: ms(15),
+            fontSize: ms(16),
             lineHeight: ms(28),
             marginBottom: vs(20),
           }}
@@ -66,7 +66,7 @@ export const DailyProgressCard = ({ userName, onStartLearning }: DailyProgressCa
             <Text
               style={{
                 color: '#FFFFFF',
-                fontSize: ms(15),
+                fontSize: ms(18),
                 fontWeight: '700',
                 letterSpacing: 0.5,
               }}

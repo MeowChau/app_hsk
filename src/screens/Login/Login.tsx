@@ -116,7 +116,7 @@ function Login({ navigation }: RootScreenProps<Paths.Login>) {
               layout.row,
               layout.itemsCenter,
               layout.justifyCenter,
-              { marginVertical: 32 },
+              { marginVertical: vs(32) },
             ]}
           >
             <View style={{ backgroundColor: '#2B2B2B', flex: 1, height: 1.5 }} />

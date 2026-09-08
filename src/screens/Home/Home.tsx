@@ -1,5 +1,4 @@
 import React from 'react';
-import { View } from 'react-native';
 
 import { SafeScreen } from '@/components/templates';
 import { Paths } from '@/navigation/paths';
@@ -11,13 +10,12 @@ function Home({ navigation }: RootScreenProps<Paths.Home>) {
   return (
     <SafeScreen style={{ backgroundColor: '#FFFFFF' }}>
       <HomeContent 
-        onSwitchTab={(tab) => {
-          let targetRoute: Paths = Paths.Home;
-          if (tab === 'learn') targetRoute = Paths.Learn;
-          else if (tab === 'game') targetRoute = Paths.Game;
-          else if (tab === 'stats') targetRoute = Paths.Statistics;
-          else if (tab === 'profile') targetRoute = Paths.Profile;
-          navigation.navigate(targetRoute);
+        onSwitchTab={(tab, params) => {
+          if (tab === 'learn') navigation.navigate(Paths.Learn, params as any);
+          else if (tab === 'game') navigation.navigate(Paths.Game, params as any);
+          else if (tab === 'stats') navigation.navigate(Paths.Statistics, params as any);
+          else if (tab === 'profile') navigation.navigate(Paths.Profile, params as any);
+          else navigation.navigate(Paths.Home, params as any);
         }}
         onNavigateToProfile={() => navigation.navigate(Paths.Profile)} 
       />

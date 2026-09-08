@@ -1,0 +1,1 @@
+export { GameMatchingView } from './GameMatchingView';
