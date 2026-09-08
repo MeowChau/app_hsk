@@ -12,7 +12,7 @@ import {
 import Svg, { Path } from 'react-native-svg';
 
 import { Paths } from '@/navigation/paths';
-import { useTheme } from '@/theme';
+import { useTheme, hs, vs, ms } from '@/theme';
 import { Button, Logo } from '@/components/atoms';
 import { InputField } from '@/components/molecules';
 import { SafeScreen } from '@/components/templates';
@@ -30,7 +30,7 @@ function Login({ navigation }: RootScreenProps<Paths.Login>) {
         style={[layout.flex_1]}
       >
         <ScrollView
-          contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 24, paddingTop: 40, paddingBottom: 20 }}
+          contentContainerStyle={{ flexGrow: 1, paddingHorizontal: hs(24), paddingTop: vs(40), paddingBottom: vs(20) }}
           keyboardShouldPersistTaps="handled"
         >
           {/* Header */}
@@ -48,16 +48,16 @@ function Login({ navigation }: RootScreenProps<Paths.Login>) {
               onPress={() => navigation.navigate(Paths.Register)}
               style={{
                 borderColor: colors.primary,
-                borderRadius: 20,
+                borderRadius: ms(20),
                 borderWidth: 1.5,
-                paddingHorizontal: 14,
-                paddingVertical: 6,
+                paddingHorizontal: hs(14),
+                paddingVertical: vs(6),
               }}
             >
               <Text
                 style={{
                   color: colors.primary,
-                  fontSize: 12,
+                  fontSize: ms(12),
                   fontWeight: '600',
                 }}
               >
@@ -72,8 +72,8 @@ function Login({ navigation }: RootScreenProps<Paths.Login>) {
               fonts.bold,
               {
                 color: '#000000',
-                fontSize: 22,
-                marginBottom: 32,
+                fontSize: ms(22),
+                marginBottom: vs(32),
               },
             ]}
           >
@@ -81,14 +81,14 @@ function Login({ navigation }: RootScreenProps<Paths.Login>) {
           </Text>
 
           {/* Input Fields */}
-          <View style={{ marginBottom: 28 }}>
+          <View style={{ marginBottom: vs(28) }}>
             <InputField
               autoCapitalize="none"
               iconType="mail"
               keyboardType="email-address"
               onChangeText={setEmail}
               placeholder="Email"
-              style={{ marginBottom: 16 }}
+              style={{ marginBottom: vs(16) }}
               value={email}
             />
             <InputField
@@ -104,7 +104,7 @@ function Login({ navigation }: RootScreenProps<Paths.Login>) {
           <Button
             fullWidth
             onPress={() => {
-              navigation.navigate(Paths.Home);
+              navigation.navigate(Paths.MainTabs);
             }}
             title="Đăng nhập"
             variant="primary"
@@ -123,9 +123,9 @@ function Login({ navigation }: RootScreenProps<Paths.Login>) {
             <Text
               style={{
                 color: '#4D4D4D',
-                fontSize: 14,
+                fontSize: ms(14),
                 fontWeight: '600',
-                marginHorizontal: 16,
+                marginHorizontal: hs(16),
               }}
             >
               HOẶC
@@ -139,9 +139,9 @@ function Login({ navigation }: RootScreenProps<Paths.Login>) {
               activeOpacity={0.8}
               style={{
                 alignItems: 'center',
-                height: 48,
+                height: vs(48),
                 justifyContent: 'center',
-                width: 48,
+                width: hs(48),
               }}
             >
               <Svg height={38} viewBox="0 0 48 48" width={38}>

@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 
 import { Paths } from '@/navigation/paths';
-import { useTheme } from '@/theme';
+import { useTheme, hs, vs, ms } from '@/theme';
 import { AssetByVariant, Logo } from '@/components/atoms';
 import { SafeScreen } from '@/components/templates';
 
@@ -48,7 +48,7 @@ function Onboarding({ navigation }: RootScreenProps<Paths.Onboarding>) {
             layout.row,
             layout.justifyCenter,
             layout.itemsCenter,
-            { marginBottom: 12 },
+            { marginBottom: vs(12) },
           ]}
         >
           <Logo variant="light" />
@@ -85,7 +85,7 @@ function Onboarding({ navigation }: RootScreenProps<Paths.Onboarding>) {
               path="student"
               resizeMode="contain"
               style={{
-                bottom: 0,
+                bottom: vs(0),
                 height: girlHeight,
                 left: girlLeft,
                 position: 'absolute',
@@ -99,12 +99,12 @@ function Onboarding({ navigation }: RootScreenProps<Paths.Onboarding>) {
         <View
           style={{
             alignSelf: 'center',
-            columnGap: 24,
+            columnGap: hs(24),
             flexDirection: 'row',
             maxWidth: 338,
-            marginTop: 16,
+            marginTop: vs(16),
             paddingBottom: isSmallScreen ? 16 : 28,
-            paddingHorizontal: 16,
+            paddingHorizontal: hs(16),
             width: '100%',
           }}
         >
@@ -116,14 +116,14 @@ function Onboarding({ navigation }: RootScreenProps<Paths.Onboarding>) {
               alignItems: 'center',
               backgroundColor: 'rgba(255, 255, 255, 0.16)',
               borderColor: 'rgba(255, 255, 255, 0.85)',
-              borderRadius: 24,
+              borderRadius: ms(24),
               borderWidth: 1.5,
               flex: 1,
-              height: 48,
+              height: vs(48),
               justifyContent: 'center',
             }}
           >
-            <Text style={{ color: '#FFFFFF', fontSize: 16, fontWeight: '600' }}>
+            <Text style={{ color: '#FFFFFF', fontSize: ms(16), fontWeight: '600' }}>
               Đăng nhập
             </Text>
           </TouchableOpacity>
@@ -135,13 +135,13 @@ function Onboarding({ navigation }: RootScreenProps<Paths.Onboarding>) {
             style={{
               alignItems: 'center',
               backgroundColor: '#CCE3EB',
-              borderRadius: 24,
+              borderRadius: ms(24),
               flex: 1,
-              height: 48,
+              height: vs(48),
               justifyContent: 'center',
             }}
           >
-            <Text style={{ color: '#2C3E50', fontSize: 16, fontWeight: '600' }}>
+            <Text style={{ color: '#2C3E50', fontSize: ms(16), fontWeight: '600' }}>
               Đăng ký
             </Text>
           </TouchableOpacity>

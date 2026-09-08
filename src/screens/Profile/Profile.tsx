@@ -13,7 +13,7 @@ import Svg, { Circle, Path, Rect } from 'react-native-svg';
 
 import { SafeScreen } from '@/components/templates';
 import { Paths } from '@/navigation/paths';
-import { useTheme } from '@/theme';
+import { useTheme, hs, vs, ms } from '@/theme';
 
 export function ProfileContent({ onLogout }: { onLogout?: () => void }) {
   const { layout } = useTheme();
@@ -25,18 +25,18 @@ export function ProfileContent({ onLogout }: { onLogout?: () => void }) {
 
   return (
     <ScrollView
-      contentContainerStyle={{ paddingBottom: 24 }}
+      contentContainerStyle={{ paddingBottom: vs(24) }}
       showsVerticalScrollIndicator={false}
     >
           {/* ================= HEADER ================= */}
-          <View style={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 16 }}>
+          <View style={{ paddingHorizontal: hs(16), paddingTop: vs(16), paddingBottom: vs(16) }}>
             {/* Title */}
             <Text
               style={{
                 color: '#111827',
-                fontSize: 22,
+                fontSize: ms(22),
                 fontWeight: '800',
-                marginBottom: 4,
+                marginBottom: vs(4),
               }}
             >
               Tài khoản người dùng
@@ -46,8 +46,8 @@ export function ProfileContent({ onLogout }: { onLogout?: () => void }) {
             <Text
               style={{
                 color: '#4B5563',
-                fontSize: 13,
-                lineHeight: 18,
+                fontSize: ms(13),
+                lineHeight: ms(18),
               }}
             >
               Thông tin tài khoản, cài đặt & cập nhật thông tin
@@ -55,17 +55,17 @@ export function ProfileContent({ onLogout }: { onLogout?: () => void }) {
           </View>
 
           {/* ================= CARD 1: HỒ SƠ ================= */}
-          <View style={{ paddingHorizontal: 16, marginBottom: 16 }}>
+          <View style={{ paddingHorizontal: hs(16), marginBottom: vs(16) }}>
             <View
               style={{
                 backgroundColor: '#FFFFFF',
                 borderColor: '#F0F2F5',
-                borderRadius: 16,
+                borderRadius: ms(16),
                 borderWidth: 1,
                 elevation: 1.5,
-                padding: 16,
+                padding: ms(16),
                 shadowColor: '#000',
-                shadowOffset: { width: 0, height: 2 },
+                shadowOffset: { width: hs(0), height: vs(2) },
                 shadowOpacity: 0.05,
                 shadowRadius: 5,
               }}
@@ -74,9 +74,9 @@ export function ProfileContent({ onLogout }: { onLogout?: () => void }) {
               <Text
                 style={{
                   color: '#111827',
-                  fontSize: 15,
+                  fontSize: ms(15),
                   fontWeight: '700',
-                  marginBottom: 2,
+                  marginBottom: vs(2),
                 }}
               >
                 Hồ sơ
@@ -84,28 +84,28 @@ export function ProfileContent({ onLogout }: { onLogout?: () => void }) {
               <Text
                 style={{
                   color: '#6B7280',
-                  fontSize: 12,
-                  marginBottom: 16,
+                  fontSize: ms(12),
+                  marginBottom: vs(16),
                 }}
               >
                 Tên và ảnh đại diện của bạn hiển thị trên bảng xếp hạng trò chơi.
               </Text>
 
               {/* Avatar Section */}
-              <View style={{ alignItems: 'center', marginBottom: 16 }}>
+              <View style={{ alignItems: 'center', marginBottom: vs(16) }}>
                 {/* Circular Avatar */}
                 <View
                   style={{
                     alignItems: 'center',
                     backgroundColor: '#F3E8FF',
                     borderColor: '#E9D5FF',
-                    borderRadius: 44,
+                    borderRadius: ms(44),
                     borderWidth: 1.5,
-                    height: 88,
+                    height: vs(88),
                     justifyContent: 'center',
-                    marginBottom: 12,
+                    marginBottom: vs(12),
                     overflow: 'hidden',
-                    width: 88,
+                    width: hs(88),
                   }}
                 >
                   <Svg height="88" viewBox="0 0 100 100" width="88">
@@ -153,14 +153,14 @@ export function ProfileContent({ onLogout }: { onLogout?: () => void }) {
                       alignItems: 'center',
                       backgroundColor: '#FAF8F5',
                       borderColor: '#E5E7EB',
-                      borderRadius: 8,
+                      borderRadius: ms(8),
                       borderWidth: 1,
                       flexDirection: 'row',
-                      paddingHorizontal: 12,
-                      paddingVertical: 6,
+                      paddingHorizontal: hs(12),
+                      paddingVertical: vs(6),
                     }}
                   >
-                    <Svg height="14" style={{ marginRight: 6 }} viewBox="0 0 24 24" width="14">
+                    <Svg height="14" style={{ marginRight: hs(6) }} viewBox="0 0 24 24" width="14">
                       <Path
                         d="M12 15.2a3.2 3.2 0 100-6.4 3.2 3.2 0 000 6.4z"
                         fill="#374151"
@@ -170,7 +170,7 @@ export function ProfileContent({ onLogout }: { onLogout?: () => void }) {
                         fill="#374151"
                       />
                     </Svg>
-                    <Text style={{ color: '#374151', fontSize: 12, fontWeight: '600' }}>
+                    <Text style={{ color: '#374151', fontSize: ms(12), fontWeight: '600' }}>
                       Đổi ảnh
                     </Text>
                   </TouchableOpacity>
@@ -180,10 +180,10 @@ export function ProfileContent({ onLogout }: { onLogout?: () => void }) {
                     activeOpacity={0.7}
                     style={{
                       alignItems: 'center',
-                      height: 32,
+                      height: vs(32),
                       justifyContent: 'center',
-                      marginLeft: 10,
-                      width: 32,
+                      marginLeft: hs(10),
+                      width: hs(32),
                     }}
                   >
                     <Svg height="16" viewBox="0 0 24 24" width="16">
@@ -199,8 +199,8 @@ export function ProfileContent({ onLogout }: { onLogout?: () => void }) {
                 <Text
                   style={{
                     color: '#9CA3AF',
-                    fontSize: 10,
-                    marginTop: 8,
+                    fontSize: ms(10),
+                    marginTop: vs(8),
                     textAlign: 'center',
                   }}
                 >
@@ -209,13 +209,13 @@ export function ProfileContent({ onLogout }: { onLogout?: () => void }) {
               </View>
 
               {/* Input: Tên hiển thị */}
-              <View style={{ marginBottom: 12 }}>
+              <View style={{ marginBottom: vs(12) }}>
                 <Text
                   style={{
                     color: '#374151',
-                    fontSize: 12,
+                    fontSize: ms(12),
                     fontWeight: '600',
-                    marginBottom: 6,
+                    marginBottom: vs(6),
                   }}
                 >
                   Tên hiển thị
@@ -225,25 +225,25 @@ export function ProfileContent({ onLogout }: { onLogout?: () => void }) {
                   style={{
                     backgroundColor: '#FFFFFF',
                     borderColor: '#E5E7EB',
-                    borderRadius: 8,
+                    borderRadius: ms(8),
                     borderWidth: 1,
                     color: '#111827',
-                    fontSize: 13,
-                    paddingHorizontal: 12,
-                    paddingVertical: 9,
+                    fontSize: ms(13),
+                    paddingHorizontal: hs(12),
+                    paddingVertical: vs(9),
                   }}
                   value={displayName}
                 />
               </View>
 
               {/* Input: Email */}
-              <View style={{ marginBottom: 16 }}>
+              <View style={{ marginBottom: vs(16) }}>
                 <Text
                   style={{
                     color: '#374151',
-                    fontSize: 12,
+                    fontSize: ms(12),
                     fontWeight: '600',
-                    marginBottom: 6,
+                    marginBottom: vs(6),
                   }}
                 >
                   Email
@@ -253,32 +253,32 @@ export function ProfileContent({ onLogout }: { onLogout?: () => void }) {
                   style={{
                     backgroundColor: '#F9FAFB',
                     borderColor: '#E5E7EB',
-                    borderRadius: 8,
+                    borderRadius: ms(8),
                     borderWidth: 1,
                     color: '#9CA3AF',
-                    fontSize: 13,
-                    paddingHorizontal: 12,
-                    paddingVertical: 9,
+                    fontSize: ms(13),
+                    paddingHorizontal: hs(12),
+                    paddingVertical: vs(9),
                   }}
                   value={email}
                 />
               </View>
 
               {/* Bottom Actions Row */}
-              <View style={[layout.row, { columnGap: 10 }]}>
+              <View style={[layout.row, { columnGap: hs(10) }]}>
                 {/* Save Changes Button */}
                 <TouchableOpacity
                   activeOpacity={0.8}
                   style={{
                     alignItems: 'center',
                     backgroundColor: '#64748B',
-                    borderRadius: 8,
+                    borderRadius: ms(8),
                     justifyContent: 'center',
-                    paddingHorizontal: 18,
-                    paddingVertical: 10,
+                    paddingHorizontal: hs(18),
+                    paddingVertical: vs(10),
                   }}
                 >
-                  <Text style={{ color: '#FFFFFF', fontSize: 12, fontWeight: '700' }}>
+                  <Text style={{ color: '#FFFFFF', fontSize: ms(12), fontWeight: '700' }}>
                     Lưu thay đổi
                   </Text>
                 </TouchableOpacity>
@@ -290,20 +290,20 @@ export function ProfileContent({ onLogout }: { onLogout?: () => void }) {
                     alignItems: 'center',
                     backgroundColor: '#FAF8F5',
                     borderColor: '#E5E7EB',
-                    borderRadius: 8,
+                    borderRadius: ms(8),
                     borderWidth: 1,
                     flexDirection: 'row',
-                    paddingHorizontal: 16,
-                    paddingVertical: 10,
+                    paddingHorizontal: hs(16),
+                    paddingVertical: vs(10),
                   }}
                 >
-                  <Svg height="14" style={{ marginRight: 6 }} viewBox="0 0 24 24" width="14">
+                  <Svg height="14" style={{ marginRight: hs(6) }} viewBox="0 0 24 24" width="14">
                     <Path
                       d="M12.65 10A5.99 5.99 0 007 6c-3.31 0-6 2.69-6 6s2.69 6 6 6a5.99 5.99 0 005.65-4H17v4h4v-4h2v-4H12.65zM7 14c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"
                       fill="#4B5563"
                     />
                   </Svg>
-                  <Text style={{ color: '#374151', fontSize: 12, fontWeight: '700' }}>
+                  <Text style={{ color: '#374151', fontSize: ms(12), fontWeight: '700' }}>
                     Đổi mật khẩu
                   </Text>
                 </TouchableOpacity>
@@ -312,17 +312,17 @@ export function ProfileContent({ onLogout }: { onLogout?: () => void }) {
           </View>
 
           {/* ================= CARD 2: HIỂN THỊ KHI HỌC ================= */}
-          <View style={{ paddingHorizontal: 16, marginBottom: 16 }}>
+          <View style={{ paddingHorizontal: hs(16), marginBottom: vs(16) }}>
             <View
               style={{
                 backgroundColor: '#FFFFFF',
                 borderColor: '#F0F2F5',
-                borderRadius: 16,
+                borderRadius: ms(16),
                 borderWidth: 1,
                 elevation: 1.5,
-                padding: 16,
+                padding: ms(16),
                 shadowColor: '#000',
-                shadowOffset: { width: 0, height: 2 },
+                shadowOffset: { width: hs(0), height: vs(2) },
                 shadowOpacity: 0.05,
                 shadowRadius: 5,
               }}
@@ -330,9 +330,9 @@ export function ProfileContent({ onLogout }: { onLogout?: () => void }) {
               <Text
                 style={{
                   color: '#111827',
-                  fontSize: 15,
+                  fontSize: ms(15),
                   fontWeight: '700',
-                  marginBottom: 2,
+                  marginBottom: vs(2),
                 }}
               >
                 Hiển thị khi học
@@ -340,16 +340,16 @@ export function ProfileContent({ onLogout }: { onLogout?: () => void }) {
               <Text
                 style={{
                   color: '#6B7280',
-                  fontSize: 12,
-                  marginBottom: 14,
+                  fontSize: ms(12),
+                  marginBottom: vs(14),
                 }}
               >
                 Cách các bài học hiển thị mặc định trên mọi thiết bị của bạn.
               </Text>
 
               {/* Toggle Setting Row */}
-              <View style={[layout.row, layout.justifyBetween, layout.itemsCenter, { marginBottom: 6 }]}>
-                <Text style={{ color: '#111827', fontSize: 13, fontWeight: '700' }}>
+              <View style={[layout.row, layout.justifyBetween, layout.itemsCenter, { marginBottom: vs(6) }]}>
+                <Text style={{ color: '#111827', fontSize: ms(13), fontWeight: '700' }}>
                   Hiện pinyin trong bài học
                 </Text>
                 <Switch
@@ -362,8 +362,8 @@ export function ProfileContent({ onLogout }: { onLogout?: () => void }) {
               <Text
                 style={{
                   color: '#6B7280',
-                  fontSize: 11,
-                  lineHeight: 16,
+                  fontSize: ms(11),
+                  lineHeight: ms(16),
                 }}
               >
                 Tắt để ẩn pinyin ngay từ đầu ở trang bài học và trang chủ đề, giúp bạn tập nhớ mặt chữ. Khi cần, bạn vẫn bấm được nút <Text style={{ fontWeight: '700' }}>Hiện pinyin</Text> ngay trên trang để xem tạm thời.
@@ -372,17 +372,17 @@ export function ProfileContent({ onLogout }: { onLogout?: () => void }) {
           </View>
 
           {/* ================= CARD 3: QUYỀN RIÊNG TƯ ================= */}
-          <View style={{ paddingHorizontal: 16, marginBottom: 20 }}>
+          <View style={{ paddingHorizontal: hs(16), marginBottom: vs(20) }}>
             <View
               style={{
                 backgroundColor: '#FFFFFF',
                 borderColor: '#F0F2F5',
-                borderRadius: 16,
+                borderRadius: ms(16),
                 borderWidth: 1,
                 elevation: 1.5,
-                padding: 16,
+                padding: ms(16),
                 shadowColor: '#000',
-                shadowOffset: { width: 0, height: 2 },
+                shadowOffset: { width: hs(0), height: vs(2) },
                 shadowOpacity: 0.05,
                 shadowRadius: 5,
               }}
@@ -390,9 +390,9 @@ export function ProfileContent({ onLogout }: { onLogout?: () => void }) {
               <Text
                 style={{
                   color: '#111827',
-                  fontSize: 15,
+                  fontSize: ms(15),
                   fontWeight: '700',
-                  marginBottom: 2,
+                  marginBottom: vs(2),
                 }}
               >
                 Quyền riêng tư
@@ -400,16 +400,16 @@ export function ProfileContent({ onLogout }: { onLogout?: () => void }) {
               <Text
                 style={{
                   color: '#6B7280',
-                  fontSize: 12,
-                  marginBottom: 14,
+                  fontSize: ms(12),
+                  marginBottom: vs(14),
                 }}
               >
                 Kiểm soát thông tin hiển thị công khai trên trang chủ.
               </Text>
 
               {/* Toggle Setting Row */}
-              <View style={[layout.row, layout.justifyBetween, layout.itemsCenter, { marginBottom: 6 }]}>
-                <Text style={{ color: '#111827', fontSize: 13, fontWeight: '700' }}>
+              <View style={[layout.row, layout.justifyBetween, layout.itemsCenter, { marginBottom: vs(6) }]}>
+                <Text style={{ color: '#111827', fontSize: ms(13), fontWeight: '700' }}>
                   Hiển thị hoạt động ẩn danh trên trang chủ
                 </Text>
                 <Switch
@@ -422,8 +422,8 @@ export function ProfileContent({ onLogout }: { onLogout?: () => void }) {
               <Text
                 style={{
                   color: '#6B7280',
-                  fontSize: 11,
-                  lineHeight: 16,
+                  fontSize: ms(11),
+                  lineHeight: ms(16),
                 }}
               >
                 Khi bật, hoạt động của bạn (đăng ký, tải worksheet, luyện chữ) sẽ hiển thị trên trang chủ với tên ẩn danh: <Text style={{ fontWeight: '700' }}>Ng***n V. A.</Text> Tên đầy đủ và email không bao giờ bị tiết lộ.
@@ -432,7 +432,7 @@ export function ProfileContent({ onLogout }: { onLogout?: () => void }) {
           </View>
 
           {/* ================= LOGOUT ACTION BUTTON ================= */}
-          <View style={{ alignItems: 'center', marginBottom: 16 }}>
+          <View style={{ alignItems: 'center', marginBottom: vs(16) }}>
             <TouchableOpacity
               activeOpacity={0.8}
               delayPressIn={0}
@@ -440,14 +440,14 @@ export function ProfileContent({ onLogout }: { onLogout?: () => void }) {
               style={{
                 alignItems: 'center',
                 backgroundColor: '#0E84F2',
-                borderRadius: 24,
+                borderRadius: ms(24),
                 flexDirection: 'row',
                 justifyContent: 'center',
-                paddingHorizontal: 28,
-                paddingVertical: 12,
+                paddingHorizontal: hs(28),
+                paddingVertical: vs(12),
               }}
             >
-              <Svg height="18" style={{ marginRight: 8 }} viewBox="0 0 24 24" width="18">
+              <Svg height="18" style={{ marginRight: hs(8) }} viewBox="0 0 24 24" width="18">
                 <Path
                   d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"
                   fill="#FFFFFF"
@@ -456,7 +456,7 @@ export function ProfileContent({ onLogout }: { onLogout?: () => void }) {
               <Text
                 style={{
                   color: '#FFFFFF',
-                  fontSize: 14,
+                  fontSize: ms(14),
                   fontWeight: '700',
                 }}
               >
@@ -484,16 +484,16 @@ function Profile({ navigation }: RootScreenProps<Paths.Profile>) {
             borderTopWidth: 1,
             flexDirection: 'row',
             justifyContent: 'space-around',
-            paddingBottom: 8,
-            paddingTop: 8,
+            paddingBottom: vs(8),
+            paddingTop: vs(8),
           }}
         >
           {/* Tab 1: Home */}
           <TouchableOpacity
             activeOpacity={0.7}
             delayPressIn={0}
-            onPress={() => navigation.navigate(Paths.Home, { tab: 'home' })}
-            style={{ alignItems: 'center', flex: 1, paddingVertical: 4 }}
+            onPress={() => navigation.navigate(Paths.Home)}
+            style={{ alignItems: 'center', flex: 1, paddingVertical: vs(4) }}
           >
             <Svg height="22" viewBox="0 0 24 24" width="22">
               <Path
@@ -507,8 +507,8 @@ function Profile({ navigation }: RootScreenProps<Paths.Profile>) {
           <TouchableOpacity
             activeOpacity={0.7}
             delayPressIn={0}
-            onPress={() => navigation.navigate(Paths.Home, { tab: 'learn' })}
-            style={{ alignItems: 'center', flex: 1, paddingVertical: 4 }}
+            onPress={() => navigation.navigate(Paths.Learn)}
+            style={{ alignItems: 'center', flex: 1, paddingVertical: vs(4) }}
           >
             <Svg height="22" viewBox="0 0 24 24" width="22">
               <Path
@@ -522,8 +522,8 @@ function Profile({ navigation }: RootScreenProps<Paths.Profile>) {
           <TouchableOpacity
             activeOpacity={0.7}
             delayPressIn={0}
-            onPress={() => navigation.navigate(Paths.Home, { tab: 'game' })}
-            style={{ alignItems: 'center', flex: 1, paddingVertical: 4 }}
+            onPress={() => navigation.navigate(Paths.Game)}
+            style={{ alignItems: 'center', flex: 1, paddingVertical: vs(4) }}
           >
             <Svg height="22" viewBox="0 0 24 24" width="22">
               <Path
@@ -537,8 +537,8 @@ function Profile({ navigation }: RootScreenProps<Paths.Profile>) {
           <TouchableOpacity
             activeOpacity={0.7}
             delayPressIn={0}
-            onPress={() => navigation.navigate(Paths.Home, { tab: 'stats' })}
-            style={{ alignItems: 'center', flex: 1, paddingVertical: 4 }}
+            onPress={() => navigation.navigate(Paths.Statistics)}
+            style={{ alignItems: 'center', flex: 1, paddingVertical: vs(4) }}
           >
             <Svg height="22" viewBox="0 0 24 24" width="22">
               <Path
@@ -552,7 +552,7 @@ function Profile({ navigation }: RootScreenProps<Paths.Profile>) {
           <TouchableOpacity
             activeOpacity={0.7}
             delayPressIn={0}
-            style={{ alignItems: 'center', flex: 1, paddingVertical: 4 }}
+            style={{ alignItems: 'center', flex: 1, paddingVertical: vs(4) }}
           >
             <Svg height="22" viewBox="0 0 24 24" width="22">
               <Path

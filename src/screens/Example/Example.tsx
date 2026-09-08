@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Alert, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
 import { useI18n, useUser } from '@/hooks';
-import { useTheme } from '@/theme';
+import { useTheme, hs, vs, ms } from '@/theme';
 import { InputField, ProgressCard, ProgressTracingCard, SegmentControl, QuestionNumberCard, FlashCard } from '@/components/molecules';
 
 import { AssetByVariant, IconByVariant, Skeleton, Logo, Button, ArrowButton, BackButton } from '@/components/atoms';
@@ -71,13 +71,13 @@ function Example() {
             <ArrowButton 
               direction="left" 
               onPress={() => setViewIndex(Math.max(0, viewIndex - 1))} 
-              style={{ width: 64, height: 64, opacity: viewIndex === 0 ? 0.3 : 1 }}
+              style={{ width: hs(64), height: vs(64), opacity: viewIndex === 0 ? 0.3 : 1 }}
             />
-            <Text style={[fonts.bold, { fontSize: 18, textAlign: 'center', flex: 1 }]}>Phần {viewIndex + 1} / {totalViews}</Text>
+            <Text style={[fonts.bold, { fontSize: ms(18), textAlign: 'center', flex: 1 }]}>Phần {viewIndex + 1} / {totalViews}</Text>
             <ArrowButton 
               direction="right" 
               onPress={() => setViewIndex(Math.min(totalViews - 1, viewIndex + 1))} 
-              style={{ width: 64, height: 64, opacity: viewIndex === totalViews - 1 ? 0.3 : 1 }}
+              style={{ width: hs(64), height: vs(64), opacity: viewIndex === totalViews - 1 ? 0.3 : 1 }}
             />
           </View>
 
@@ -94,7 +94,7 @@ function Example() {
               <Button title="Register" variant="outline" style={[gutters.marginBottom_16]} />
               <Button title="Edit profile" variant="text" style={[gutters.marginBottom_16]} />
               <Button title="Submit" variant="primary" fullWidth style={[gutters.marginBottom_16]} />
-              <View style={[layout.row, { gap: 16 }, gutters.marginBottom_16]}>
+              <View style={[layout.row, { gap: ms(16) }, gutters.marginBottom_16]}>
                 <ArrowButton direction="left" />
                 <ArrowButton direction="right" />
                 <BackButton />
@@ -115,7 +115,7 @@ function Example() {
           {viewIndex === 2 && (
             <View>
               <Text style={[fonts.bold, gutters.marginBottom_16]}>3. Thẻ tiến trình lớn (ProgressCard)</Text>
-              <View style={[layout.row, layout.wrap, layout.justifyCenter, { gap: 16 }]}>
+              <View style={[layout.row, layout.wrap, layout.justifyCenter, { gap: ms(16) }]}>
                 <ProgressCard title="Listening" progress={40} variant="listening" />
                 <ProgressCard title="Reading" progress={35} variant="reading" />
                 <ProgressCard title="Writing" progress={20} variant="writing" />
@@ -127,7 +127,7 @@ function Example() {
           {viewIndex === 3 && (
             <View>
               <Text style={[fonts.bold, gutters.marginBottom_16]}>4. Thẻ tiến trình nhỏ (ProgressTracingCard)</Text>
-              <View style={[layout.row, layout.wrap, layout.justifyCenter, { gap: 16 }]}>
+              <View style={[layout.row, layout.wrap, layout.justifyCenter, { gap: ms(16) }]}>
                 <ProgressTracingCard title="reading" subtitle={"50\nQuestions"} variant="reading" />
                 <ProgressTracingCard title="Writing" subtitle={"35\nQuestions"} variant="writing" />
                 <ProgressTracingCard title="flashcards" subtitle={"12\nword"} variant="flashcards" />
@@ -158,7 +158,7 @@ function Example() {
           {viewIndex === 5 && (
             <View>
               <Text style={[fonts.bold, gutters.marginBottom_16]}>6. Thẻ số câu hỏi (QuestionNumberCard)</Text>
-              <View style={[layout.row, layout.wrap, layout.justifyCenter, { gap: 8 }]}>
+              <View style={[layout.row, layout.wrap, layout.justifyCenter, { gap: ms(8) }]}>
                 <QuestionNumberCard number={1} status="active" />
                 <QuestionNumberCard number={2} status="default" />
                 <QuestionNumberCard number={3} status="correct" />

@@ -12,7 +12,7 @@ import {
 import Svg, { Path } from 'react-native-svg';
 
 import { Paths } from '@/navigation/paths';
-import { useTheme } from '@/theme';
+import { useTheme, hs, vs, ms } from '@/theme';
 import { Button, Logo } from '@/components/atoms';
 import { InputField } from '@/components/molecules';
 import { SafeScreen } from '@/components/templates';
@@ -32,7 +32,7 @@ function Register({ navigation }: RootScreenProps<Paths.Register>) {
         style={[layout.flex_1]}
       >
         <ScrollView
-          contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 24, paddingTop: 40, paddingBottom: 20 }}
+          contentContainerStyle={{ flexGrow: 1, paddingHorizontal: hs(24), paddingTop: vs(40), paddingBottom: vs(20) }}
           keyboardShouldPersistTaps="handled"
         >
           {/* Header */}
@@ -50,16 +50,16 @@ function Register({ navigation }: RootScreenProps<Paths.Register>) {
               onPress={() => navigation.navigate(Paths.Login)}
               style={{
                 borderColor: colors.primary,
-                borderRadius: 20,
+                borderRadius: ms(20),
                 borderWidth: 1.5,
-                paddingHorizontal: 14,
-                paddingVertical: 6,
+                paddingHorizontal: hs(14),
+                paddingVertical: vs(6),
               }}
             >
               <Text
                 style={{
                   color: colors.primary,
-                  fontSize: 12,
+                  fontSize: ms(12),
                   fontWeight: '600',
                 }}
               >
@@ -74,8 +74,8 @@ function Register({ navigation }: RootScreenProps<Paths.Register>) {
               fonts.bold,
               {
                 color: '#000000',
-                fontSize: 22,
-                marginBottom: 28,
+                fontSize: ms(22),
+                marginBottom: vs(28),
               },
             ]}
           >
@@ -83,7 +83,7 @@ function Register({ navigation }: RootScreenProps<Paths.Register>) {
           </Text>
 
           {/* Input Fields */}
-          <View style={{ marginBottom: 24, rowGap: 14 }}>
+          <View style={{ marginBottom: vs(24), rowGap: vs(14) }}>
             <InputField
               iconType="user"
               onChangeText={setUsername}
@@ -137,9 +137,9 @@ function Register({ navigation }: RootScreenProps<Paths.Register>) {
             <Text
               style={{
                 color: '#4D4D4D',
-                fontSize: 14,
+                fontSize: ms(14),
                 fontWeight: '600',
-                marginHorizontal: 16,
+                marginHorizontal: hs(16),
               }}
             >
               HOẶC
@@ -148,14 +148,14 @@ function Register({ navigation }: RootScreenProps<Paths.Register>) {
           </View>
 
           {/* Google Sign-in */}
-          <View style={[layout.row, layout.justifyCenter, { paddingBottom: 16 }]}>
+          <View style={[layout.row, layout.justifyCenter, { paddingBottom: vs(16) }]}>
             <TouchableOpacity
               activeOpacity={0.8}
               style={{
                 alignItems: 'center',
-                height: 48,
+                height: vs(48),
                 justifyContent: 'center',
-                width: 48,
+                width: hs(48),
               }}
             >
               <Svg height={38} viewBox="0 0 48 48" width={38}>

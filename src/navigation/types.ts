@@ -6,13 +6,24 @@ export type RootScreenProps<
   S extends keyof RootStackParamList = keyof RootStackParamList,
 > = StackScreenProps<RootStackParamList, S>;
 
+export type RootTabParamList = {
+  [Paths.Home]: undefined;
+  [Paths.Learn]: undefined;
+  [Paths.Game]: undefined;
+  [Paths.Statistics]: undefined;
+  [Paths.Profile]: undefined;
+};
+
 export type RootStackParamList = {
   [Paths.Example]: undefined;
   [Paths.Startup]: undefined;
   [Paths.Onboarding]: undefined;
   [Paths.Login]: undefined;
   [Paths.Register]: undefined;
-  [Paths.Home]: { tab?: 'home' | 'learn' | 'game' | 'stats' | 'profile' } | undefined;
+  [Paths.MainTabs]: undefined;
+  [Paths.Home]: undefined;
+  [Paths.Learn]: undefined;
+  [Paths.Game]: undefined;
   [Paths.Statistics]: undefined;
   [Paths.Profile]: undefined;
 };

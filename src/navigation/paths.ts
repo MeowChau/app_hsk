@@ -7,4 +7,7 @@ export const enum Paths {
   Home = 'home',
   Statistics = 'statistics',
   Profile = 'profile',
+  Learn = 'learn',
+  Game = 'game',
+  MainTabs = 'mainTabs',
 }
