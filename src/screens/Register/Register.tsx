@@ -118,7 +118,7 @@ function Register({ navigation }: RootScreenProps<Paths.Register>) {
           <Button
             fullWidth
             onPress={() => {
-              // Action register placeholder
+              navigation.navigate(Paths.Survey);
             }}
             title="Đăng ký"
             variant="primary"

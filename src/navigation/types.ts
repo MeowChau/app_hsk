@@ -26,4 +26,5 @@ export type RootStackParamList = {
   [Paths.Game]: { targetView?: 'main' | 'rules' | 'leaderboard' | 'matching' | 'battle'; timestamp?: number } | undefined;
   [Paths.Statistics]: undefined;
   [Paths.Profile]: undefined;
+  [Paths.Survey]: undefined;
 };

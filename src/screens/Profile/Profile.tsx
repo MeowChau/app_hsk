@@ -12,6 +12,7 @@ import Svg, { Path } from 'react-native-svg';
 import { UserProfileCard } from './UserProfileCard';
 import { DisplaySettingsCard } from './DisplaySettingsCard';
 import { PrivacySettingsCard } from './PrivacySettingsCard';
+import { HskLevelSettingsCard } from './HskLevelSettingsCard';
 import { SafeScreen } from '@/components/templates';
 import { Paths } from '@/navigation/paths';
 import { useTheme, hs, vs, ms } from '@/theme';
@@ -20,6 +21,7 @@ export function ProfileContent({ onLogout }: { onLogout?: () => void }) {
 
   const [displayName, setDisplayName] = useState('Hoàng Văn Hùng');
   const [email] = useState('hunghv@gmail.com');
+  const [currentHskLevel, setCurrentHskLevel] = useState(1);
   const [showPinyin, setShowPinyin] = useState(true);
   const [anonymousActivity, setAnonymousActivity] = useState(true);
 
@@ -60,6 +62,14 @@ export function ProfileContent({ onLogout }: { onLogout?: () => void }) {
               displayName={displayName}
               email={email}
               setDisplayName={setDisplayName}
+            />
+          </View>
+
+          {/* ================= CARD 1.5: TRÌNH ĐỘ HSK ================= */}
+          <View style={{ paddingHorizontal: hs(16), marginBottom: vs(16) }}>
+            <HskLevelSettingsCard 
+              currentLevel={currentHskLevel}
+              onLevelChange={setCurrentHskLevel}
             />
           </View>
 

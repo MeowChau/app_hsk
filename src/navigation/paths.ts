@@ -10,4 +10,5 @@ export const enum Paths {
   Learn = 'learn',
   Game = 'game',
   MainTabs = 'mainTabs',
+  Survey = 'survey',
 }
