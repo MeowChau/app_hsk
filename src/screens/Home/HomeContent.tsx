@@ -3,12 +3,12 @@ import { View, Text, TouchableOpacity, ScrollView, Image, useWindowDimensions } 
 import Svg, { Path, Circle, Rect } from 'react-native-svg';
 
 import { Logo } from '@/components/atoms';
-import { DailyProgressCard } from './DailyProgressCard';
-import { ContinueLearningCard } from './ContinueLearningCard';
-import { VocabularyStatsCard } from './VocabularyStatsCard';
-import { RecommendedLessonsCard } from './RecommendedLessonsCard';
-import { StreakCard } from './StreakCard';
-import { HomeLeaderboardCard } from './HomeLeaderboardCard';
+import { DailyProgressCard } from './components/DailyProgressCard';
+import { ContinueLearningCard } from './components/ContinueLearningCard';
+import { VocabularyStatsCard } from './components/VocabularyStatsCard';
+import { RecommendedLessonsCard } from './components/RecommendedLessonsCard';
+import { StreakCard } from './components/StreakCard';
+import { HomeLeaderboardCard } from './components/HomeLeaderboardCard';
 import { useTheme, hs, vs, ms } from '@/theme';
 
 interface HomeContentProps {

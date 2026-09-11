@@ -9,10 +9,10 @@ import {
 } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 
-import { UserProfileCard } from './UserProfileCard';
-import { DisplaySettingsCard } from './DisplaySettingsCard';
-import { PrivacySettingsCard } from './PrivacySettingsCard';
-import { HskLevelSettingsCard } from './HskLevelSettingsCard';
+import { UserProfileCard } from './components/UserProfileCard';
+import { DisplaySettingsCard } from './components/DisplaySettingsCard';
+import { PrivacySettingsCard } from './components/PrivacySettingsCard';
+import { HskLevelSettingsCard } from './components/HskLevelSettingsCard';
 import { SafeScreen } from '@/components/templates';
 import { Paths } from '@/navigation/paths';
 import { useTheme, hs, vs, ms } from '@/theme';

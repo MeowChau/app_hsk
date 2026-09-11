@@ -1,4 +1,4 @@
-import { HskExam } from './types';
+import { HskExam, ExamQuestion } from './types';
 
 export const SKILLS = [
   { id: 'NGHE', name: 'NGHE' },
@@ -14,6 +14,42 @@ export const HSK_LEVELS = [
   { level: 4, title: 'HSK 4', subtitle: '“Số lượng”' },
 ];
 
+const generateQuestions = (level: number): ExamQuestion[] => {
+  const questions: ExamQuestion[] = [];
+  
+  // 20 Listening Questions
+  for (let i = 1; i <= 20; i++) {
+    questions.push({
+      id: `q_list_${i}`,
+      type: 'LISTENING',
+      index: i,
+      imageUrl: require('@/theme/assets/images/student.png'),
+      options: [
+        { id: 'opt1', label: '', text: '对' },
+        { id: 'opt2', label: '', text: '错' }
+      ],
+      correctOptionId: 'opt1'
+    });
+  }
+
+  // 20 Reading Questions
+  for (let i = 21; i <= 40; i++) {
+    questions.push({
+      id: `q_read_${i}`,
+      type: 'READING',
+      index: i,
+      options: [
+        { id: 'optA', label: 'A', imageUrl: require('@/theme/assets/images/tom.png') },
+        { id: 'optB', label: 'B', imageUrl: require('@/theme/assets/images/student.png') },
+        { id: 'optC', label: 'C', imageUrl: require('@/theme/assets/images/tom.png') }
+      ],
+      correctOptionId: 'optA'
+    });
+  }
+
+  return questions;
+};
+
 // Sinh 50 đề thi HSK cho mỗi level
 const generateExams = (level: number, count: number): HskExam[] => {
   return Array.from({ length: count }).map((_, index) => ({
@@ -23,6 +59,7 @@ const generateExams = (level: number, count: number): HskExam[] => {
     timeLimit: 30,
     listeningCount: 20,
     readingCount: 20,
+    questions: generateQuestions(level),
   }));
 };
 

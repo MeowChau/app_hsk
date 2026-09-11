@@ -216,23 +216,15 @@ export function GameContent({ navigation, route, targetView: propTargetView }: a
 
           {/* Bảng xếp hạng (Box) */}
           <View style={{ backgroundColor: '#FAFAFA', borderRadius: ms(12), borderWidth: 1, borderColor: '#F0F2F5', overflow: 'hidden', flex: 1 }}>
-            {/* Table Header */}
-            <View style={{ flexDirection: 'row', paddingHorizontal: hs(16), paddingVertical: vs(12), borderBottomWidth: 1, borderBottomColor: '#EEEEEE' }}>
-              <Text style={{ color: '#9E9E9E', fontSize: ms(12), fontWeight: '700', width: hs(40), textAlign: 'center' }}>HẠNG</Text>
-              <View style={{ width: hs(28) }} />
-              <Text style={{ color: '#9E9E9E', fontSize: ms(12), fontWeight: '700', flex: 1 }}>NGƯỜI CHƠI</Text>
-              <Text style={{ color: '#9E9E9E', fontSize: ms(12), fontWeight: '700', textAlign: 'right', width: hs(80) }}>ĐIỂM GAME</Text>
-            </View>
-
             <ScrollView contentContainerStyle={{ paddingHorizontal: hs(16), paddingVertical: vs(16), rowGap: vs(16) }} showsVerticalScrollIndicator={false}>
-              <LeaderboardRow rank={1} name="Thùy Dương" score="120.083" bg="#F5A623" color="#FFFFFF" />
-              <LeaderboardRow rank={2} name="Đào Thị Ngọc Hân" score="82.856" bg="#D6B4E6" color="#FFFFFF" />
-              <LeaderboardRow rank={3} name="HD Travel Hoàng Hùng" score="33.856" bg="#FF7043" color="#FFFFFF" />
-              <LeaderboardRow rank={4} name="Kiều Chấn Minh 2k17 Fan Cr7" score="29.817" bg="#F0F2F5" color="#4B5563" />
-              <LeaderboardRow rank={5} name="LOAN THẢO NGUYỄN" score="26.761" bg="#F0F2F5" color="#4B5563" />
-              <LeaderboardRow rank={6} name="Thị Huyền Diệu Nguyễn" score="24.295" bg="#F0F2F5" color="#4B5563" />
-              <LeaderboardRow rank={7} name="Băng Hải" score="22.783" bg="#F0F2F5" color="#4B5563" />
-              <LeaderboardRow rank={8} name="Trang Minh" score="21.490" bg="#F0F2F5" color="#4B5563" />
+              <LeaderboardRow rank={1} name="Thùy Dương" level={24} xp="120.083" bg="#F5A623" color="#FFFFFF" />
+              <LeaderboardRow rank={2} name="Đào Thị Ngọc Hân" level={20} xp="82.856" bg="#D6B4E6" color="#FFFFFF" />
+              <LeaderboardRow rank={3} name="HD Travel Hoàng Hùng" level={18} xp="33.856" bg="#FF7043" color="#FFFFFF" />
+              <LeaderboardRow rank={4} name="Kiều Chấn Minh 2k17 Fan Cr7" level={15} xp="29.817" bg="#F0F2F5" color="#4B5563" />
+              <LeaderboardRow rank={5} name="LOAN THẢO NGUYỄN" level={14} xp="26.761" bg="#F0F2F5" color="#4B5563" />
+              <LeaderboardRow rank={6} name="Thị Huyền Diệu Nguyễn" level={14} xp="24.295" bg="#F0F2F5" color="#4B5563" />
+              <LeaderboardRow rank={7} name="Băng Hải" level={12} xp="22.783" bg="#F0F2F5" color="#4B5563" />
+              <LeaderboardRow rank={8} name="Trang Minh" level={11} xp="21.490" bg="#F0F2F5" color="#4B5563" />
             </ScrollView>
           </View>
 
@@ -256,10 +248,7 @@ export function GameContent({ navigation, route, targetView: propTargetView }: a
               </View>
             </View>
             <View style={{ alignItems: 'flex-end' }}>
-              <Text style={{ color: '#111827', fontSize: ms(16), fontWeight: '800' }}>{userTotalXp} XP</Text>
-              {userTotalScore > 0 && (
-                <Text style={{ color: '#059669', fontSize: ms(12), fontWeight: '700' }}>{userTotalScore} điểm</Text>
-              )}
+              <Text style={{ color: '#4B5563', fontSize: ms(14), fontWeight: '700' }}>{userTotalXp} XP</Text>
             </View>
           </View>
         </View>

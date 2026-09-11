@@ -3,10 +3,10 @@ import { ScrollView, Text, View } from 'react-native';
 
 import { useTheme, hs, vs, ms } from '@/theme';
 
-import { LearningTimeCard } from './LearningTimeCard';
-import { WeeklyChartCard } from './WeeklyChartCard';
-import { ActivityTimeCard } from './ActivityTimeCard';
-import { VocabularyStatsCard } from '@/screens/Home/VocabularyStatsCard';
+import { ActivityTimeCard } from './components/ActivityTimeCard';
+import { LearningTimeCard } from './components/LearningTimeCard';
+import { WeeklyChartCard } from './components/WeeklyChartCard';
+import { VocabularyStatsCard } from '@/screens/Home/components/VocabularyStatsCard';
 
 export function StatisticsContent() {
   const { layout } = useTheme();
