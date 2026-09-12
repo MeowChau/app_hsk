@@ -7,6 +7,9 @@ import { HskLevelGridView } from './Exams/HskLevelGridView';
 import { HskExamListView } from './Exams/HskExamListView';
 import { HskExamTestView } from './Exams/HskExamTestView';
 import { HskExamResultView } from './Exams/HskExamResultView';
+import { ListeningPracticeSetupView } from './Skills/ListeningPracticeSetupView';
+import { ListeningPracticeView } from './Skills/ListeningPracticeView';
+import { ListeningPracticeResultView } from './Skills/ListeningPracticeResultView';
 import type { SkillType, EducationViewMode, ExamResult } from './types';
 
 export function EducationContent({ navigation }: any) {
@@ -17,6 +20,9 @@ export function EducationContent({ navigation }: any) {
   const [activeExamId, setActiveExamId] = useState<string | null>(null);
   const [examDuration, setExamDuration] = useState<number>(30);
   const [examResults, setExamResults] = useState<Record<string, ExamResult>>({});
+
+  const [practiceHsk, setPracticeHsk] = useState<number>(1);
+  const [practiceTopic, setPracticeTopic] = useState<string>('');
 
   const handleSelectHskLevel = (level: number) => {
     setSelectedHsk(level);
@@ -57,6 +63,10 @@ export function EducationContent({ navigation }: any) {
   };
 
   const handleMainBack = () => {
+    if (viewMode === 'skillSetup') {
+      setViewMode('main');
+      return;
+    }
     if (navigation?.canGoBack?.()) {
       navigation.goBack();
     } else {
@@ -80,6 +90,46 @@ export function EducationContent({ navigation }: any) {
     return <HskExamListView hskLevel={selectedHsk} onBack={handleBackFromExamList} onSelectExam={handleStartExamTest} examResults={examResults} onViewResult={handleViewResult} />;
   }
 
+  if (viewMode === 'skillSetup' && selectedSkill === 'NGHE') {
+    return (
+      <ListeningPracticeSetupView 
+        onBack={() => setViewMode('main')} 
+        onStartPractice={(hskLevel, topic) => {
+          setPracticeHsk(hskLevel);
+          setPracticeTopic(topic);
+          setViewMode('skillPractice');
+        }} 
+      />
+    );
+  }
+
+  if (viewMode === 'skillPractice') {
+    return (
+      <ListeningPracticeView 
+        hskLevel={practiceHsk} 
+        topic={practiceTopic} 
+        onBack={() => setViewMode('skillSetup')} 
+        onSubmit={(result) => {
+          setExamResults(prev => ({ ...prev, 'listening_practice': result }));
+          setViewMode('skillPracticeResult' as any); // using casting to avoid types.ts update if not strictly needed, or let me update types.ts
+        }} 
+      />
+    );
+  }
+
+  if (viewMode === 'skillPracticeResult' as any) {
+    const result = examResults['listening_practice'];
+    return (
+      <ListeningPracticeResultView
+        score={result?.score || 0}
+        correctCount={result?.correctCount || 0}
+        totalCount={result?.totalCount || 0}
+        onBackToSetup={() => setViewMode('skillSetup')}
+        onRetake={() => setViewMode('skillPractice')}
+      />
+    );
+  }
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
       <EducationHeader onBack={handleMainBack} />
@@ -94,7 +144,12 @@ export function EducationContent({ navigation }: any) {
         {activeTab === 0 && (
           <SkillPracticeView
             selectedSkill={selectedSkill}
-            onSelectSkill={setSelectedSkill}
+            onSelectSkill={(skill) => {
+              setSelectedSkill(skill);
+              if (skill === 'NGHE') {
+                setViewMode('skillSetup');
+              }
+            }}
           />
         )}
 
