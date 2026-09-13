@@ -287,7 +287,7 @@ export function EducationContent({ navigation }: any) {
             selectedSkill={selectedSkill}
             onSelectSkill={(skill) => {
               setSelectedSkill(skill);
-              if (skill === 'NGHE' || skill === 'NOI' || skill === 'DOC') {
+              if (skill === 'NGHE' || skill === 'NOI' || skill === 'DOC' || skill === 'VIET') {
                 setViewMode('skillSetup');
               }
             }}

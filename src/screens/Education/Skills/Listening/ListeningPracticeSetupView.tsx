@@ -164,11 +164,12 @@ export const ListeningPracticeSetupView = ({ onBack, onStartPractice }: Props) =
                           alignItems: 'center',
                           justifyContent: 'space-between',
                           paddingVertical: vs(12),
-                          paddingHorizontal: hs(16),
-                          backgroundColor: isSelected ? '#C53030' : 'transparent', // Red color like Speaking
+                          paddingHorizontal: hs(8),
+                          backgroundColor: isSelected ? '#C53030' : 'transparent',
                           marginHorizontal: hs(8),
-                          borderRadius: isSelected ? ms(6) : 0,
-                          marginBottom: vs(2),
+                          borderRadius: ms(6),
+                          borderBottomWidth: (!isSelected && index < TOPICS.length - 1) ? 1 : 0,
+                          borderBottomColor: '#F3F4F6',
                         }}
                       >
                         <Text style={{ fontSize: ms(14), color: isSelected ? '#FFFFFF' : '#374151', fontWeight: isSelected ? '700' : '500' }}>

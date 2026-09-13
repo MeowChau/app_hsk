@@ -13,9 +13,16 @@ export interface WritingPracticeWord {
 
 export const WRITING_PRACTICE_TOPICS: Record<number, WritingPracticeTopic[]> = {
   1: [
-    { id: 'hsk1_topic1', title: 'Đại từ nhân xưng', wordCount: 5 },
-    { id: 'hsk1_topic2', title: 'Số đếm cơ bản', wordCount: 10 },
-    { id: 'hsk1_topic3', title: 'Giao tiếp hàng ngày', wordCount: 8 },
+    { id: 'hsk1_topic1', title: 'Đặt câu hỏi và đo lường từ ngữ', wordCount: 28 },
+    { id: 'hsk1_topic2', title: 'Món ăn', wordCount: 26 },
+    { id: 'hsk1_topic3', title: 'Gia đình', wordCount: 18 },
+    { id: 'hsk1_topic4', title: 'Chữ số', wordCount: 16 },
+    { id: 'hsk1_topic5', title: 'Nghiên cứu', wordCount: 22 },
+    { id: 'hsk1_topic6', title: 'Trong lớp', wordCount: 23 },
+    { id: 'hsk1_topic7', title: 'Các tòa nhà', wordCount: 21 },
+    { id: 'hsk1_topic8', title: 'Vận chuyển', wordCount: 20 },
+    { id: 'hsk1_topic9', title: 'Sự chuyển động', wordCount: 20 },
+    { id: 'hsk1_topic10', title: 'Đại từ', wordCount: 35 },
   ],
   2: [
     { id: 'hsk2_topic1', title: 'Du lịch và phương hướng', wordCount: 12 },

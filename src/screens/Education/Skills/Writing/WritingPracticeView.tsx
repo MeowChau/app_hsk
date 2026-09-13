@@ -3,7 +3,9 @@ import { View, Text, SafeAreaView, TouchableOpacity, Alert, Modal, TouchableWith
 import Svg, { Path, Rect } from 'react-native-svg';
 import { WebView } from 'react-native-webview';
 import { ms, hs, vs } from '@/theme';
-import { generateWritingWords, WritingPracticeWord } from './writingMockData';
+import { generateWritingWords } from './writingMockData';
+import { HANZI_WRITER_JS } from './hanziWriterBundle';
+import { PRELOADED_CHAR_DATA } from './writingCharData';
 
 interface Props {
   hskLevel: number;
@@ -20,28 +22,74 @@ export const WritingPracticeView = ({ hskLevel, topic, onBack, onSubmit }: Props
   const [showGridModal, setShowGridModal] = useState(false);
   const [statuses, setStatuses] = useState<Record<string, 'done' | 'skipped'>>({});
   
-  const webViewRef = useRef<WebView>(null);
+  const webViewRef = useRef<any>(null);
   const currentWord = words[currentIndex];
 
   const totalCount = words.length;
   const answeredCount = Object.keys(statuses).filter(k => statuses[k] === 'done').length;
-  const remainingCount = totalCount - Object.keys(statuses).length;
 
   const htmlContent = `
     <!DOCTYPE html>
     <html>
     <head>
+      <meta charset="utf-8" />
       <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-      <script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.5/dist/hanzi-writer.min.js"></script>
       <style>
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; background-color: #FAF9F6; overflow: hidden; }
-        #grid-bg { position: absolute; width: 100%; height: 100%; }
-        #character-target-div { width: 90vw; height: 90vw; max-width: 400px; max-height: 400px; position: relative; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        html, body {
+          margin: 0;
+          padding: 0;
+          width: 100%;
+          height: 100%;
+          overflow: hidden;
+          background-color: #FAF9F6;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          user-select: none;
+          -webkit-user-select: none;
+          touch-action: none;
+        }
+        #canvas-container {
+          position: relative;
+          width: 100%;
+          height: 100%;
+          max-width: 400px;
+          max-height: 400px;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+        }
+        #grid-bg {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          pointer-events: none;
+          z-index: 1;
+        }
+        #character-target-div {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          z-index: 2;
+          touch-action: none;
+        }
+        #character-target-div svg {
+          width: 100% !important;
+          height: 100% !important;
+          touch-action: none;
+        }
       </style>
+      <script>
+        ${HANZI_WRITER_JS}
+      </script>
     </head>
     <body>
-      <div id="character-target-div">
-        <!-- Background grid -->
+      <div id="canvas-container">
         <svg id="grid-bg" viewBox="0 0 1024 1024">
           <line x1="0" y1="0" x2="1024" y2="1024" stroke="#E5E7EB" stroke-width="2" />
           <line x1="1024" y1="0" x2="0" y2="1024" stroke="#E5E7EB" stroke-width="2" />
@@ -49,76 +97,162 @@ export const WritingPracticeView = ({ hskLevel, topic, onBack, onSubmit }: Props
           <line x1="0" y1="512" x2="1024" y2="512" stroke="#E5E7EB" stroke-width="2" stroke-dasharray="10,10" />
           <rect x="2" y="2" width="1020" height="1020" fill="none" stroke="#E5E7EB" stroke-width="4" />
         </svg>
+        <div id="character-target-div"></div>
       </div>
+
       <script>
-        var writer;
+        var LOCAL_CHAR_DATA = ${JSON.stringify(PRELOADED_CHAR_DATA)};
+        var currentChar = "${currentWord.character}";
+        var writer = null;
+
+        function notifyRN(data) {
+          if (window.ReactNativeWebView && window.ReactNativeWebView.postMessage) {
+            window.ReactNativeWebView.postMessage(JSON.stringify(data));
+          }
+        }
+
+        function charDataLoader(char, onComplete, onErr) {
+          if (LOCAL_CHAR_DATA && LOCAL_CHAR_DATA[char]) {
+            onComplete(LOCAL_CHAR_DATA[char]);
+            return;
+          }
+          var xhr = new XMLHttpRequest();
+          xhr.overrideMimeType && xhr.overrideMimeType("application/json");
+          xhr.open("GET", "https://cdn.jsdelivr.net/npm/hanzi-writer-data@2.0/" + encodeURIComponent(char) + ".json", true);
+          xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4) {
+              if (xhr.status === 200) {
+                try {
+                  var parsed = JSON.parse(xhr.responseText);
+                  LOCAL_CHAR_DATA[char] = parsed;
+                  onComplete(parsed);
+                } catch(e) {
+                  if (onErr) onErr(e);
+                }
+              } else if (xhr.status !== 0) {
+                if (onErr) onErr(new Error("Status: " + xhr.status));
+              }
+            }
+          };
+          xhr.onerror = function(err) {
+            if (onErr) onErr(err);
+          };
+          xhr.send(null);
+        }
+
         function initWriter(char) {
-          document.getElementById('character-target-div').innerHTML = document.getElementById('grid-bg').outerHTML;
-          writer = HanziWriter.create('character-target-div', char, {
-            width: window.innerWidth * 0.9 > 400 ? 400 : window.innerWidth * 0.9,
-            height: window.innerWidth * 0.9 > 400 ? 400 : window.innerWidth * 0.9,
-            padding: 10,
-            showOutline: true,
-            strokeAnimationSpeed: 1,
-            delayBetweenStrokes: 100,
-            showCharacter: false,
-            outlineColor: '#E5E7EB',
-            strokeColor: '#38BDF8',
-            drawingColor: '#1E3A8A'
-          });
+          if (!char) return;
+          currentChar = char;
+          var target = document.getElementById('character-target-div');
+          if (!target) return;
+          target.innerHTML = '';
+
+          var rect = target.getBoundingClientRect();
+          var size = Math.floor(Math.min(rect.width || 300, rect.height || 300));
+          if (size <= 0) size = 300;
+
+          try {
+            if (typeof HanziWriter === 'undefined') {
+              notifyRN({ type: 'error', error: 'Thư viện HanziWriter chưa được nạp.' });
+              return;
+            }
+
+            writer = HanziWriter.create('character-target-div', char, {
+              width: size,
+              height: size,
+              padding: 16,
+              showOutline: true,
+              showCharacter: false,
+              outlineColor: '#9CA3AF',
+              strokeColor: '#38BDF8',
+              drawingColor: '#1E3A8A',
+              drawingWidth: 20,
+              strokeAnimationSpeed: 1,
+              delayBetweenStrokes: 150,
+              showHintAfterMisses: 1,
+              highlightOnComplete: true,
+              charDataLoader: charDataLoader,
+              onLoadCharDataError: function(err) {
+                notifyRN({ type: 'error', error: 'Lỗi tải nét chữ (' + char + '): ' + (err && err.message ? err.message : err) });
+              }
+            });
+
+            startQuiz();
+            notifyRN({ type: 'inited', char: char });
+          } catch(e) {
+            notifyRN({ type: 'error', error: 'Lỗi khởi tạo vẽ: ' + e.message });
+          }
+        }
+
+        function startQuiz() {
+          if (!writer) return;
           writer.quiz({
             onComplete: function(summaryData) {
-              window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'quizComplete', data: summaryData }));
+              notifyRN({ type: 'quizComplete', data: summaryData });
             }
           });
         }
-        
+
         function animateChar() {
-          if(writer) writer.animateCharacter();
+          if (!writer) return;
+          writer.cancelQuiz();
+          writer.animateCharacter({
+            onComplete: function() {
+              setTimeout(function() {
+                startQuiz();
+              }, 600);
+            }
+          });
         }
 
         function clearCanvas() {
-          if(writer) {
-            writer.quiz(); // Restart quiz
+          if (!writer) return;
+          writer.cancelQuiz();
+          startQuiz();
+        }
+
+        function changeChar(char) {
+          if (char) {
+            initWriter(char);
           }
         }
-        
-        // Message listener from React Native
-        document.addEventListener("message", function(event) {
-          const msg = JSON.parse(event.data);
-          if(msg.type === 'init') {
-            initWriter(msg.char);
-          } else if (msg.type === 'animate') {
-            animateChar();
-          } else if (msg.type === 'clear') {
-            clearCanvas();
-          }
-        });
-        
-        // For iOS
-        window.addEventListener("message", function(event) {
-          const msg = JSON.parse(event.data);
-          if(msg.type === 'init') {
-            initWriter(msg.char);
-          } else if (msg.type === 'animate') {
-            animateChar();
-          } else if (msg.type === 'clear') {
-            clearCanvas();
-          }
-        });
+
+        function handleMessage(event) {
+          try {
+            var msg = JSON.parse(event.data);
+            if (msg.type === 'init' || msg.type === 'changeChar') {
+              changeChar(msg.char);
+            } else if (msg.type === 'animate') {
+              animateChar();
+            } else if (msg.type === 'clear') {
+              clearCanvas();
+            }
+          } catch(e) {}
+        }
+
+        document.addEventListener("message", handleMessage);
+        window.addEventListener("message", handleMessage);
+
+        window.onerror = function(message, source, lineno, colno, error) {
+          notifyRN({ type: 'error', error: 'Lỗi script: ' + message + ' tại dòng ' + lineno });
+        };
+
+        if (document.readyState === 'complete' || document.readyState === 'interactive') {
+          setTimeout(function() { initWriter(currentChar); }, 50);
+        } else {
+          document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(function() { initWriter(currentChar); }, 50);
+          });
+        }
       </script>
     </body>
     </html>
   `;
 
   useEffect(() => {
-    // Inject character when index changes
-    if (webViewRef.current) {
-      setTimeout(() => {
-        webViewRef.current?.postMessage(JSON.stringify({ type: 'init', char: currentWord.character }));
-      }, 500); // Wait for webview to load
-    }
-  }, [currentIndex, currentWord]);
+    // When character changes, tell WebView to draw the new character
+    webViewRef.current?.injectJavaScript(`changeChar("${currentWord.character}"); true;`);
+  }, [currentIndex, currentWord.character]);
 
   const handleWebViewMessage = (event: any) => {
     try {
@@ -133,6 +267,9 @@ export const WritingPracticeView = ({ hskLevel, topic, onBack, onSubmit }: Props
             setShowSubmitModal(true);
           }
         }, 1000);
+      } else if (msg.type === 'error') {
+        console.warn('HanziWriter HTML Error:', msg.error);
+        Alert.alert('Thông báo', msg.error);
       }
     } catch (e) {
       console.warn("Error parsing webview message", e);
@@ -148,11 +285,11 @@ export const WritingPracticeView = ({ hskLevel, topic, onBack, onSubmit }: Props
   };
 
   const handleAnimate = () => {
-    webViewRef.current?.postMessage(JSON.stringify({ type: 'animate' }));
+    webViewRef.current?.injectJavaScript('animateChar(); true;');
   };
 
   const handleClear = () => {
-    webViewRef.current?.postMessage(JSON.stringify({ type: 'clear' }));
+    webViewRef.current?.injectJavaScript('clearCanvas(); true;');
   };
 
   const handleConfirmSubmit = () => {
@@ -211,14 +348,16 @@ export const WritingPracticeView = ({ hskLevel, topic, onBack, onSubmit }: Props
           <WebView
             ref={webViewRef}
             originWhitelist={['*']}
-            source={{ html: htmlContent }}
+            source={{ html: htmlContent, baseUrl: 'https://cdn.jsdelivr.net' }}
             style={{ flex: 1, backgroundColor: 'transparent' }}
-            scrollEnabled={false}
+            javaScriptEnabled={true}
+            domStorageEnabled={true}
+            allowFileAccess={true}
+            overScrollMode="never"
             bounces={false}
             onMessage={handleWebViewMessage}
             onLoadEnd={() => {
-              // Re-init char if webview reloads
-              webViewRef.current?.postMessage(JSON.stringify({ type: 'init', char: currentWord.character }));
+              webViewRef.current?.injectJavaScript(`changeChar("${currentWord.character}"); true;`);
             }}
           />
         </View>

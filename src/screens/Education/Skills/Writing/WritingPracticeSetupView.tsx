@@ -81,7 +81,7 @@ export const WritingPracticeSetupView = ({ hskLevel, onBack, onStart }: Props) =
             <Path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z" fill="none" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
           </Svg>
           <Text style={{ color: '#FFFFFF', fontSize: ms(16), fontWeight: '700' }}>
-            Bắt đầu tập viết →
+            Bắt đầu luyện viết 
           </Text>
         </TouchableOpacity>
       </View>
@@ -122,24 +122,32 @@ export const WritingPracticeSetupView = ({ hskLevel, onBack, onStart }: Props) =
                           alignItems: 'center',
                           justifyContent: 'space-between',
                           paddingVertical: vs(12),
-                          paddingHorizontal: hs(16),
-                          backgroundColor: isSelected ? '#EFF6FF' : '#FFFFFF',
-                          borderBottomWidth: index < topics.length - 1 ? 1 : 0,
+                          paddingHorizontal: hs(8),
+                          backgroundColor: isSelected ? '#C53030' : 'transparent',
+                          marginHorizontal: hs(8),
+                          borderRadius: ms(6),
+                          borderBottomWidth: (!isSelected && index < topics.length - 1) ? 1 : 0,
                           borderBottomColor: '#F3F4F6',
                         }}
                       >
-                        <Text style={{ fontSize: ms(14), color: isSelected ? '#1E3A8A' : '#374151', fontWeight: isSelected ? '700' : '500' }}>
+                        <Text style={{ fontSize: ms(14), color: isSelected ? '#FFFFFF' : '#374151', fontWeight: isSelected ? '700' : '500' }}>
                           {topic.title} ({topic.wordCount} từ)
                         </Text>
                         {isSelected && (
                           <Svg height="16" viewBox="0 0 24 24" width="16">
-                            <Path d="M20 6L9 17l-5-5" fill="none" stroke="#1E3A8A" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                            <Path d="M20 6L9 17l-5-5" fill="none" stroke="#FFFFFF" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
                           </Svg>
                         )}
                       </TouchableOpacity>
                     );
                   })}
                 </ScrollView>
+                {/* Scroll hint icon at bottom */}
+                <View style={{ alignItems: 'center', paddingTop: vs(8), paddingBottom: vs(4) }}>
+                  <Svg height="16" viewBox="0 0 24 24" width="16">
+                    <Path d="M6 9l6 6 6-6" fill="none" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  </Svg>
+                </View>
               </View>
             </TouchableWithoutFeedback>
           </View>

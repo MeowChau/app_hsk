@@ -47,7 +47,7 @@ export const WritingPracticeFlashcardView = ({ words, onBack, onFinishFlashcards
             <Path d="M20 12H4M10 18l-6-6 6-6" fill="none" stroke="#1E3A8A" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
           </Svg>
         </TouchableOpacity>
-        <TouchableOpacity style={{ paddingHorizontal: hs(12), paddingVertical: vs(6), backgroundColor: '#E5E7EB', borderRadius: ms(16) }}>
+        <TouchableOpacity onPress={onFinishFlashcards} style={{ paddingHorizontal: hs(12), paddingVertical: vs(6), backgroundColor: '#E5E7EB', borderRadius: ms(16) }}>
           <Text style={{ fontSize: ms(12), fontWeight: '600', color: '#4B5563' }}>Bỏ qua</Text>
         </TouchableOpacity>
       </View>
