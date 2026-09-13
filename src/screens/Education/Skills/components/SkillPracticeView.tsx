@@ -16,6 +16,7 @@ export const SkillPracticeView = ({ selectedSkill, onSelectSkill }: Props) => {
       {SKILLS.map((skill) => (
         <SkillBoxCard
           key={skill.id}
+          skillId={skill.id as SkillType}
           title={skill.name}
           isSelected={selectedSkill === skill.id}
           onPress={() => onSelectSkill(skill.id as SkillType)}
