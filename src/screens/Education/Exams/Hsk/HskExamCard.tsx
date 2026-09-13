@@ -49,7 +49,7 @@ export const HskExamCard = ({ item, onPress, result, onHistoryPress }: Props) =>
             {item.name}
           </Text>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <Text style={{ fontSize: ms(13), color: '#EF4444', fontWeight: '700', marginRight: hs(4) }}>
+            <Text style={{ fontSize: ms(14), color: '#EF4444', fontWeight: '700', marginRight: hs(4) }}>
               {item.timeLimit} phút
             </Text>
             <Svg height="14" viewBox="0 0 24 24" width="14">
@@ -120,7 +120,7 @@ export const HskExamCard = ({ item, onPress, result, onHistoryPress }: Props) =>
             </Svg>
             <Text style={{ fontSize: ms(12), color: '#059669', fontWeight: '700', marginLeft: hs(4) }}>Lịch sử</Text>
           </View>
-          <Text style={{ fontSize: ms(13), color: '#DC2626', fontWeight: '800' }}>
+          <Text style={{ fontSize: ms(14), color: '#DC2626', fontWeight: '800' }}>
             {result.score}%
           </Text>
         </TouchableOpacity>

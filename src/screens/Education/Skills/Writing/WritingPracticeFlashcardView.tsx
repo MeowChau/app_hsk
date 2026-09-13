@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, SafeAreaView, TouchableOpacity, StyleSheet, Dimensions } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
+import { ScreenHeader } from '@/components/molecules';
 import { ms, hs, vs } from '@/theme';
 import { WritingPracticeWord } from './writingMockData';
 
@@ -41,16 +42,14 @@ export const WritingPracticeFlashcardView = ({ words, onBack, onFinishFlashcards
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
       {/* Header */}
-      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: hs(16), paddingTop: vs(12) }}>
-        <TouchableOpacity onPress={onBack} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
-          <Svg height="24" viewBox="0 0 24 24" width="24">
-            <Path d="M20 12H4M10 18l-6-6 6-6" fill="none" stroke="#1E3A8A" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-          </Svg>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={onFinishFlashcards} style={{ paddingHorizontal: hs(12), paddingVertical: vs(6), backgroundColor: '#E5E7EB', borderRadius: ms(16) }}>
-          <Text style={{ fontSize: ms(13), fontWeight: '700', color: '#4B5563' }}>Bỏ qua</Text>
-        </TouchableOpacity>
-      </View>
+      <ScreenHeader
+        onBack={onBack}
+        rightElement={
+          <TouchableOpacity onPress={onFinishFlashcards} style={{ paddingHorizontal: hs(12), paddingVertical: vs(6), backgroundColor: '#E5E7EB', borderRadius: ms(16) }}>
+            <Text style={{ fontSize: ms(14), fontWeight: '700', color: '#4B5563' }}>Bỏ qua</Text>
+          </TouchableOpacity>
+        }
+      />
 
       <View style={{ paddingHorizontal: hs(24), paddingTop: vs(16), flex: 1 }}>
         <Text style={{ fontSize: ms(24), fontWeight: '800', color: '#111827', marginBottom: vs(24) }}>
@@ -79,7 +78,7 @@ export const WritingPracticeFlashcardView = ({ words, onBack, onFinishFlashcards
               </View>
             )}
             {!showMeaning && (
-              <Text style={{ fontSize: ms(14), color: '#9CA3AF', marginTop: vs(24) }}>
+              <Text style={{ fontSize: ms(16), color: '#9CA3AF', marginTop: vs(24) }}>
                 Chạm để xem nghĩa
               </Text>
             )}
@@ -101,16 +100,16 @@ export const WritingPracticeFlashcardView = ({ words, onBack, onFinishFlashcards
         {/* Action Buttons */}
         <View style={{ flexDirection: 'row', gap: hs(16), marginBottom: vs(32) }}>
           <TouchableOpacity style={[styles.actionBtn, { backgroundColor: '#3B82F6' }]} onPress={handleNext}>
-            <Text style={{ color: '#FFFFFF', fontSize: ms(15), fontWeight: '700' }}>Don't know</Text>
+            <Text style={{ color: '#FFFFFF', fontSize: ms(16), fontWeight: '700' }}>Chưa biết</Text>
           </TouchableOpacity>
           
           {isLastCard ? (
             <TouchableOpacity style={[styles.actionBtn, { backgroundColor: '#10B981' }]} onPress={onFinishFlashcards}>
-              <Text style={{ color: '#FFFFFF', fontSize: ms(15), fontWeight: '700' }}>Tập viết ngay</Text>
+              <Text style={{ color: '#FFFFFF', fontSize: ms(16), fontWeight: '700' }}>Tập viết ngay</Text>
             </TouchableOpacity>
           ) : (
             <TouchableOpacity style={[styles.actionBtn, { backgroundColor: '#38BDF8' }]} onPress={handleNext}>
-              <Text style={{ color: '#FFFFFF', fontSize: ms(15), fontWeight: '700' }}>Mastered</Text>
+              <Text style={{ color: '#FFFFFF', fontSize: ms(16), fontWeight: '700' }}>Đã thành thạo</Text>
             </TouchableOpacity>
           )}
         </View>

@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, SafeAreaView, FlatList, TouchableOpacity, Modal, TouchableWithoutFeedback, ScrollView, Alert } from 'react-native';
-import Svg, { Path, Rect } from 'react-native-svg';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { View, Text, SafeAreaView, FlatList, TouchableOpacity, Alert } from 'react-native';
+import Svg, { Rect } from 'react-native-svg';
 import { BackButton } from '@/components/atoms';
 import { ALL_HSK_EXAMS } from '../../mockData';
 import { HskExamQuestionCard } from './HskExamQuestionCard';
 import { ms, hs, vs } from '@/theme';
+import { SubmitConfirmModal, QuestionGridModal, QuestionGridSection } from '@/screens/Education/components';
 
 interface Props {
   examId: string;
@@ -109,6 +110,39 @@ export const HskExamTestView = ({ examId, durationMin, onBack, onSubmit, isRevie
   const totalCount = questions.length;
   const remainingCount = totalCount - answeredCount;
 
+  const gridSections = useMemo((): QuestionGridSection[] => {
+    const mapQuestion = (q: typeof questions[0]) => {
+      const isAnswered = !!answers[q.id];
+      const isBookmarked = !!bookmarks[q.id];
+      const isCurrent = q.id === currentQuestionId;
+      let isCorrect: boolean | undefined = undefined;
+      if (isReviewMode && isAnswered) {
+        isCorrect = answers[q.id] === q.correctOptionId;
+      }
+      return {
+        id: q.id,
+        index: q.index,
+        isAnswered,
+        isBookmarked,
+        isCurrent,
+        isCorrect,
+      };
+    };
+
+    return [
+      {
+        key: 'listening',
+        title: 'Nghe',
+        items: questions.filter(q => q.type === 'LISTENING').map(mapQuestion),
+      },
+      {
+        key: 'reading',
+        title: 'Đọc',
+        items: questions.filter(q => q.type === 'READING').map(mapQuestion),
+      },
+    ];
+  }, [questions, answers, bookmarks, currentQuestionId, isReviewMode]);
+
   const handleExitPress = () => {
     if (isReviewMode) {
       onBack();
@@ -145,7 +179,7 @@ export const HskExamTestView = ({ examId, durationMin, onBack, onSubmit, isRevie
             <Text style={{ fontSize: ms(18), fontWeight: '800', color: '#111827' }}>
               HSK {examLevel}
             </Text>
-            <Text style={{ fontSize: ms(13), color: '#4B5563', fontWeight: '500' }}>
+            <Text style={{ fontSize: ms(14), color: '#4B5563', fontWeight: '500' }}>
               {answeredCount}/{totalCount} số lượng câu
             </Text>
           </View>
@@ -194,206 +228,50 @@ export const HskExamTestView = ({ examId, durationMin, onBack, onSubmit, isRevie
           });
         }}
         ListFooterComponent={
-          <View style={{ alignItems: 'center', marginVertical: vs(24) }}>
-            <View style={{ backgroundColor: '#FEF3C7', borderRadius: ms(8), padding: ms(16), width: '100%', alignItems: 'center', marginBottom: vs(40) }}>
-              {isReviewMode ? (
-                <>
-                  <Text style={{ fontSize: ms(15), color: '#374151', fontWeight: '600', marginBottom: vs(12) }}>
-                    Đúng {Object.entries(answers).filter(([qId, optId]) => {
-                      const q = questions.find(qq => qq.id === qId);
-                      return q && optId === q.correctOptionId;
-                    }).length}/{totalCount} câu.
-                  </Text>
-                  <TouchableOpacity onPress={onBack} style={{ borderWidth: 1.5, borderColor: '#374151', borderRadius: ms(20), paddingVertical: vs(10), paddingHorizontal: hs(32), backgroundColor: '#FFFFFF' }}>
-                    <Text style={{ color: '#374151', fontSize: ms(15), fontWeight: '700' }}>Về trang kết quả</Text>
-                  </TouchableOpacity>
-                </>
-              ) : (
-                <>
-                  <Text style={{ fontSize: ms(14), color: '#92400E', fontWeight: '600', marginBottom: vs(12) }}>
-                    Đã trả lời {answeredCount}/{totalCount} câu. Còn {remainingCount} chưa trả lời
-                  </Text>
-                  <TouchableOpacity onPress={() => setShowSubmitModal(true)} style={{ backgroundColor: '#1E3A8A', borderRadius: ms(8), paddingVertical: vs(12), paddingHorizontal: hs(36) }}>
-                    <Text style={{ color: '#FFFFFF', fontSize: ms(16), fontWeight: '700' }}>Nộp bài</Text>
-                  </TouchableOpacity>
-                </>
-              )}
-            </View>
+          <View style={{ backgroundColor: '#FAF9F6', borderRadius: ms(12), padding: ms(24), alignItems: 'center', marginTop: vs(8), marginBottom: vs(24) }}>
+            {isReviewMode ? (
+              <>
+                <Text style={{ fontSize: ms(14), color: '#6B7280', fontWeight: '500', marginBottom: vs(16) }}>
+                  Đúng <Text style={{ fontWeight: '800', color: '#111827' }}>{Object.entries(answers).filter(([qId, optId]) => {
+                    const q = questions.find(qq => qq.id === qId);
+                    return q && optId === q.correctOptionId;
+                  }).length}</Text>/{totalCount} câu.
+                </Text>
+                <TouchableOpacity onPress={onBack} style={{ backgroundColor: '#1E3A8A', borderRadius: ms(8), paddingVertical: vs(12), paddingHorizontal: hs(36) }}>
+                  <Text style={{ color: '#FFFFFF', fontSize: ms(16), fontWeight: '700' }}>Về trang kết quả</Text>
+                </TouchableOpacity>
+              </>
+            ) : (
+              <>
+                <Text style={{ fontSize: ms(14), color: '#6B7280', marginBottom: vs(16), fontWeight: '500' }}>
+                  Đã trả lời <Text style={{ fontWeight: '800', color: '#111827' }}>{answeredCount}</Text>/{totalCount} câu. Còn {remainingCount} chưa trả lời
+                </Text>
+                <TouchableOpacity onPress={() => setShowSubmitModal(true)} style={{ backgroundColor: '#1E3A8A', borderRadius: ms(8), paddingVertical: vs(12), paddingHorizontal: hs(36) }}>
+                  <Text style={{ color: '#FFFFFF', fontSize: ms(16), fontWeight: '700' }}>Nộp bài</Text>
+                </TouchableOpacity>
+              </>
+            )}
           </View>
         }
       />
 
       {/* Grid Modal */}
-      <Modal visible={showGridModal} transparent animationType="slide">
-        <TouchableWithoutFeedback onPress={() => setShowGridModal(false)}>
-          <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' }}>
-            <TouchableWithoutFeedback>
-              <View style={{ width: '90%', height: '80%', backgroundColor: '#FAF9F6', borderRadius: ms(12), padding: ms(16) }}>
-                <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginBottom: vs(16) }}>
-                  <Text style={{ fontSize: ms(18), fontWeight: '800', color: '#111827' }}>Danh sách câu hỏi</Text>
-                  <TouchableOpacity onPress={() => setShowGridModal(false)} style={{ position: 'absolute', right: 0 }}>
-                    <Text style={{ fontSize: ms(22), color: '#6B7280' }}>×</Text>
-                  </TouchableOpacity>
-                </View>
-                
-                <ScrollView showsVerticalScrollIndicator={false}>
-                  <Text style={{ fontSize: ms(16), fontWeight: '700', color: '#111827', marginBottom: vs(12) }}>Câu hỏi</Text>
-                  
-                  <Text style={{ fontSize: ms(15), fontWeight: '700', color: '#1E3A8A', marginBottom: vs(12), borderLeftWidth: 3, borderLeftColor: '#1E3A8A', paddingLeft: hs(8) }}>Nghe</Text>
-                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: ms(12), marginBottom: vs(24) }}>
-                    {questions.filter(q => q.type === 'LISTENING').map(q => {
-                      const isAnswered = !!answers[q.id];
-                      const isBookmarked = !!bookmarks[q.id];
-                      const isCurrent = q.id === currentQuestionId;
-                      
-                      let bgColor = '#EBE3D5';
-                      let textColor = '#4B5563';
-                      let borderColor = 'transparent';
-                      let borderWidth = 0;
-                      let borderStyle = 'solid';
-                      
-                      if (isReviewMode) {
-                        if (isAnswered) {
-                          const isCorrect = answers[q.id] === q.correctOptionId;
-                          bgColor = isCorrect ? '#22C55E' : '#EF4444';
-                          textColor = '#FFFFFF';
-                        } else {
-                          bgColor = 'transparent';
-                          textColor = '#EF4444';
-                          borderColor = '#EF4444';
-                          borderWidth = 1;
-                          borderStyle = 'dashed';
-                        }
-                      } else {
-                        if (isCurrent) {
-                          bgColor = '#FEF3C7';
-                          textColor = '#92400E';
-                          borderWidth = 2;
-                          borderColor = '#F59E0B';
-                        } else {
-                          bgColor = isAnswered ? '#1E3A8A' : '#EBE3D5';
-                          textColor = isAnswered ? '#FFFFFF' : '#4B5563';
-                        }
-                      }
-                      
-                      return (
-                        <TouchableOpacity key={q.id} onPress={() => handleGridPress(q.id)} style={{ width: ms(44), height: ms(44), borderRadius: ms(6), backgroundColor: bgColor, borderColor, borderWidth, borderStyle: borderStyle as any, justifyContent: 'center', alignItems: 'center' }}>
-                          <Text style={{ color: textColor, fontWeight: '700', fontSize: ms(15) }}>{q.index}</Text>
-                          {isBookmarked && (
-                            <View style={{ position: 'absolute', top: -ms(4), right: -ms(4), width: ms(12), height: ms(12), borderRadius: ms(6), backgroundColor: '#F59E0B', borderWidth: 2, borderColor: '#FFFFFF' }} />
-                          )}
-                        </TouchableOpacity>
-                      );
-                    })}
-                  </View>
-
-                  <Text style={{ fontSize: ms(15), fontWeight: '700', color: '#1E3A8A', marginBottom: vs(12), borderLeftWidth: 3, borderLeftColor: '#1E3A8A', paddingLeft: hs(8) }}>Đọc</Text>
-                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: ms(12), marginBottom: vs(24) }}>
-                    {questions.filter(q => q.type === 'READING').map(q => {
-                      const isAnswered = !!answers[q.id];
-                      const isBookmarked = !!bookmarks[q.id];
-                      const isCurrent = q.id === currentQuestionId;
-
-                      let bgColor = '#EBE3D5';
-                      let textColor = '#4B5563';
-                      let borderColor = 'transparent';
-                      let borderWidth = 0;
-                      let borderStyle = 'solid';
-                      
-                      if (isReviewMode) {
-                        if (isAnswered) {
-                          const isCorrect = answers[q.id] === q.correctOptionId;
-                          bgColor = isCorrect ? '#22C55E' : '#EF4444';
-                          textColor = '#FFFFFF';
-                        } else {
-                          bgColor = 'transparent';
-                          textColor = '#EF4444';
-                          borderColor = '#EF4444';
-                          borderWidth = 1;
-                          borderStyle = 'dashed';
-                        }
-                      } else {
-                        if (isCurrent) {
-                          bgColor = '#FEF3C7';
-                          textColor = '#92400E';
-                          borderWidth = 2;
-                          borderColor = '#F59E0B';
-                        } else {
-                          bgColor = isAnswered ? '#1E3A8A' : '#EBE3D5';
-                          textColor = isAnswered ? '#FFFFFF' : '#4B5563';
-                        }
-                      }
-
-                      return (
-                        <TouchableOpacity key={q.id} onPress={() => handleGridPress(q.id)} style={{ width: ms(44), height: ms(44), borderRadius: ms(6), backgroundColor: bgColor, borderColor, borderWidth, borderStyle: borderStyle as any, justifyContent: 'center', alignItems: 'center' }}>
-                          <Text style={{ color: textColor, fontWeight: '700', fontSize: ms(15) }}>{q.index}</Text>
-                          {isBookmarked && (
-                            <View style={{ position: 'absolute', top: -ms(4), right: -ms(4), width: ms(12), height: ms(12), borderRadius: ms(6), backgroundColor: '#F59E0B', borderWidth: 2, borderColor: '#FFFFFF' }} />
-                          )}
-                        </TouchableOpacity>
-                      );
-                    })}
-                  </View>
-                </ScrollView>
-
-                {isReviewMode ? (
-                  <View style={{ marginTop: vs(16), gap: vs(8) }}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: hs(8) }}><View style={{ width: ms(10), height: ms(10), borderRadius: ms(5), backgroundColor: '#22C55E' }} /><Text style={{ fontSize: ms(13), color: '#4B5563', fontWeight: '500' }}>Đúng</Text></View>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: hs(8) }}><View style={{ width: ms(10), height: ms(10), borderRadius: ms(5), backgroundColor: '#EF4444' }} /><Text style={{ fontSize: ms(13), color: '#4B5563', fontWeight: '500' }}>Sai</Text></View>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: hs(8) }}>
-                      <View style={{ width: ms(12), height: ms(12), borderRadius: ms(2), borderWidth: 1, borderColor: '#EF4444', borderStyle: 'dashed' }} />
-                      <Text style={{ fontSize: ms(13), color: '#4B5563', fontWeight: '500' }}>Chưa trả lời</Text>
-                    </View>
-                  </View>
-                ) : (
-                  <View style={{ marginTop: vs(16), gap: vs(8) }}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: hs(8) }}><View style={{ width: ms(10), height: ms(10), borderRadius: ms(5), backgroundColor: '#1E3A8A' }} /><Text style={{ fontSize: ms(13), color: '#1E3A8A', fontWeight: '600' }}>Đã trả lời</Text></View>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: hs(8) }}><View style={{ width: ms(10), height: ms(10), borderRadius: ms(5), backgroundColor: '#EBE3D5' }} /><Text style={{ fontSize: ms(13), color: '#1E3A8A', fontWeight: '600' }}>Chưa trả lời</Text></View>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: hs(8) }}><View style={{ width: ms(10), height: ms(10), borderRadius: ms(5), backgroundColor: '#FEF3C7', borderWidth: 1, borderColor: '#F59E0B' }} /><Text style={{ fontSize: ms(13), color: '#1E3A8A', fontWeight: '600' }}>Đang học</Text></View>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: hs(8) }}><View style={{ width: ms(10), height: ms(10), borderRadius: ms(5), backgroundColor: '#F59E0B' }} /><Text style={{ fontSize: ms(13), color: '#1E3A8A', fontWeight: '600' }}>Đã đánh dấu</Text></View>
-                  </View>
-                )}
-              </View>
-            </TouchableWithoutFeedback>
-          </View>
-        </TouchableWithoutFeedback>
-      </Modal>
+      <QuestionGridModal
+        visible={showGridModal}
+        onClose={() => setShowGridModal(false)}
+        subtitle="Câu hỏi"
+        sections={gridSections}
+        isReviewMode={isReviewMode}
+        onSelectItem={(item) => handleGridPress(String(item.id))}
+      />
 
       {/* Submit Confirm Modal */}
-      <Modal visible={showSubmitModal} transparent animationType="fade">
-        <TouchableWithoutFeedback onPress={() => setShowSubmitModal(false)}>
-          <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' }}>
-            <TouchableWithoutFeedback>
-              <View style={{ width: '85%', backgroundColor: '#FAF9F6', borderRadius: ms(12), padding: ms(20) }}>
-                <TouchableOpacity onPress={() => setShowSubmitModal(false)} style={{ position: 'absolute', top: vs(12), right: hs(16) }}>
-                  <Text style={{ fontSize: ms(22), color: '#6B7280' }}>×</Text>
-                </TouchableOpacity>
-                <Text style={{ fontSize: ms(20), fontWeight: '800', color: '#111827', textAlign: 'center', marginBottom: vs(16) }}>Xác nhận nộp bài?</Text>
-                
-                {remainingCount > 0 && (
-                  <View style={{ backgroundColor: '#FEF3C7', padding: ms(12), borderRadius: ms(8), flexDirection: 'row', alignItems: 'flex-start', marginBottom: vs(24) }}>
-                    <Svg height="16" viewBox="0 0 24 24" width="16" style={{ marginTop: 2, marginRight: hs(8) }}>
-                      <Path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" fill="none" stroke="#D97706" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                    </Svg>
-                    <Text style={{ fontSize: ms(14), color: '#92400E', flex: 1, lineHeight: vs(20) }}>
-                      Bạn còn <Text style={{ fontWeight: '700' }}>{remainingCount}</Text> câu chưa trả lời, những câu này sẽ bị tính là sai.
-                    </Text>
-                  </View>
-                )}
-
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: hs(12) }}>
-                  <TouchableOpacity onPress={() => setShowSubmitModal(false)} style={{ flex: 1, borderWidth: 1, borderColor: '#D1D5DB', borderRadius: ms(8), paddingVertical: vs(12), alignItems: 'center' }}>
-                    <Text style={{ color: '#374151', fontSize: ms(15), fontWeight: '700' }}>Tiếp tục làm bài</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity onPress={handleConfirmSubmit} style={{ flex: 1, backgroundColor: '#1E3A8A', borderRadius: ms(8), paddingVertical: vs(12), alignItems: 'center' }}>
-                    <Text style={{ color: '#FFFFFF', fontSize: ms(15), fontWeight: '700' }}>Nộp bài</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </TouchableWithoutFeedback>
-          </View>
-        </TouchableWithoutFeedback>
-      </Modal>
+      <SubmitConfirmModal
+        visible={showSubmitModal}
+        onClose={() => setShowSubmitModal(false)}
+        onConfirm={handleConfirmSubmit}
+        remainingCount={remainingCount}
+      />
     </SafeAreaView>
   );
 };

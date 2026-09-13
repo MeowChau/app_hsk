@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, SafeAreaView, TouchableOpacity, Alert, Modal, TouchableWithoutFeedback, ScrollView } from 'react-native';
+import { View, Text, SafeAreaView, TouchableOpacity, Alert } from 'react-native';
 import Svg, { Path, Rect } from 'react-native-svg';
 import { WebView } from 'react-native-webview';
 import { ms, hs, vs } from '@/theme';
+import { SubmitConfirmModal, QuestionGridModal } from '@/screens/Education/components';
 import { generateWritingWords } from './writingMockData';
 import { HANZI_WRITER_JS } from './hanziWriterBundle';
 import { PRELOADED_CHAR_DATA } from './writingCharData';
@@ -27,6 +28,13 @@ export const WritingPracticeView = ({ hskLevel, topic, onBack, onSubmit }: Props
 
   const totalCount = words.length;
   const answeredCount = Object.keys(statuses).filter(k => statuses[k] === 'done').length;
+
+  const gridItems = React.useMemo(() => words.map((w, idx) => ({
+    id: w.id,
+    index: idx + 1,
+    isAnswered: statuses[w.id] === 'done',
+    isCurrent: idx === currentIndex,
+  })), [words, statuses, currentIndex]);
 
   const htmlContent = `
     <!DOCTYPE html>
@@ -316,7 +324,7 @@ export const WritingPracticeView = ({ hskLevel, topic, onBack, onSubmit }: Props
             <Text style={{ fontSize: ms(18), fontWeight: '800', color: '#111827' }} numberOfLines={1}>
               Luyện tập kỹ năng viết
             </Text>
-            <Text style={{ fontSize: ms(13), color: '#4B5563', fontWeight: '500' }}>
+            <Text style={{ fontSize: ms(14), color: '#4B5563', fontWeight: '500' }}>
               {answeredCount}/{totalCount} số lượng từ
             </Text>
           </View>
@@ -369,7 +377,7 @@ export const WritingPracticeView = ({ hskLevel, topic, onBack, onSubmit }: Props
                 <Path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" fill="none" stroke="#4B5563" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               </Svg>
             </View>
-            <Text style={{ fontSize: ms(13), color: '#4B5563', fontWeight: '600' }}>Xoá nét</Text>
+            <Text style={{ fontSize: ms(14), color: '#4B5563', fontWeight: '600' }}>Xoá nét</Text>
           </TouchableOpacity>
 
           <TouchableOpacity onPress={handleAnimate} style={{ alignItems: 'center' }}>
@@ -378,7 +386,7 @@ export const WritingPracticeView = ({ hskLevel, topic, onBack, onSubmit }: Props
                 <Path d="M5 3l14 9-14 9V3z" fill="none" stroke="#2563EB" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               </Svg>
             </View>
-            <Text style={{ fontSize: ms(13), color: '#2563EB', fontWeight: '600' }}>Hướng dẫn</Text>
+            <Text style={{ fontSize: ms(14), color: '#2563EB', fontWeight: '600' }}>Hướng dẫn</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -390,7 +398,7 @@ export const WritingPracticeView = ({ hskLevel, topic, onBack, onSubmit }: Props
           disabled={currentIndex === 0}
           style={{ flex: 1, paddingVertical: vs(12), alignItems: 'center', borderRadius: ms(8), borderWidth: 1, borderColor: '#D1D5DB', marginRight: hs(8), opacity: currentIndex === 0 ? 0.5 : 1 }}
         >
-          <Text style={{ color: '#4B5563', fontSize: ms(15), fontWeight: '700' }}>Câu trước</Text>
+          <Text style={{ color: '#4B5563', fontSize: ms(16), fontWeight: '700' }}>Câu trước</Text>
         </TouchableOpacity>
         
         <TouchableOpacity
@@ -398,85 +406,33 @@ export const WritingPracticeView = ({ hskLevel, topic, onBack, onSubmit }: Props
           disabled={currentIndex === words.length - 1}
           style={{ flex: 1, paddingVertical: vs(12), alignItems: 'center', borderRadius: ms(8), backgroundColor: '#1E3A8A', marginLeft: hs(8), opacity: currentIndex === words.length - 1 ? 0.5 : 1 }}
         >
-          <Text style={{ color: '#FFFFFF', fontSize: ms(15), fontWeight: '700' }}>Câu tiếp</Text>
+          <Text style={{ color: '#FFFFFF', fontSize: ms(16), fontWeight: '700' }}>Câu tiếp</Text>
         </TouchableOpacity>
       </View>
 
       {/* Grid Modal */}
-      <Modal visible={showGridModal} animationType="slide" transparent>
-        <TouchableWithoutFeedback onPress={() => setShowGridModal(false)}>
-          <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' }}>
-            <TouchableWithoutFeedback>
-              <View style={{ width: '90%', backgroundColor: '#FAF9F6', borderRadius: ms(12), padding: ms(16), maxHeight: '80%' }}>
-                <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginBottom: vs(16) }}>
-                  <Text style={{ fontSize: ms(18), fontWeight: '800', color: '#111827' }}>Danh sách từ vựng</Text>
-                  <TouchableOpacity onPress={() => setShowGridModal(false)} hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }} style={{ position: 'absolute', right: 0, padding: ms(10), zIndex: 10 }}>
-                    <Text style={{ fontSize: ms(24), color: '#6B7280', fontWeight: '700', lineHeight: ms(24) }}>×</Text>
-                  </TouchableOpacity>
-                </View>
-
-                <ScrollView showsVerticalScrollIndicator={false}>
-                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: ms(12), marginBottom: vs(24) }}>
-                    {words.map((w, idx) => {
-                      const isDone = statuses[w.id] === 'done';
-                      const isCurrent = idx === currentIndex;
-                      
-                      let bgColor = '#EBE3D5';
-                      let textColor = '#1E3A8A';
-                      let borderWidth = 0;
-                      let borderColor = 'transparent';
-
-                      if (isCurrent) {
-                        bgColor = '#FEF3C7';
-                        textColor = '#92400E';
-                        borderWidth = 2;
-                        borderColor = '#F59E0B';
-                      } else if (isDone) {
-                        bgColor = '#1E3A8A';
-                        textColor = '#FFFFFF';
-                      }
-
-                      return (
-                        <TouchableOpacity key={w.id} onPress={() => { setShowGridModal(false); setCurrentIndex(idx); }} style={{ width: ms(44), height: ms(44), borderRadius: ms(6), backgroundColor: bgColor, borderWidth, borderColor, justifyContent: 'center', alignItems: 'center' }}>
-                          <Text style={{ color: textColor, fontWeight: '700', fontSize: ms(15) }}>{idx + 1}</Text>
-                        </TouchableOpacity>
-                      );
-                    })}
-                  </View>
-                </ScrollView>
-              </View>
-            </TouchableWithoutFeedback>
-          </View>
-        </TouchableWithoutFeedback>
-      </Modal>
+      <QuestionGridModal
+        visible={showGridModal}
+        onClose={() => setShowGridModal(false)}
+        title="Danh sách từ vựng"
+        items={gridItems}
+        showLegend={false}
+        onSelectItem={(_item, idx) => setCurrentIndex(idx)}
+      />
 
       {/* Submit Modal */}
-      <Modal visible={showSubmitModal} animationType="fade" transparent>
-        <TouchableWithoutFeedback onPress={() => setShowSubmitModal(false)}>
-          <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' }}>
-            <TouchableWithoutFeedback>
-              <View style={{ width: '85%', backgroundColor: '#FFFFFF', borderRadius: ms(16), padding: ms(24), alignItems: 'center' }}>
-                <Text style={{ fontSize: ms(20), fontWeight: '800', color: '#111827', marginBottom: vs(12) }}>
-                  Xác nhận nộp bài
-                </Text>
-                <Text style={{ fontSize: ms(15), color: '#4B5563', textAlign: 'center', marginBottom: vs(24), lineHeight: vs(22) }}>
-                  Bạn đã luyện viết xong <Text style={{ fontWeight: '700', color: '#111827' }}>{answeredCount}/{totalCount}</Text> từ.{'\n'}
-                  Bạn có chắc chắn muốn nộp bài?
-                </Text>
-                
-                <View style={{ flexDirection: 'row', width: '100%', gap: hs(12) }}>
-                  <TouchableOpacity onPress={() => setShowSubmitModal(false)} style={{ flex: 1, paddingVertical: vs(12), borderRadius: ms(8), borderWidth: 1, borderColor: '#E5E7EB', alignItems: 'center' }}>
-                    <Text style={{ fontSize: ms(15), fontWeight: '600', color: '#374151' }}>Kiểm tra lại</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity onPress={handleConfirmSubmit} style={{ flex: 1, paddingVertical: vs(12), borderRadius: ms(8), backgroundColor: '#1E3A8A', alignItems: 'center' }}>
-                    <Text style={{ fontSize: ms(15), fontWeight: '700', color: '#FFFFFF' }}>Nộp bài</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </TouchableWithoutFeedback>
-          </View>
-        </TouchableWithoutFeedback>
-      </Modal>
+      <SubmitConfirmModal
+        visible={showSubmitModal}
+        onClose={() => setShowSubmitModal(false)}
+        onConfirm={handleConfirmSubmit}
+        title="Xác nhận nộp bài"
+        customMessage={
+          <Text style={{ fontSize: ms(16), color: '#4B5563', textAlign: 'center', lineHeight: vs(22) }}>
+            Bạn đã luyện viết xong <Text style={{ fontWeight: '700', color: '#111827' }}>{answeredCount}/{totalCount}</Text> từ.{'\n'}
+            Bạn có chắc chắn muốn nộp bài?
+          </Text>
+        }
+      />
 
     </SafeAreaView>
   );

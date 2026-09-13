@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
-import Svg, { Path, Circle, Rect } from 'react-native-svg';
+import { UserAvatar } from '@/components/atoms';
 import { useTheme, hs, vs, ms } from '@/theme';
 
 interface HomeLeaderboardCardProps {
@@ -181,29 +181,7 @@ export const HomeLeaderboardCard = ({
                 <Text style={{ color: '#FFFFFF', fontSize: ms(11), fontWeight: '800' }}>{userRank}</Text>
               </View>
 
-              <View
-                style={{
-                  backgroundColor: '#F3E8FF',
-                  borderRadius: ms(16),
-                  height: vs(32),
-                  marginRight: hs(10),
-                  overflow: 'hidden',
-                  width: hs(32),
-                }}
-              >
-                <Svg height="32" viewBox="0 0 100 100" width="32">
-                  <Rect fill="#FDF4FF" height="100" width="100" />
-                  <Circle cx="50" cy="46" fill="#3E2723" r="28" />
-                  <Circle cx="50" cy="50" fill="#FFDFC4" r="20" />
-                  <Path
-                    d="M32 40c4-10 14-16 26-14 8 2 14 8 16 16-4-2-9-2-14 1-5 3-10 3-14-1-6-1-10 0-14-2z"
-                    fill="#2D1B16"
-                  />
-                  <Circle cx="44" cy="50" fill="#2D1B16" r="3.5" />
-                  <Circle cx="56" cy="50" fill="#2D1B16" r="3.5" />
-                  <Path d="M26 88c2-12 12-18 24-18s22 6 24 18z" fill="#374151" />
-                </Svg>
-              </View>
+              <UserAvatar size={ms(32)} style={{ marginRight: hs(10) }} />
               <View>
                 <Text style={{ color: '#111827', fontSize: ms(16), fontWeight: '700' }}>
                   Hoàng Văn Hùng <Text style={{ color: '#E53935' }}>(Bạn)</Text>

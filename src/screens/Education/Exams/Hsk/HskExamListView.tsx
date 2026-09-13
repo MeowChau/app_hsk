@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { View, Text, FlatList, SafeAreaView, ActivityIndicator, Modal, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, Keyboard } from 'react-native';
-import { BackButton } from '@/components/atoms';
+import { ScreenHeader } from '@/components/molecules';
 import { HskExamCard } from './HskExamCard';
 import { ALL_HSK_EXAMS } from '../../mockData';
 import { HskExam, ExamResult } from '../../types';
@@ -57,14 +57,7 @@ export const HskExamListView = ({ hskLevel, onBack, onSelectExam, examResults, o
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#FAF9F6' }}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: hs(16), paddingTop: vs(8), paddingBottom: vs(12) }}>
-        <BackButton onPress={onBack} style={{ marginRight: hs(8), marginLeft: hs(-6) }} />
-        <View>
-          <Text style={{ fontSize: ms(22), fontWeight: '800', color: '#111827' }}>
-            HSK {hskLevel} - Đề thi thử
-          </Text>
-        </View>
-      </View>
+      <ScreenHeader title={`HSK ${hskLevel} - Đề thi thử`} onBack={onBack} />
 
       <FlatList
         data={visibleExams}
@@ -103,7 +96,7 @@ export const HskExamListView = ({ hskLevel, onBack, onSelectExam, examResults, o
           flexDirection: 'row', alignItems: 'center', paddingHorizontal: hs(16), paddingVertical: vs(10),
         }}>
           <ActivityIndicator size="small" color="#FFFFFF" style={{ marginRight: hs(8) }} />
-          <Text style={{ color: '#FFFFFF', fontSize: ms(13), fontWeight: '700' }}>Đang tải thêm...</Text>
+          <Text style={{ color: '#FFFFFF', fontSize: ms(14), fontWeight: '700' }}>Đang tải thêm...</Text>
         </View>
       )}
 
@@ -166,7 +159,7 @@ export const HskExamListView = ({ hskLevel, onBack, onSelectExam, examResults, o
                 value={examTime}
                 onChangeText={setExamTime}
               />
-              <Text style={{ fontSize: ms(13), color: '#6B7280', marginBottom: vs(24) }}>
+              <Text style={{ fontSize: ms(14), color: '#6B7280', marginBottom: vs(24) }}>
                 Từ 1 đến 180 phút
               </Text>
 

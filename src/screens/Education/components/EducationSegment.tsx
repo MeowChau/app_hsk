@@ -32,7 +32,7 @@ export const EducationSegment = ({ options, selectedIndex, onChange }: Props) =>
               }}
             >
               <Text style={{
-                fontSize: ms(14),
+                fontSize: ms(16),
                 fontWeight: isSelected ? '700' : '600',
                 color: isSelected ? '#111827' : '#6B7280'
               }}>

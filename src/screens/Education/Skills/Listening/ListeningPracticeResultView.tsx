@@ -1,7 +1,7 @@
 import React from 'react';
-import { View, Text, SafeAreaView, TouchableOpacity, ScrollView } from 'react-native';
-import Svg, { Path } from 'react-native-svg';
+import { Text, SafeAreaView, ScrollView } from 'react-native';
 import { ms, hs, vs } from '@/theme';
+import { PracticeResultCard } from '../components';
 
 interface Props {
   score: number;
@@ -25,63 +25,13 @@ export const ListeningPracticeResultView = ({ score, correctCount, totalCount, o
         </Text>
 
         {/* Result Card */}
-        <View style={{
-          backgroundColor: '#FAF8F1',
-          borderRadius: ms(8),
-          paddingVertical: vs(40),
-          paddingHorizontal: hs(16),
-          alignItems: 'center',
-          alignSelf: 'center',
-          width: '90%',
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: 2 },
-          shadowOpacity: 0.05,
-          shadowRadius: 4,
-          elevation: 3,
-        }}>
-          <Text style={{ fontSize: ms(48), fontWeight: '800', color: '#1E3A8A', marginBottom: vs(8) }}>
-            {score}%
-          </Text>
-          <Text style={{ fontSize: ms(14), color: '#4B5563', fontWeight: '600', marginBottom: vs(24) }}>
-            Đúng {correctCount}/{totalCount} câu
-          </Text>
-
-          {/* Action Buttons */}
-          <View style={{ flexDirection: 'row', gap: hs(12) }}>
-            <TouchableOpacity
-              onPress={onBackToSetup}
-              style={{
-                flexDirection: 'row', alignItems: 'center', gap: hs(6),
-                backgroundColor: '#FFFFFF',
-                borderWidth: 1, borderColor: '#D1D5DB',
-                borderRadius: ms(8),
-                paddingVertical: vs(12),
-                paddingHorizontal: hs(18),
-              }}
-            >
-              <Svg height="14" viewBox="0 0 24 24" width="14">
-                <Path d="M20 12H4M10 18l-6-6 6-6" fill="none" stroke="#374151" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-              </Svg>
-              <Text style={{ color: '#374151', fontSize: ms(14), fontWeight: '700' }}>Đổi học liệu</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={onRetake}
-              style={{
-                flexDirection: 'row', alignItems: 'center', gap: hs(6),
-                backgroundColor: '#1E3A8A',
-                borderRadius: ms(8),
-                paddingVertical: vs(12),
-                paddingHorizontal: hs(18),
-              }}
-            >
-              <Svg height="14" viewBox="0 0 24 24" width="14">
-                <Path d="M2 12a10 10 0 1 0 10-10v3M2 12h3M2 12V9" fill="none" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-              </Svg>
-              <Text style={{ color: '#FFFFFF', fontSize: ms(14), fontWeight: '700' }}>Làm lại</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
+        <PracticeResultCard
+          score={score}
+          scoreSuffix="%"
+          subtitle={`Đúng ${correctCount}/${totalCount} câu`}
+          onBackToSetup={onBackToSetup}
+          onRetake={onRetake}
+        />
 
       </ScrollView>
     </SafeAreaView>

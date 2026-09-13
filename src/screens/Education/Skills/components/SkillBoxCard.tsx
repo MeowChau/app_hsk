@@ -65,7 +65,7 @@ export const SkillBoxCard = ({ title, skillId = 'NGHE', isSelected, onPress }: P
             elevation: 2,
           }}
         >
-          <Text style={{ fontSize: ms(15), fontWeight: '800', color: '#1E3A8A', letterSpacing: 0.5 }}>
+          <Text style={{ fontSize: ms(16), fontWeight: '800', color: '#1E3A8A', letterSpacing: 0.5 }}>
             {title}
           </Text>
         </View>

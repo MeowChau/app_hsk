@@ -1,8 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, ScrollView, Image, useWindowDimensions } from 'react-native';
-import Svg, { Path, Circle, Rect } from 'react-native-svg';
 
-import { Logo } from '@/components/atoms';
+import { Logo, UserAvatar } from '@/components/atoms';
 import { SafeScreen } from '@/components/templates';
 import { Paths } from '@/navigation/paths';
 import type { RootScreenProps } from '@/navigation/types';
@@ -64,29 +63,7 @@ export function HomeContent({ onSwitchTab, onNavigateToProfile }: HomeContentPro
               paddingVertical: vs(3),
             }}
           >
-            <View
-              style={{
-                backgroundColor: '#F3E8FF',
-                borderRadius: ms(11),
-                height: vs(22),
-                marginRight: hs(6),
-                overflow: 'hidden',
-                width: hs(22),
-              }}
-            >
-              <Svg height="22" viewBox="0 0 100 100" width="22">
-                <Rect fill="#FDF4FF" height="100" width="100" />
-                <Circle cx="50" cy="46" fill="#3E2723" r="28" />
-                <Circle cx="50" cy="50" fill="#FFDFC4" r="20" />
-                <Path
-                  d="M32 40c4-10 14-16 26-14 8 2 14 8 16 16-4-2-9-2-14 1-5 3-10 3-14-1-6-1-10 0-14-2z"
-                  fill="#2D1B16"
-                />
-                <Circle cx="44" cy="50" fill="#2D1B16" r="3.5" />
-                <Circle cx="56" cy="50" fill="#2D1B16" r="3.5" />
-                <Path d="M26 88c2-12 12-18 24-18s22 6 24 18z" fill="#374151" />
-              </Svg>
-            </View>
+            <UserAvatar size={ms(22)} style={{ marginRight: hs(6) }} />
             <Text style={{ color: '#212121', fontSize: ms(14), fontWeight: '600' }}>
               Hoàng Văn Hùng
             </Text>

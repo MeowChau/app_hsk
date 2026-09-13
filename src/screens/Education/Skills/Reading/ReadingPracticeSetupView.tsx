@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, Modal, ScrollView, TouchableWithoutFeedback } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { ScreenHeader } from '@/components/molecules';
 import { ms, hs, vs } from '@/theme';
+import { HskLevelSelector, TopicPickerModal } from '../components';
 
 interface Props {
   onBack: () => void;
@@ -25,21 +27,11 @@ const TOPICS = [
 export const ReadingPracticeSetupView = ({ onBack, onStartPractice }: Props) => {
   const [selectedHsk, setSelectedHsk] = useState<number>(1);
   const [selectedTopic, setSelectedTopic] = useState<string>(TOPICS[0]);
-  const [showTopicModal, setShowTopicModal] = useState(false);
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
       {/* Header */}
-      <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: hs(16), paddingVertical: vs(12) }}>
-        <TouchableOpacity onPress={onBack} style={{ padding: ms(4), marginRight: hs(12) }}>
-          <Svg height="24" viewBox="0 0 24 24" width="24">
-            <Path d="M20 12H4M10 18l-6-6 6-6" fill="none" stroke="#1E3A8A" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-          </Svg>
-        </TouchableOpacity>
-        <Text style={{ fontSize: ms(20), fontWeight: '800', color: '#111827' }}>
-          Luyện tập kỹ năng đọc
-        </Text>
-      </View>
+      <ScreenHeader title="Luyện tập kỹ năng đọc" onBack={onBack} />
 
       <ScrollView contentContainerStyle={{ paddingHorizontal: hs(16), paddingTop: vs(16), paddingBottom: vs(100) }} showsVerticalScrollIndicator={false}>
         <Text style={{ fontSize: ms(14), color: '#4B5563', lineHeight: vs(24), marginBottom: vs(32) }}>
@@ -47,61 +39,19 @@ export const ReadingPracticeSetupView = ({ onBack, onStartPractice }: Props) => 
         </Text>
 
         {/* HSK Level Selection */}
-        <Text style={{ fontSize: ms(16), fontWeight: '800', color: '#111827', marginBottom: vs(12) }}>
-          THEO KỸ NĂNG HSK
-        </Text>
-        <View style={{ flexDirection: 'row', gap: hs(12), marginBottom: vs(32) }}>
-          {[1, 2, 3].map(level => {
-            const isSelected = selectedHsk === level;
-            return (
-              <TouchableOpacity
-                key={level}
-                onPress={() => setSelectedHsk(level)}
-                style={{
-                  paddingVertical: vs(8),
-                  paddingHorizontal: hs(24),
-                  borderRadius: ms(20),
-                  backgroundColor: isSelected ? '#1E3A8A' : '#FFFFFF',
-                  borderWidth: 1,
-                  borderColor: isSelected ? '#1E3A8A' : '#E5E7EB',
-                  shadowColor: '#000',
-                  shadowOffset: { width: 0, height: 1 },
-                  shadowOpacity: 0.05,
-                  shadowRadius: 2,
-                  elevation: 2,
-                }}
-              >
-                <Text style={{ fontSize: ms(14), fontWeight: '700', color: isSelected ? '#FFFFFF' : '#111827' }}>
-                  HSK {level}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
+        <HskLevelSelector
+          selectedHsk={selectedHsk}
+          onSelectHsk={setSelectedHsk}
+        />
 
         {/* Topic Selection */}
-        <Text style={{ fontSize: ms(16), fontWeight: '800', color: '#111827', marginBottom: vs(12) }}>
-          Chọn chủ đề / bài học
-        </Text>
-        <TouchableOpacity
-          onPress={() => setShowTopicModal(true)}
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            borderWidth: 1,
-            borderColor: '#E5E7EB',
-            backgroundColor: '#FAF9F6',
-            borderRadius: ms(8),
-            paddingVertical: vs(12),
-            paddingHorizontal: hs(16),
-          }}
-        >
-          <Text style={{ fontSize: ms(14), color: '#374151', fontWeight: '500' }}>{selectedTopic}</Text>
-          <Svg height="16" viewBox="0 0 24 24" width="16">
-            <Path d="M7 15l5 5 5-5M7 9l5-5 5 5" fill="none" stroke="#6B7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-          </Svg>
-        </TouchableOpacity>
+        <TopicPickerModal
+          selectedLabel={selectedTopic}
+          topics={TOPICS}
+          getTopicLabel={t => t}
+          isSelected={t => t === selectedTopic}
+          onSelectTopic={setSelectedTopic}
+        />
       </ScrollView>
 
       {/* Footer Button */}
@@ -127,74 +77,6 @@ export const ReadingPracticeSetupView = ({ onBack, onStartPractice }: Props) => 
           <Text style={{ color: '#FFFFFF', fontSize: ms(16), fontWeight: '700' }}>Bắt đầu luyện đọc</Text>
         </TouchableOpacity>
       </View>
-
-      {/* Topic Modal */}
-      <Modal visible={showTopicModal} transparent animationType="fade">
-        <TouchableWithoutFeedback onPress={() => setShowTopicModal(false)}>
-          <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.2)' }}>
-            <TouchableWithoutFeedback>
-              <View style={{ 
-                marginHorizontal: hs(16), 
-                marginTop: vs(160), // Match exactly with Speaking for balanced screen layout
-                maxHeight: '60%', 
-                backgroundColor: '#FFFFFF', 
-                borderRadius: ms(8), 
-                paddingVertical: vs(12), 
-                shadowColor: '#000',
-                shadowOffset: { width: 0, height: 4 },
-                shadowOpacity: 0.1,
-                shadowRadius: 10,
-                elevation: 5,
-              }}>
-                <Text style={{ fontSize: ms(16), fontWeight: '800', color: '#111827', paddingHorizontal: hs(16), paddingBottom: vs(12) }}>
-                  Chủ đề
-                </Text>
-                <ScrollView showsVerticalScrollIndicator={false}>
-                  {TOPICS.map((topic, index) => {
-                    const isSelected = selectedTopic === topic;
-                    return (
-                      <TouchableOpacity
-                        key={index}
-                        onPress={() => {
-                          setSelectedTopic(topic);
-                          setShowTopicModal(false);
-                        }}
-                        style={{
-                          flexDirection: 'row',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          paddingVertical: vs(12),
-                          paddingHorizontal: hs(8),
-                          backgroundColor: isSelected ? '#C53030' : 'transparent',
-                          marginHorizontal: hs(8),
-                          borderRadius: ms(6),
-                          borderBottomWidth: (!isSelected && index < TOPICS.length - 1) ? 1 : 0,
-                          borderBottomColor: '#F3F4F6',
-                        }}
-                      >
-                        <Text style={{ fontSize: ms(14), color: isSelected ? '#FFFFFF' : '#374151', fontWeight: isSelected ? '700' : '500' }}>
-                          {topic}
-                        </Text>
-                        {isSelected && (
-                          <Svg height="16" viewBox="0 0 24 24" width="16">
-                            <Path d="M20 6L9 17l-5-5" fill="none" stroke="#FFFFFF" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-                          </Svg>
-                        )}
-                      </TouchableOpacity>
-                    );
-                  })}
-                </ScrollView>
-                {/* Scroll hint icon at bottom */}
-                <View style={{ alignItems: 'center', paddingTop: vs(8), paddingBottom: vs(4) }}>
-                  <Svg height="16" viewBox="0 0 24 24" width="16">
-                    <Path d="M6 9l6 6 6-6" fill="none" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                  </Svg>
-                </View>
-              </View>
-            </TouchableWithoutFeedback>
-          </View>
-        </TouchableWithoutFeedback>
-      </Modal>
     </SafeAreaView>
   );
 };

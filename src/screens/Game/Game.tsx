@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, SafeAreaView, useWindowDimensions } from 'react-native';
-import Svg, { Path, Circle, Rect } from 'react-native-svg';
+import Svg, { Path, Circle } from 'react-native-svg';
+import { UserAvatar } from '@/components/atoms';
 import { hs, vs, ms } from '@/theme';
 import { LeaderboardRow } from './components/LeaderboardRow';
 import { GameMatchCard } from './components/GameMatchCard';
@@ -229,17 +230,7 @@ export function GameContent({ navigation, route, targetView: propTargetView }: a
           {/* Current User Row */}
           <View style={{ alignItems: 'center', backgroundColor: '#FFF5F5', borderRadius: ms(999), flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: hs(16), paddingVertical: vs(12), marginTop: vs(24), alignSelf: 'center', width: '90%' }}>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <View style={{ backgroundColor: '#3730A3', borderRadius: ms(16), height: vs(32), width: hs(32), marginRight: hs(10), overflow: 'hidden' }}>
-                <Svg height="32" viewBox="0 0 100 100" width="32">
-                  <Rect fill="#FDF4FF" height="100" width="100" />
-                  <Circle cx="50" cy="46" fill="#3E2723" r="28" />
-                  <Circle cx="50" cy="50" fill="#FFDFC4" r="20" />
-                  <Path d="M32 40c4-10 14-16 26-14 8 2 14 8 16 16-4-2-9-2-14 1-5 3-10 3-14-1-6-1-10 0-14-2z" fill="#2D1B16" />
-                  <Circle cx="44" cy="50" fill="#2D1B16" r="3.5" />
-                  <Circle cx="56" cy="50" fill="#2D1B16" r="3.5" />
-                  <Path d="M26 88c2-12 12-18 24-18s22 6 24 18z" fill="#374151" />
-                </Svg>
-              </View>
+              <UserAvatar size={ms(32)} backgroundColor="#3730A3" style={{ marginRight: hs(10) }} />
               <View>
                 <Text style={{ color: '#111827', fontSize: ms(16), fontWeight: '800' }}>Hoàng Văn Hùng <Text style={{ color: '#E53935' }}>(Bạn)</Text></Text>
                 <Text style={{ color: '#9E9E9E', fontSize: ms(14), marginTop: vs(1), fontWeight: '500' }}>Level {1 + Math.floor(userTotalXp / 200)}</Text>
@@ -407,26 +398,7 @@ export function GameContent({ navigation, route, targetView: propTargetView }: a
           }}
         >
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <View
-              style={{
-                backgroundColor: '#3730A3',
-                borderRadius: ms(18),
-                height: vs(36),
-                width: hs(36),
-                marginRight: hs(10),
-                overflow: 'hidden',
-              }}
-            >
-              <Svg height="36" viewBox="0 0 100 100" width="36">
-                <Rect fill="#FDF4FF" height="100" width="100" />
-                <Circle cx="50" cy="46" fill="#3E2723" r="28" />
-                <Circle cx="50" cy="50" fill="#FFDFC4" r="20" />
-                <Path d="M32 40c4-10 14-16 26-14 8 2 14 8 16 16-4-2-9-2-14 1-5 3-10 3-14-1-6-1-10 0-14-2z" fill="#2D1B16" />
-                <Circle cx="44" cy="50" fill="#2D1B16" r="3.5" />
-                <Circle cx="56" cy="50" fill="#2D1B16" r="3.5" />
-                <Path d="M26 88c2-12 12-18 24-18s22 6 24 18z" fill="#374151" />
-              </Svg>
-            </View>
+            <UserAvatar size={ms(36)} backgroundColor="#3730A3" style={{ marginRight: hs(10) }} />
             <View>
               <Text style={{ color: '#111827', fontSize: ms(15), fontWeight: '800' }}>
                 Hoàng Văn Hùng <Text style={{ color: '#E53935' }}>(Bạn)</Text>

@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, TextInput, TouchableOpacity } from 'react-native';
-import Svg, { Circle, Path, Rect } from 'react-native-svg';
+import Svg, { Path } from 'react-native-svg';
+import { UserAvatar } from '@/components/atoms';
 import { useTheme, hs, vs, ms } from '@/theme';
 
 interface UserProfileCardProps {
@@ -51,56 +52,7 @@ export function UserProfileCard({ displayName, setDisplayName, email }: UserProf
       {/* Avatar Section */}
       <View style={{ alignItems: 'center', marginBottom: vs(16) }}>
         {/* Circular Avatar */}
-        <View
-          style={{
-            alignItems: 'center',
-            backgroundColor: '#F3E8FF',
-            borderColor: '#E9D5FF',
-            borderRadius: ms(44),
-            borderWidth: 1.5,
-            height: vs(88),
-            justifyContent: 'center',
-            marginBottom: vs(12),
-            overflow: 'hidden',
-            width: hs(88),
-          }}
-        >
-          <Svg height="88" viewBox="0 0 100 100" width="88">
-            {/* Background */}
-            <Rect fill="#FDF4FF" height="100" width="100" />
-            {/* Head / Hair */}
-            <Circle cx="50" cy="46" fill="#3E2723" r="28" />
-            {/* Face */}
-            <Circle cx="50" cy="50" fill="#FFDFC4" r="20" />
-            {/* Anime hair front */}
-            <Path
-              d="M32 40c4-10 14-16 26-14 8 2 14 8 16 16-4-2-9-2-14 1-5 3-10 3-14-1-6-1-10 0-14-2z"
-              fill="#2D1B16"
-            />
-            {/* Eyes */}
-            <Circle cx="44" cy="50" fill="#2D1B16" r="3.5" />
-            <Circle cx="56" cy="50" fill="#2D1B16" r="3.5" />
-            <Circle cx="45" cy="49" fill="#FFFFFF" r="1.2" />
-            <Circle cx="57" cy="49" fill="#FFFFFF" r="1.2" />
-            {/* Smile */}
-            <Path
-              d="M48 57c1 1 3 1 4 0"
-              fill="none"
-              stroke="#A35948"
-              strokeLinecap="round"
-              strokeWidth="1.5"
-            />
-            {/* Clothes */}
-            <Path
-              d="M26 88c2-12 12-18 24-18s22 6 24 18z"
-              fill="#374151"
-            />
-            <Path
-              d="M44 70l6 8 6-8z"
-              fill="#FFDFC4"
-            />
-          </Svg>
-        </View>
+        <UserAvatar size={ms(88)} style={{ borderColor: '#E9D5FF', borderWidth: 1.5, marginBottom: vs(12) }} />
 
         {/* Avatar Action Buttons */}
         <View style={[layout.row, layout.itemsCenter]}>

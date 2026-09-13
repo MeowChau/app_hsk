@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
+import { SectionCard } from '@/components/molecules';
 import { useTheme, hs, vs, ms } from '@/theme';
 
 interface VocabularyStatsCardProps {
@@ -11,27 +12,12 @@ export function VocabularyStatsCard({ onPressDetail }: VocabularyStatsCardProps)
   const { layout } = useTheme();
 
   return (
-    <View
-      style={{
-        backgroundColor: '#FFFFFF',
-        borderColor: '#F0F2F5',
-        borderRadius: ms(16),
-        borderWidth: 1,
-        elevation: 1.5,
-        padding: ms(16),
-        shadowColor: '#000',
-        shadowOffset: { width: hs(0), height: vs(2) },
-        shadowOpacity: 0.05,
-        shadowRadius: 5,
-      }}
+    <SectionCard
+      containerStyle={{ paddingHorizontal: 0, marginBottom: 0 }}
+      icon={<View style={{ backgroundColor: '#DFF0FE', borderRadius: ms(21), height: vs(42), width: hs(42) }} />}
+      title="Thống kê học tập từ vựng"
+      headerStyle={{ marginBottom: vs(14) }}
     >
-      <View style={[layout.row, layout.itemsCenter, { marginBottom: vs(14) }]}>
-        <View style={{ backgroundColor: '#DFF0FE', borderRadius: ms(21), height: vs(42), width: hs(42) }} />
-        <Text style={{ color: '#000000', fontSize: ms(16), fontWeight: '700', marginLeft: hs(12) }}>
-          Thống kê học tập từ vựng
-        </Text>
-      </View>
-
       <View style={{ rowGap: vs(8) }}>
         <View style={[layout.row, { columnGap: hs(8) }]}>
           <View style={{ alignItems: 'center', backgroundColor: '#F5F6F8', borderRadius: ms(10), flex: 1, paddingVertical: vs(12) }}>
@@ -69,6 +55,8 @@ export function VocabularyStatsCard({ onPressDetail }: VocabularyStatsCardProps)
           </Svg>
         </TouchableOpacity>
       )}
-    </View>
+    </SectionCard>
   );
 }
+
+export default VocabularyStatsCard;

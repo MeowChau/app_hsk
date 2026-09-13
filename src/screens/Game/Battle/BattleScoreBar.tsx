@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text } from 'react-native';
-import Svg, { Circle, Rect, Path } from 'react-native-svg';
+import { UserAvatar } from '@/components/atoms';
 import { hs, vs, ms } from '@/theme';
 
 interface BattleScoreBarProps {
@@ -51,31 +51,7 @@ export const BattleScoreBar = ({
       >
         {/* Left: Player */}
         <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
-          <View
-            style={{
-              width: hs(40),
-              height: vs(40),
-              borderRadius: ms(20),
-              backgroundColor: '#3730A3',
-              overflow: 'hidden',
-              marginRight: hs(10),
-              borderWidth: 1.5,
-              borderColor: '#818CF8',
-            }}
-          >
-            <Svg height="40" viewBox="0 0 100 100" width="40">
-              <Rect fill="#FDF4FF" height="100" width="100" />
-              <Circle cx="50" cy="46" fill="#3E2723" r="28" />
-              <Circle cx="50" cy="50" fill="#FFDFC4" r="20" />
-              <Path
-                d="M32 40c4-10 14-16 26-14 8 2 14 8 16 16-4-2-9-2-14 1-5 3-10 3-14-1-6-1-10 0-14-2z"
-                fill="#2D1B16"
-              />
-              <Circle cx="44" cy="50" fill="#2D1B16" r="3.5" />
-              <Circle cx="56" cy="50" fill="#2D1B16" r="3.5" />
-              <Path d="M26 88c2-12 12-18 24-18s22 6 24 18z" fill="#374151" />
-            </Svg>
-          </View>
+          <UserAvatar size={ms(40)} backgroundColor="#3730A3" style={{ marginRight: hs(10), borderWidth: 1.5, borderColor: '#818CF8' }} />
           <View>
             <Text style={{ color: '#A5B4FC', fontSize: ms(12), fontWeight: '600' }}>
               Bạn
