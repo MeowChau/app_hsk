@@ -2,14 +2,25 @@ import React, { useState } from 'react';
 import { SafeAreaView, ScrollView } from 'react-native';
 import { EducationHeader } from './components/EducationHeader';
 import { EducationSegment } from './components/EducationSegment';
-import { SkillPracticeView } from './Skills/SkillPracticeView';
+import { SkillPracticeView } from './Skills/components/SkillPracticeView';
 import { HskLevelGridView } from './Exams/HskLevelGridView';
 import { HskExamListView } from './Exams/HskExamListView';
 import { HskExamTestView } from './Exams/HskExamTestView';
 import { HskExamResultView } from './Exams/HskExamResultView';
-import { ListeningPracticeSetupView } from './Skills/ListeningPracticeSetupView';
-import { ListeningPracticeView } from './Skills/ListeningPracticeView';
-import { ListeningPracticeResultView } from './Skills/ListeningPracticeResultView';
+import { ListeningPracticeSetupView } from './Skills/Listening/ListeningPracticeSetupView';
+import { ListeningPracticeView } from './Skills/Listening/ListeningPracticeView';
+import { ListeningPracticeResultView } from './Skills/Listening/ListeningPracticeResultView';
+import { SpeakingPracticeSetupView } from './Skills/Speaking/SpeakingPracticeSetupView';
+import { SpeakingPracticeView } from './Skills/Speaking/SpeakingPracticeView';
+import { SpeakingPracticeResultView } from './Skills/Speaking/SpeakingPracticeResultView';
+import { ReadingPracticeSetupView } from './Skills/Reading/ReadingPracticeSetupView';
+import { ReadingPracticeView } from './Skills/Reading/ReadingPracticeView';
+import { ReadingPracticeResultView } from './Skills/Reading/ReadingPracticeResultView';
+import { WritingPracticeSetupView } from './Skills/Writing/WritingPracticeSetupView';
+import { WritingPracticeFlashcardView } from './Skills/Writing/WritingPracticeFlashcardView';
+import { WritingPracticeView } from './Skills/Writing/WritingPracticeView';
+import { WritingPracticeResultView } from './Skills/Writing/WritingPracticeResultView';
+import { generateWritingWords } from './Skills/Writing/writingMockData';
 import type { SkillType, EducationViewMode, ExamResult } from './types';
 
 export function EducationContent({ navigation }: any) {
@@ -90,7 +101,45 @@ export function EducationContent({ navigation }: any) {
     return <HskExamListView hskLevel={selectedHsk} onBack={handleBackFromExamList} onSelectExam={handleStartExamTest} examResults={examResults} onViewResult={handleViewResult} />;
   }
 
-  if (viewMode === 'skillSetup' && selectedSkill === 'NGHE') {
+  if (viewMode === 'skillSetup') {
+    if (selectedSkill === 'NOI') {
+      return (
+        <SpeakingPracticeSetupView
+          onBack={() => setViewMode('main')}
+          onStartPractice={(topic) => {
+            setPracticeTopic(topic);
+            setViewMode('skillPractice'); 
+          }}
+        />
+      );
+    }
+
+    if (selectedSkill === 'DOC') {
+      return (
+        <ReadingPracticeSetupView
+          onBack={() => setViewMode('main')}
+          onStartPractice={(hskLevel, topic) => {
+            setPracticeHsk(hskLevel);
+            setPracticeTopic(topic);
+            setViewMode('skillPractice');
+          }}
+        />
+      );
+    }
+    
+    if (selectedSkill === 'VIET') {
+      return (
+        <WritingPracticeSetupView
+          hskLevel={1}
+          onBack={() => setViewMode('main')}
+          onStart={(topic) => {
+            setPracticeTopic(topic);
+            setViewMode('skillFlashcard');
+          }}
+        />
+      );
+    }
+    
     return (
       <ListeningPracticeSetupView 
         onBack={() => setViewMode('main')} 
@@ -103,27 +152,119 @@ export function EducationContent({ navigation }: any) {
     );
   }
 
-  if (viewMode === 'skillPractice') {
+  if (viewMode === 'skillFlashcard') {
+    const words = generateWritingWords(1, practiceTopic);
     return (
-      <ListeningPracticeView 
-        hskLevel={practiceHsk} 
-        topic={practiceTopic} 
-        onBack={() => setViewMode('skillSetup')} 
-        onSubmit={(result) => {
-          setExamResults(prev => ({ ...prev, 'listening_practice': result }));
-          setViewMode('skillPracticeResult' as any); // using casting to avoid types.ts update if not strictly needed, or let me update types.ts
-        }} 
+      <WritingPracticeFlashcardView
+        words={words}
+        onBack={() => setViewMode('skillSetup')}
+        onFinishFlashcards={() => setViewMode('skillPractice')}
       />
     );
   }
 
-  if (viewMode === 'skillPracticeResult' as any) {
-    const result = examResults['listening_practice'];
+  if (viewMode === 'skillPractice') {
+    if (selectedSkill === 'NOI') {
+      return (
+        <SpeakingPracticeView
+          topic={practiceTopic}
+          onBack={() => setViewMode('skillSetup')}
+          onSubmit={(result) => {
+            setExamResults(prev => ({ ...prev, 'speaking_practice': result }));
+            setViewMode('skillPracticeResult');
+          }}
+        />
+      );
+    }
+
+    if (selectedSkill === 'DOC') {
+      return (
+        <ReadingPracticeView
+          hskLevel={practiceHsk}
+          topic={practiceTopic}
+          onBack={() => setViewMode('skillSetup')}
+          onSubmit={(result) => {
+            setExamResults(prev => ({ ...prev, 'reading_practice': result as any }));
+            setViewMode('skillPracticeResult');
+          }}
+        />
+      );
+    }
+
+    if (selectedSkill === 'VIET') {
+      return (
+        <WritingPracticeView
+          hskLevel={1}
+          topic={practiceTopic}
+          onBack={() => setViewMode('skillSetup')}
+          onSubmit={(result) => {
+            setExamResults(prev => ({ ...prev, 'writing_practice': result as any }));
+            setViewMode('skillPracticeResult');
+          }}
+        />
+      );
+    }
+
+    return (
+      <ListeningPracticeView 
+        hskLevel={practiceHsk} 
+        topic={practiceTopic} 
+        onBack={() => setViewMode('skillSetup')}
+        onSubmit={(result) => {
+          setExamResults(prev => ({ ...prev, 'listening_practice': result as any }));
+          setViewMode('skillPracticeResult');
+        }}
+      />
+    );
+  }
+
+  if (viewMode === 'skillPracticeResult') {
+    if (selectedSkill === 'NOI') {
+      const result = examResults['speaking_practice'];
+      return (
+        <SpeakingPracticeResultView
+          result={result || { score: 0, passedCount: 0, totalCount: 0 }}
+          onBackToSetup={() => setViewMode('skillSetup')}
+          onRetake={() => setViewMode('skillPractice')}
+        />
+      );
+    }
+
+    if (selectedSkill === 'DOC') {
+      const result = examResults['reading_practice'];
+      return (
+        <ReadingPracticeResultView
+          score={result?.score || 0}
+          correctCount={result?.correctCount || 0}
+          totalCount={result?.totalCount || 0}
+          answers={(result as any)?.answers || {}}
+          onBackToSetup={() => setViewMode('skillSetup')}
+          onRetake={() => setViewMode('skillPractice')}
+        />
+      );
+    }
+
+    if (selectedSkill === 'VIET') {
+      const result = examResults['writing_practice'] as any;
+      return (
+        <WritingPracticeResultView
+          hskLevel={1}
+          topicId={practiceTopic}
+          totalCount={result?.totalCount || 0}
+          answeredCount={result?.answeredCount || 0}
+          statuses={result?.statuses || {}}
+          onBackToSetup={() => setViewMode('skillSetup')}
+          onRetake={() => setViewMode('skillPractice')}
+        />
+      );
+    }
+
+    const lisResult = examResults['listening_practice'];
     return (
       <ListeningPracticeResultView
-        score={result?.score || 0}
-        correctCount={result?.correctCount || 0}
-        totalCount={result?.totalCount || 0}
+        score={lisResult?.score || 0}
+        correctCount={lisResult?.correctCount || 0}
+        totalCount={lisResult?.totalCount || 0}
         onBackToSetup={() => setViewMode('skillSetup')}
         onRetake={() => setViewMode('skillPractice')}
       />
@@ -146,7 +287,7 @@ export function EducationContent({ navigation }: any) {
             selectedSkill={selectedSkill}
             onSelectSkill={(skill) => {
               setSelectedSkill(skill);
-              if (skill === 'NGHE') {
+              if (skill === 'NGHE' || skill === 'NOI' || skill === 'DOC') {
                 setViewMode('skillSetup');
               }
             }}

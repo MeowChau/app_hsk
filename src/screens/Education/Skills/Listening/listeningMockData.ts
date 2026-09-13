@@ -1,4 +1,4 @@
-import { ListeningPracticeQuestion } from './types';
+import { ListeningPracticeQuestion } from '../../types';
 
 /**
  * Tạo dữ liệu câu hỏi luyện nghe demo cho 4 loại:

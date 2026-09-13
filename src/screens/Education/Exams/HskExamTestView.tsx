@@ -47,8 +47,16 @@ export const HskExamTestView = ({ examId, durationMin, onBack, onSubmit, isRevie
   
   const [showGridModal, setShowGridModal] = useState(false);
   const [showSubmitModal, setShowSubmitModal] = useState(false);
+  const [currentQuestionId, setCurrentQuestionId] = useState<string | null>(null);
   
   const flatListRef = React.useRef<FlatList>(null);
+
+  const onViewableItemsChanged = React.useRef(({ viewableItems }: any) => {
+    if (viewableItems.length > 0) {
+      setCurrentQuestionId(viewableItems[0].item?.id || null);
+    }
+  }).current;
+  const viewabilityConfig = React.useRef({ itemVisiblePercentThreshold: 50 }).current;
 
   const handleSelectOption = useCallback((questionId: string, optionId: string) => {
     if (isReviewMode) return;
@@ -119,7 +127,7 @@ export const HskExamTestView = ({ examId, durationMin, onBack, onSubmit, isRevie
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <BackButton onPress={onBack} style={{ marginRight: hs(8), marginLeft: hs(-6) }} />
           <View>
-            <Text style={{ fontSize: ms(16), fontWeight: '800', color: '#111827' }}>
+            <Text style={{ fontSize: ms(16), fontWeight: '700', color: '#111827' }}>
               HSK {examLevel}
             </Text>
             <Text style={{ fontSize: ms(12), color: '#4B5563', fontWeight: '500' }}>
@@ -161,6 +169,8 @@ export const HskExamTestView = ({ examId, durationMin, onBack, onSubmit, isRevie
         keyExtractor={(item) => item.id}
         contentContainerStyle={{ padding: ms(16) }}
         showsVerticalScrollIndicator={false}
+        onViewableItemsChanged={onViewableItemsChanged}
+        viewabilityConfig={viewabilityConfig}
         renderItem={renderItem}
         onScrollToIndexFailed={(info) => {
           const wait = new Promise(resolve => setTimeout(resolve, 500));
@@ -219,6 +229,7 @@ export const HskExamTestView = ({ examId, durationMin, onBack, onSubmit, isRevie
                     {questions.filter(q => q.type === 'LISTENING').map(q => {
                       const isAnswered = !!answers[q.id];
                       const isBookmarked = !!bookmarks[q.id];
+                      const isCurrent = q.id === currentQuestionId;
                       
                       let bgColor = '#EBE3D5';
                       let textColor = '#4B5563';
@@ -239,8 +250,15 @@ export const HskExamTestView = ({ examId, durationMin, onBack, onSubmit, isRevie
                           borderStyle = 'dashed';
                         }
                       } else {
-                        bgColor = isAnswered ? '#1E3A8A' : '#EBE3D5';
-                        textColor = isAnswered ? '#FFFFFF' : '#4B5563';
+                        if (isCurrent) {
+                          bgColor = '#FEF3C7';
+                          textColor = '#92400E';
+                          borderWidth = 2;
+                          borderColor = '#F59E0B';
+                        } else {
+                          bgColor = isAnswered ? '#1E3A8A' : '#EBE3D5';
+                          textColor = isAnswered ? '#FFFFFF' : '#4B5563';
+                        }
                       }
                       
                       return (
@@ -259,6 +277,7 @@ export const HskExamTestView = ({ examId, durationMin, onBack, onSubmit, isRevie
                     {questions.filter(q => q.type === 'READING').map(q => {
                       const isAnswered = !!answers[q.id];
                       const isBookmarked = !!bookmarks[q.id];
+                      const isCurrent = q.id === currentQuestionId;
 
                       let bgColor = '#EBE3D5';
                       let textColor = '#4B5563';
@@ -279,8 +298,15 @@ export const HskExamTestView = ({ examId, durationMin, onBack, onSubmit, isRevie
                           borderStyle = 'dashed';
                         }
                       } else {
-                        bgColor = isAnswered ? '#1E3A8A' : '#EBE3D5';
-                        textColor = isAnswered ? '#FFFFFF' : '#4B5563';
+                        if (isCurrent) {
+                          bgColor = '#FEF3C7';
+                          textColor = '#92400E';
+                          borderWidth = 2;
+                          borderColor = '#F59E0B';
+                        } else {
+                          bgColor = isAnswered ? '#1E3A8A' : '#EBE3D5';
+                          textColor = isAnswered ? '#FFFFFF' : '#4B5563';
+                        }
                       }
 
                       return (
@@ -306,9 +332,10 @@ export const HskExamTestView = ({ examId, durationMin, onBack, onSubmit, isRevie
                   </View>
                 ) : (
                   <View style={{ marginTop: vs(16), gap: vs(8) }}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: hs(8) }}><View style={{ width: ms(10), height: ms(10), borderRadius: ms(5), backgroundColor: '#1E3A8A' }} /><Text style={{ fontSize: ms(12), color: '#4B5563', fontWeight: '500' }}>Đã trả lời</Text></View>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: hs(8) }}><View style={{ width: ms(10), height: ms(10), borderRadius: ms(5), backgroundColor: '#EBE3D5' }} /><Text style={{ fontSize: ms(12), color: '#4B5563', fontWeight: '500' }}>Chưa trả lời</Text></View>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: hs(8) }}><View style={{ width: ms(10), height: ms(10), borderRadius: ms(5), backgroundColor: '#F59E0B' }} /><Text style={{ fontSize: ms(12), color: '#4B5563', fontWeight: '500' }}>Đã đánh dấu</Text></View>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: hs(8) }}><View style={{ width: ms(10), height: ms(10), borderRadius: ms(5), backgroundColor: '#1E3A8A' }} /><Text style={{ fontSize: ms(12), color: '#1E3A8A', fontWeight: '600' }}>Đã trả lời</Text></View>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: hs(8) }}><View style={{ width: ms(10), height: ms(10), borderRadius: ms(5), backgroundColor: '#EBE3D5' }} /><Text style={{ fontSize: ms(12), color: '#1E3A8A', fontWeight: '600' }}>Chưa trả lời</Text></View>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: hs(8) }}><View style={{ width: ms(10), height: ms(10), borderRadius: ms(5), backgroundColor: '#FEF3C7', borderWidth: 1, borderColor: '#F59E0B' }} /><Text style={{ fontSize: ms(12), color: '#1E3A8A', fontWeight: '600' }}>Đang học</Text></View>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: hs(8) }}><View style={{ width: ms(10), height: ms(10), borderRadius: ms(5), backgroundColor: '#F59E0B' }} /><Text style={{ fontSize: ms(12), color: '#1E3A8A', fontWeight: '600' }}>Đã đánh dấu</Text></View>
                   </View>
                 )}
               </View>

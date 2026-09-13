@@ -1,6 +1,6 @@
-export type SkillType = 'NGHE' | 'NÓI' | 'ĐỌC' | 'VIẾT';
+export type SkillType = 'NGHE' | 'NOI' | 'DOC' | 'VIET';
 
-export type EducationViewMode = 'main' | 'examList' | 'examTest' | 'examResult' | 'examReview' | 'skillSetup' | 'skillPractice';
+export type EducationViewMode = 'main' | 'examList' | 'examTest' | 'examResult' | 'examReview' | 'skillSetup' | 'skillFlashcard' | 'skillPractice' | 'skillPracticeResult' | 'speakingPracticeSetup' | 'speakingPractice' | 'speakingPracticeResult' | 'readingPracticeSetup' | 'readingPractice' | 'readingPracticeResult';
 
 export type QuestionType = 'LISTENING' | 'READING';
 
@@ -71,4 +71,50 @@ export interface ExamResult {
   readingCorrect: number;
   date: string;
   answers: Record<string, string>;
+}
+
+// =========================================================
+// Speaking Practice
+// =========================================================
+export interface SpeakingPracticeQuestion {
+  id: string;
+  character: string;
+  pinyin: string;
+  meaning: string;
+}
+
+// =========================================================
+// Reading Practice
+// =========================================================
+export type ReadingQuestionType = 'TRUE_FALSE' | 'GROUP_IMAGE' | 'GROUP_VOCAB' | 'MULTIPLE_CHOICE' | 'FILL_BLANK' | 'MATCH_IMAGE';
+
+export interface ReadingPracticeOption {
+  id: string;
+  label: string; // A, B, C, D
+  text?: string;
+  imageUrl?: any;
+}
+
+export interface ReadingPracticeQuestion {
+  id: string;
+  index: number;
+  type: ReadingQuestionType;
+  sentence?: string;    // Câu hỏi hoặc đoạn văn
+  pinyin?: string;      // Pinyin (đối với True/False hoặc câu lẻ)
+  character?: string;   // Chữ Hán to (đối với True/False)
+  imageUrl?: any;       // Hình ảnh (đối với True/False)
+  options: ReadingPracticeOption[];
+  correctOptionId: string;
+  groupImages?: ReadingPracticeOption[]; // Danh sách hình A-F cho GROUP_IMAGE
+  groupVocabs?: ReadingPracticeOption[]; // Danh sách từ vựng A-F cho GROUP_VOCAB
+  example?: {
+    sentence: string; // "例如 Wǒ hěn xǐhuan zhè běn shū.\n我很喜欢这本书。"
+    answer: string;   // "E"
+  };
+}
+
+export interface SpeakingPracticeResult {
+  score: number;        // Average score
+  passedCount: number;  // Items >= 75 points
+  totalCount: number;
 }

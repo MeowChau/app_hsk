@@ -1,8 +1,8 @@
 import React from 'react';
 import { View } from 'react-native';
 import { SkillBoxCard } from './SkillBoxCard';
-import { SKILLS } from '../mockData';
-import { SkillType } from '../types';
+import { SKILLS } from '../../mockData';
+import { SkillType } from '../../types';
 import { hs } from '@/theme';
 
 interface Props {
