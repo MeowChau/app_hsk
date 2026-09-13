@@ -95,7 +95,7 @@ const GroupQuestionCard = memo(({ question, selectedOptionId, onSelectOption, bo
       <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: vs(10) }}>
         {/* Index */}
         <View style={{ width: ms(28), height: ms(28), borderRadius: ms(14), backgroundColor: '#E5E7EB', justifyContent: 'center', alignItems: 'center', marginRight: hs(8) }}>
-          <Text style={{ color: '#374151', fontWeight: '800', fontSize: ms(12) }}>{question.index}</Text>
+          <Text style={{ color: '#374151', fontWeight: '800', fontSize: ms(13) }}>{question.index}</Text>
         </View>
 
         {/* Volume icon */}
@@ -111,7 +111,7 @@ const GroupQuestionCard = memo(({ question, selectedOptionId, onSelectOption, bo
         </TouchableOpacity>
 
         {/* Time */}
-        <Text style={{ fontSize: ms(11), color: '#9CA3AF', marginRight: hs(4) }}>0:00 / 0:00</Text>
+        <Text style={{ fontSize: ms(12), color: '#9CA3AF', marginRight: hs(4) }}>0:00 / 0:00</Text>
 
         {/* Progress bar stretches */}
         <View style={{ flex: 1, height: vs(3), backgroundColor: '#D1D5DB', borderRadius: ms(2) }}>
@@ -270,7 +270,6 @@ export const ListeningPracticeView = ({ hskLevel, topic, onBack, onSubmit }: Pro
   const answeredCount = Object.keys(answers).length;
   const totalCount = questions.length;
   const remainingCount = totalCount - answeredCount;
-  const progressPercent = totalCount > 0 ? (answeredCount / totalCount) * 100 : 0;
 
   const renderItem = useCallback(({ item }: { item: FlatItem }) => {
     if (item.kind === 'group_header') {
@@ -310,10 +309,10 @@ export const ListeningPracticeView = ({ hskLevel, topic, onBack, onSubmit }: Pro
             </Svg>
           </TouchableOpacity>
           <View style={{ flex: 1 }}>
-            <Text style={{ fontSize: ms(16), fontWeight: '700', color: '#111827' }} numberOfLines={1}>
+            <Text style={{ fontSize: ms(18), fontWeight: '800', color: '#111827' }} numberOfLines={1}>
               Luyện tập kỹ năng nghe
             </Text>
-            <Text style={{ fontSize: ms(12), color: '#4B5563', fontWeight: '500' }}>
+            <Text style={{ fontSize: ms(13), color: '#4B5563', fontWeight: '500' }}>
               {answeredCount}/{totalCount} số lượng câu
             </Text>
           </View>
@@ -328,8 +327,8 @@ export const ListeningPracticeView = ({ hskLevel, topic, onBack, onSubmit }: Pro
               <Rect x="14" y="14" width="7" height="7" rx="1" fill="none" stroke="#4B5563" strokeWidth="2" />
             </Svg>
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => setShowSubmitModal(true)} style={{ backgroundColor: '#1E3A8A', borderRadius: ms(6), paddingHorizontal: hs(12), paddingVertical: vs(6) }}>
-            <Text style={{ color: '#FFFFFF', fontSize: ms(13), fontWeight: '700' }}>Nộp bài</Text>
+          <TouchableOpacity onPress={() => setShowSubmitModal(true)} style={{ backgroundColor: '#1E3A8A', borderRadius: ms(6), paddingHorizontal: hs(14), paddingVertical: vs(7) }}>
+            <Text style={{ color: '#FFFFFF', fontSize: ms(14), fontWeight: '700' }}>Nộp bài</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -337,7 +336,7 @@ export const ListeningPracticeView = ({ hskLevel, topic, onBack, onSubmit }: Pro
       <FlatList
         ref={flatListRef}
         data={flatData}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => (item.kind === 'group_header' ? item.id : item.question.id)}
         renderItem={renderItem}
         contentContainerStyle={{ padding: ms(16) }}
         showsVerticalScrollIndicator={false}
@@ -351,7 +350,7 @@ export const ListeningPracticeView = ({ hskLevel, topic, onBack, onSubmit }: Pro
         }}
         ListHeaderComponent={
           <View style={{ marginBottom: vs(20) }}>
-            <Text style={{ fontSize: ms(13), color: '#4B5563', lineHeight: vs(22) }}>
+            <Text style={{ fontSize: ms(14), color: '#4B5563', lineHeight: vs(22) }}>
               Luyện nghe theo 3 chế độ: Nghe chọn ảnh, nghe chọn từ vựng và nghe chọn True/False
             </Text>
           </View>
@@ -361,7 +360,7 @@ export const ListeningPracticeView = ({ hskLevel, topic, onBack, onSubmit }: Pro
             <Text style={{ fontSize: ms(14), color: '#6B7280', marginBottom: vs(16), fontWeight: '500' }}>
               Đã trả lời <Text style={{ fontWeight: '800', color: '#111827' }}>{answeredCount}</Text>/{totalCount} câu. Còn {remainingCount} chưa trả lời
             </Text>
-            <TouchableOpacity onPress={() => setShowSubmitModal(true)} style={{ backgroundColor: '#1E3A8A', borderRadius: ms(8), paddingHorizontal: hs(32), paddingVertical: vs(12) }}>
+            <TouchableOpacity onPress={() => setShowSubmitModal(true)} style={{ backgroundColor: '#1E3A8A', borderRadius: ms(8), paddingHorizontal: hs(36), paddingVertical: vs(12) }}>
               <Text style={{ color: '#FFFFFF', fontSize: ms(16), fontWeight: '700' }}>Nộp bài</Text>
             </TouchableOpacity>
           </View>
@@ -377,25 +376,25 @@ export const ListeningPracticeView = ({ hskLevel, topic, onBack, onSubmit }: Pro
                 <TouchableOpacity onPress={() => setShowSubmitModal(false)} hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }} style={{ position: 'absolute', top: ms(10), right: ms(10), padding: ms(10), zIndex: 10 }}>
                   <Text style={{ fontSize: ms(22), color: '#6B7280', fontWeight: '700', lineHeight: ms(22) }}>×</Text>
                 </TouchableOpacity>
-                <Text style={{ fontSize: ms(16), fontWeight: '800', color: '#111827', textAlign: 'center', marginBottom: vs(16) }}>Xác nhận nộp bài?</Text>
+                <Text style={{ fontSize: ms(20), fontWeight: '800', color: '#111827', textAlign: 'center', marginBottom: vs(16) }}>Xác nhận nộp bài?</Text>
 
                 {remainingCount > 0 && (
                   <View style={{ backgroundColor: '#FEF3C7', padding: ms(12), borderRadius: ms(8), flexDirection: 'row', alignItems: 'flex-start', marginBottom: vs(24) }}>
                     <Svg height="16" viewBox="0 0 24 24" width="16" style={{ marginTop: 2, marginRight: hs(8) }}>
                       <Path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" fill="none" stroke="#D97706" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                     </Svg>
-                    <Text style={{ fontSize: ms(13), color: '#92400E', flex: 1 }}>
+                    <Text style={{ fontSize: ms(14), color: '#92400E', flex: 1, lineHeight: vs(20) }}>
                       Bạn còn <Text style={{ fontWeight: '700' }}>{remainingCount}</Text> câu chưa trả lời, những câu này sẽ bị tính là sai.
                     </Text>
                   </View>
                 )}
 
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: hs(12) }}>
-                  <TouchableOpacity onPress={() => setShowSubmitModal(false)} style={{ flex: 1, borderWidth: 1, borderColor: '#D1D5DB', borderRadius: ms(8), paddingVertical: vs(10), alignItems: 'center' }}>
-                    <Text style={{ color: '#374151', fontSize: ms(13), fontWeight: '700' }}>Tiếp tục làm bài</Text>
+                  <TouchableOpacity onPress={() => setShowSubmitModal(false)} style={{ flex: 1, borderWidth: 1, borderColor: '#D1D5DB', borderRadius: ms(8), paddingVertical: vs(12), alignItems: 'center' }}>
+                    <Text style={{ color: '#374151', fontSize: ms(15), fontWeight: '700' }}>Tiếp tục làm bài</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity onPress={handleConfirmSubmit} style={{ flex: 1, backgroundColor: '#1E3A8A', borderRadius: ms(8), paddingVertical: vs(10), alignItems: 'center' }}>
-                    <Text style={{ color: '#FFFFFF', fontSize: ms(13), fontWeight: '700' }}>Nộp bài</Text>
+                  <TouchableOpacity onPress={handleConfirmSubmit} style={{ flex: 1, backgroundColor: '#1E3A8A', borderRadius: ms(8), paddingVertical: vs(12), alignItems: 'center' }}>
+                    <Text style={{ color: '#FFFFFF', fontSize: ms(15), fontWeight: '700' }}>Nộp bài</Text>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -411,7 +410,7 @@ export const ListeningPracticeView = ({ hskLevel, topic, onBack, onSubmit }: Pro
             <TouchableWithoutFeedback>
               <View style={{ width: '90%', backgroundColor: '#FAF9F6', borderRadius: ms(12), padding: ms(16), maxHeight: '80%' }}>
                 <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginBottom: vs(16) }}>
-                  <Text style={{ fontSize: ms(16), fontWeight: '800', color: '#111827' }}>Danh sách câu hỏi</Text>
+                  <Text style={{ fontSize: ms(18), fontWeight: '800', color: '#111827' }}>Danh sách câu hỏi</Text>
                   <TouchableOpacity onPress={() => setShowGridModal(false)} hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }} style={{ position: 'absolute', right: 0, padding: ms(10), zIndex: 10 }}>
                     <Text style={{ fontSize: ms(24), color: '#6B7280', fontWeight: '700', lineHeight: ms(24) }}>×</Text>
                   </TouchableOpacity>
@@ -441,7 +440,7 @@ export const ListeningPracticeView = ({ hskLevel, topic, onBack, onSubmit }: Pro
 
                       return (
                         <TouchableOpacity key={q.id} onPress={() => handleGridPress(q.id)} style={{ width: ms(44), height: ms(44), borderRadius: ms(6), backgroundColor: bgColor, borderWidth, borderColor, justifyContent: 'center', alignItems: 'center' }}>
-                          <Text style={{ color: textColor, fontWeight: '700', fontSize: ms(14) }}>{q.index}</Text>
+                          <Text style={{ color: textColor, fontWeight: '700', fontSize: ms(15) }}>{q.index}</Text>
                           {isBookmarked && (
                             <View style={{ position: 'absolute', top: -ms(4), right: -ms(4), width: ms(12), height: ms(12), borderRadius: ms(6), backgroundColor: '#F59E0B', borderWidth: 2, borderColor: '#FFFFFF' }} />
                           )}
@@ -452,10 +451,10 @@ export const ListeningPracticeView = ({ hskLevel, topic, onBack, onSubmit }: Pro
                 </ScrollView>
 
                 <View style={{ marginTop: vs(16), gap: vs(8) }}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: hs(8) }}><View style={{ width: ms(10), height: ms(10), borderRadius: ms(5), backgroundColor: '#1E3A8A' }} /><Text style={{ fontSize: ms(12), color: '#1E3A8A', fontWeight: '600' }}>Đã trả lời</Text></View>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: hs(8) }}><View style={{ width: ms(10), height: ms(10), borderRadius: ms(5), backgroundColor: '#EBE3D5' }} /><Text style={{ fontSize: ms(12), color: '#1E3A8A', fontWeight: '600' }}>Chưa trả lời</Text></View>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: hs(8) }}><View style={{ width: ms(10), height: ms(10), borderRadius: ms(5), backgroundColor: '#FEF3C7', borderWidth: 1, borderColor: '#F59E0B' }} /><Text style={{ fontSize: ms(12), color: '#1E3A8A', fontWeight: '600' }}>Đang học</Text></View>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: hs(8) }}><View style={{ width: ms(10), height: ms(10), borderRadius: ms(5), backgroundColor: '#F59E0B' }} /><Text style={{ fontSize: ms(12), color: '#1E3A8A', fontWeight: '600' }}>Đã đánh dấu</Text></View>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: hs(8) }}><View style={{ width: ms(10), height: ms(10), borderRadius: ms(5), backgroundColor: '#1E3A8A' }} /><Text style={{ fontSize: ms(13), color: '#1E3A8A', fontWeight: '600' }}>Đã trả lời</Text></View>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: hs(8) }}><View style={{ width: ms(10), height: ms(10), borderRadius: ms(5), backgroundColor: '#EBE3D5' }} /><Text style={{ fontSize: ms(13), color: '#1E3A8A', fontWeight: '600' }}>Chưa trả lời</Text></View>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: hs(8) }}><View style={{ width: ms(10), height: ms(10), borderRadius: ms(5), backgroundColor: '#FEF3C7', borderWidth: 1, borderColor: '#F59E0B' }} /><Text style={{ fontSize: ms(13), color: '#1E3A8A', fontWeight: '600' }}>Đang học</Text></View>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: hs(8) }}><View style={{ width: ms(10), height: ms(10), borderRadius: ms(5), backgroundColor: '#F59E0B' }} /><Text style={{ fontSize: ms(13), color: '#1E3A8A', fontWeight: '600' }}>Đã đánh dấu</Text></View>
                 </View>
               </View>
             </TouchableWithoutFeedback>

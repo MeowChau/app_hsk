@@ -14,10 +14,10 @@ export const SpeakingPracticeResultView = ({ result, onBackToSetup, onRetake }: 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#E5E7EB' }}>
       <View style={{ paddingHorizontal: hs(16), paddingTop: vs(24), paddingBottom: vs(32) }}>
-        <Text style={{ fontSize: ms(20), fontWeight: '700', color: '#111827', marginBottom: vs(8) }}>
+        <Text style={{ fontSize: ms(22), fontWeight: '800', color: '#111827', marginBottom: vs(8) }}>
           Luyện tập kỹ năng nói
         </Text>
-        <Text style={{ fontSize: ms(13), color: '#4B5563', lineHeight: vs(22) }}>
+        <Text style={{ fontSize: ms(14), color: '#4B5563', lineHeight: vs(22) }}>
           Chọn một bài học, đọc to từng từ hoặc từng câu, hệ thống sẽ nghe và chấm phát âm của bạn theo từng chữ kèm nhận xét
         </Text>
       </View>
@@ -41,7 +41,7 @@ export const SpeakingPracticeResultView = ({ result, onBackToSetup, onRetake }: 
           <Text style={{ fontSize: ms(64), fontWeight: '800', color: '#1E3A8A', marginBottom: vs(12) }}>
             {result.score}
           </Text>
-          <Text style={{ fontSize: ms(14), color: '#4B5563', textAlign: 'center', fontWeight: '500', marginBottom: vs(32), lineHeight: vs(22) }}>
+          <Text style={{ fontSize: ms(15), color: '#4B5563', textAlign: 'center', fontWeight: '500', marginBottom: vs(32), lineHeight: vs(22) }}>
             Điểm phát âm trung bình · {result.passedCount}/{result.totalCount} mục đạt từ 75 điểm
           </Text>
 
@@ -64,7 +64,7 @@ export const SpeakingPracticeResultView = ({ result, onBackToSetup, onRetake }: 
               <Svg height="14" viewBox="0 0 24 24" width="14">
                 <Path d="M20 12H4M10 18l-6-6 6-6" fill="none" stroke="#4B5563" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
               </Svg>
-              <Text style={{ color: '#374151', fontSize: ms(13), fontWeight: '600' }}>Đổi học liệu</Text>
+              <Text style={{ color: '#374151', fontSize: ms(14), fontWeight: '700' }}>Đổi học liệu</Text>
             </TouchableOpacity>
             
             <TouchableOpacity 
@@ -83,7 +83,7 @@ export const SpeakingPracticeResultView = ({ result, onBackToSetup, onRetake }: 
               <Svg height="14" viewBox="0 0 24 24" width="14">
                 <Path d="M21 2v6h-6M3 12a9 9 0 0 1 15-6.7L21 8M3 22v-6h6M21 12a9 9 0 0 1-15 6.7L3 16" fill="none" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               </Svg>
-              <Text style={{ color: '#FFFFFF', fontSize: ms(13), fontWeight: '700' }}>Luyện lại</Text>
+              <Text style={{ color: '#FFFFFF', fontSize: ms(14), fontWeight: '700' }}>Luyện lại</Text>
             </TouchableOpacity>
           </View>
         </View>

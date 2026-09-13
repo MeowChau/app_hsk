@@ -6,7 +6,7 @@ import { useTheme, hs, vs, ms } from '@/theme';
 import { ActivityTimeCard } from './components/ActivityTimeCard';
 import { LearningTimeCard } from './components/LearningTimeCard';
 import { WeeklyChartCard } from './components/WeeklyChartCard';
-import { VocabularyStatsCard } from '@/screens/Home/components/VocabularyStatsCard';
+import { VocabularyStatsCard } from '@/screens/Home/components';
 
 export function StatisticsContent() {
   const { layout } = useTheme();

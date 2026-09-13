@@ -1,9 +1,9 @@
 import React, { useState, useRef } from 'react';
-import { View, Text, FlatList, SafeAreaView, ActivityIndicator, Modal, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard } from 'react-native';
+import { View, Text, FlatList, SafeAreaView, ActivityIndicator, Modal, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, Keyboard } from 'react-native';
 import { BackButton } from '@/components/atoms';
 import { HskExamCard } from './HskExamCard';
-import { ALL_HSK_EXAMS } from '../mockData';
-import { HskExam, ExamResult } from '../types';
+import { ALL_HSK_EXAMS } from '../../mockData';
+import { HskExam, ExamResult } from '../../types';
 import { ms, hs, vs } from '@/theme';
 
 interface Props {
@@ -145,7 +145,7 @@ export const HskExamListView = ({ hskLevel, onBack, onSelectExam, examResults, o
                 {selectedExam?.name}
               </Text>
 
-              <Text style={{ fontSize: ms(13), fontWeight: '700', color: '#111827', marginBottom: vs(8) }}>
+              <Text style={{ fontSize: ms(14), fontWeight: '700', color: '#111827', marginBottom: vs(8) }}>
                 Thời gian (phút)
               </Text>
 
@@ -166,7 +166,7 @@ export const HskExamListView = ({ hskLevel, onBack, onSelectExam, examResults, o
                 value={examTime}
                 onChangeText={setExamTime}
               />
-              <Text style={{ fontSize: ms(12), color: '#6B7280', marginBottom: vs(24) }}>
+              <Text style={{ fontSize: ms(13), color: '#6B7280', marginBottom: vs(24) }}>
                 Từ 1 đến 180 phút
               </Text>
 
@@ -179,7 +179,7 @@ export const HskExamListView = ({ hskLevel, onBack, onSelectExam, examResults, o
                 }}
                 onPress={handleStartExam}
               >
-                <Text style={{ color: '#FFFFFF', fontSize: ms(14), fontWeight: '800' }}>Bắt đầu làm bài</Text>
+                <Text style={{ color: '#FFFFFF', fontSize: ms(16), fontWeight: '700' }}>Bắt đầu làm bài</Text>
               </TouchableOpacity>
             </TouchableOpacity>
           </TouchableOpacity>

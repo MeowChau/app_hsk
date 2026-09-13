@@ -48,7 +48,7 @@ export const WritingPracticeFlashcardView = ({ words, onBack, onFinishFlashcards
           </Svg>
         </TouchableOpacity>
         <TouchableOpacity onPress={onFinishFlashcards} style={{ paddingHorizontal: hs(12), paddingVertical: vs(6), backgroundColor: '#E5E7EB', borderRadius: ms(16) }}>
-          <Text style={{ fontSize: ms(12), fontWeight: '600', color: '#4B5563' }}>Bỏ qua</Text>
+          <Text style={{ fontSize: ms(13), fontWeight: '700', color: '#4B5563' }}>Bỏ qua</Text>
         </TouchableOpacity>
       </View>
 
@@ -101,16 +101,16 @@ export const WritingPracticeFlashcardView = ({ words, onBack, onFinishFlashcards
         {/* Action Buttons */}
         <View style={{ flexDirection: 'row', gap: hs(16), marginBottom: vs(32) }}>
           <TouchableOpacity style={[styles.actionBtn, { backgroundColor: '#3B82F6' }]} onPress={handleNext}>
-            <Text style={{ color: '#FFFFFF', fontSize: ms(14), fontWeight: '700' }}>Don't know</Text>
+            <Text style={{ color: '#FFFFFF', fontSize: ms(15), fontWeight: '700' }}>Don't know</Text>
           </TouchableOpacity>
           
           {isLastCard ? (
             <TouchableOpacity style={[styles.actionBtn, { backgroundColor: '#10B981' }]} onPress={onFinishFlashcards}>
-              <Text style={{ color: '#FFFFFF', fontSize: ms(14), fontWeight: '700' }}>Tập viết ngay</Text>
+              <Text style={{ color: '#FFFFFF', fontSize: ms(15), fontWeight: '700' }}>Tập viết ngay</Text>
             </TouchableOpacity>
           ) : (
             <TouchableOpacity style={[styles.actionBtn, { backgroundColor: '#38BDF8' }]} onPress={handleNext}>
-              <Text style={{ color: '#FFFFFF', fontSize: ms(14), fontWeight: '700' }}>Mastered</Text>
+              <Text style={{ color: '#FFFFFF', fontSize: ms(15), fontWeight: '700' }}>Mastered</Text>
             </TouchableOpacity>
           )}
         </View>

@@ -36,7 +36,7 @@ export const WritingPracticeSetupView = ({ hskLevel, onBack, onStart }: Props) =
         </Text>
 
         {/* Topic Selection */}
-        <Text style={{ fontSize: ms(14), fontWeight: '700', color: '#111827', marginBottom: vs(12) }}>
+        <Text style={{ fontSize: ms(16), fontWeight: '800', color: '#111827', marginBottom: vs(12) }}>
           Chọn chủ đề / bài học
         </Text>
         <TouchableOpacity
@@ -104,7 +104,7 @@ export const WritingPracticeSetupView = ({ hskLevel, onBack, onStart }: Props) =
                 shadowRadius: 10,
                 elevation: 5,
               }}>
-                <Text style={{ fontSize: ms(15), fontWeight: '800', color: '#111827', paddingHorizontal: hs(16), paddingBottom: vs(12) }}>
+                <Text style={{ fontSize: ms(16), fontWeight: '800', color: '#111827', paddingHorizontal: hs(16), paddingBottom: vs(12) }}>
                   Chủ đề
                 </Text>
                 <ScrollView showsVerticalScrollIndicator={false}>

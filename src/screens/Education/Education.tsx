@@ -3,10 +3,10 @@ import { SafeAreaView, ScrollView } from 'react-native';
 import { EducationHeader } from './components/EducationHeader';
 import { EducationSegment } from './components/EducationSegment';
 import { SkillPracticeView } from './Skills/components/SkillPracticeView';
-import { HskLevelGridView } from './Exams/HskLevelGridView';
-import { HskExamListView } from './Exams/HskExamListView';
-import { HskExamTestView } from './Exams/HskExamTestView';
-import { HskExamResultView } from './Exams/HskExamResultView';
+import { HskLevelGridView } from './Exams/components/HskLevelGridView';
+import { HskExamListView } from './Exams/Hsk/HskExamListView';
+import { HskExamTestView } from './Exams/Hsk/HskExamTestView';
+import { HskExamResultView } from './Exams/Hsk/HskExamResultView';
 import { ListeningPracticeSetupView } from './Skills/Listening/ListeningPracticeSetupView';
 import { ListeningPracticeView } from './Skills/Listening/ListeningPracticeView';
 import { ListeningPracticeResultView } from './Skills/Listening/ListeningPracticeResultView';
@@ -223,7 +223,7 @@ export function EducationContent({ navigation }: any) {
       const result = examResults['speaking_practice'];
       return (
         <SpeakingPracticeResultView
-          result={result || { score: 0, passedCount: 0, totalCount: 0 }}
+          result={(result as any) || { score: 0, passedCount: 0, totalCount: 0 }}
           onBackToSetup={() => setViewMode('skillSetup')}
           onRetake={() => setViewMode('skillPractice')}
         />

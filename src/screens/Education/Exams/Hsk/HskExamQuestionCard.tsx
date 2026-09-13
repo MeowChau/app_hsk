@@ -1,6 +1,6 @@
 import React, { memo } from 'react';
 import { View, Text, TouchableOpacity, Image } from 'react-native';
-import Svg, { Path, Circle, Rect } from 'react-native-svg';
+import Svg, { Path, Circle } from 'react-native-svg';
 import { ExamQuestion } from '../../types';
 import { ms, hs, vs } from '@/theme';
 
@@ -27,7 +27,7 @@ export const HskExamQuestionCard = memo(({ question, selectedOptionId, onSelectO
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: vs(16) }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: hs(12) }}>
           <View style={{ backgroundColor: '#DBEAFE', borderRadius: ms(12), paddingHorizontal: hs(10), paddingVertical: vs(4) }}>
-            <Text style={{ color: '#1E3A8A', fontWeight: '800', fontSize: ms(14) }}>{question.index}</Text>
+            <Text style={{ color: '#1E3A8A', fontWeight: '800', fontSize: ms(15) }}>{question.index}</Text>
           </View>
           {isReviewMode && (
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -38,7 +38,7 @@ export const HskExamQuestionCard = memo(({ question, selectedOptionId, onSelectO
                       <Circle cx="12" cy="12" r="10" fill="none" stroke="#22C55E" strokeWidth="2" />
                       <Path d="M8 12l3 3 5-5" fill="none" stroke="#22C55E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                     </Svg>
-                    <Text style={{ fontSize: ms(13), color: '#22C55E', fontWeight: '700' }}>Đúng</Text>
+                    <Text style={{ fontSize: ms(14), color: '#22C55E', fontWeight: '700' }}>Đúng</Text>
                   </>
                 ) : (
                   <>
@@ -46,7 +46,7 @@ export const HskExamQuestionCard = memo(({ question, selectedOptionId, onSelectO
                       <Circle cx="12" cy="12" r="10" fill="none" stroke="#EF4444" strokeWidth="2" />
                       <Path d="M15 9l-6 6M9 9l6 6" stroke="#EF4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                     </Svg>
-                    <Text style={{ fontSize: ms(13), color: '#EF4444', fontWeight: '700' }}>Sai</Text>
+                    <Text style={{ fontSize: ms(14), color: '#EF4444', fontWeight: '700' }}>Sai</Text>
                   </>
                 )
               ) : (
@@ -55,7 +55,7 @@ export const HskExamQuestionCard = memo(({ question, selectedOptionId, onSelectO
                     <Circle cx="12" cy="12" r="10" fill="none" stroke="#EF4444" strokeWidth="2" />
                     <Path d="M15 9l-6 6M9 9l6 6" stroke="#EF4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                   </Svg>
-                  <Text style={{ fontSize: ms(13), color: '#EF4444', fontWeight: '700' }}>Chưa trả lời</Text>
+                  <Text style={{ fontSize: ms(14), color: '#EF4444', fontWeight: '700' }}>Chưa trả lời</Text>
                 </>
               )}
             </View>
@@ -82,7 +82,7 @@ export const HskExamQuestionCard = memo(({ question, selectedOptionId, onSelectO
               <Path d="M11 5L6 9H2v6h4l5 4V5zM15.54 8.46a5 5 0 0 1 0 7.07M19.07 4.93a10 10 0 0 1 0 14.14" fill="none" stroke="#1E3A8A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
             </Svg>
             <TouchableOpacity style={{ borderWidth: 1, borderColor: '#E5E7EB', borderRadius: ms(12), paddingHorizontal: hs(8), paddingVertical: vs(2) }}>
-              <Text style={{ fontSize: ms(10), color: '#4B5563', fontWeight: '600' }}>-5s</Text>
+              <Text style={{ fontSize: ms(12), color: '#4B5563', fontWeight: '600' }}>-5s</Text>
             </TouchableOpacity>
             <TouchableOpacity>
               <Svg height="24" viewBox="0 0 24 24" width="24">
@@ -91,10 +91,10 @@ export const HskExamQuestionCard = memo(({ question, selectedOptionId, onSelectO
               </Svg>
             </TouchableOpacity>
             <TouchableOpacity style={{ borderWidth: 1, borderColor: '#E5E7EB', borderRadius: ms(12), paddingHorizontal: hs(8), paddingVertical: vs(2) }}>
-              <Text style={{ fontSize: ms(10), color: '#4B5563', fontWeight: '600' }}>+5s</Text>
+              <Text style={{ fontSize: ms(12), color: '#4B5563', fontWeight: '600' }}>+5s</Text>
             </TouchableOpacity>
           </View>
-          <Text style={{ fontSize: ms(12), color: '#6B7280', fontWeight: '500' }}>0:00</Text>
+          <Text style={{ fontSize: ms(13), color: '#6B7280', fontWeight: '500' }}>0:00</Text>
         </View>
       )}
 
@@ -152,7 +152,7 @@ export const HskExamQuestionCard = memo(({ question, selectedOptionId, onSelectO
             >
               {opt.label ? (
                 <View style={{ width: ms(24), height: ms(24), borderRadius: ms(12), backgroundColor: (!isReviewMode && isSelected) ? '#1E3A8A' : (isReviewMode ? bgColor : '#F3F4F6'), borderWidth: isReviewMode ? 1.5 : 0, borderColor: isReviewMode ? iconColor : 'transparent', justifyContent: 'center', alignItems: 'center', marginRight: hs(12) }}>
-                  <Text style={{ color: (!isReviewMode && isSelected) ? '#FFFFFF' : iconColor, fontWeight: '700', fontSize: ms(12) }}>{opt.label}</Text>
+                  <Text style={{ color: (!isReviewMode && isSelected) ? '#FFFFFF' : iconColor, fontWeight: '700', fontSize: ms(13) }}>{opt.label}</Text>
                 </View>
               ) : (
                 <View style={{ width: ms(24), height: ms(24), borderRadius: ms(12), borderWidth: 1.5, borderColor: (!isReviewMode && isSelected) ? '#1E3A8A' : (isReviewMode ? iconColor : '#D1D5DB'), backgroundColor: (!isReviewMode && isSelected) ? '#1E3A8A' : '#FFFFFF', justifyContent: 'center', alignItems: 'center', marginRight: hs(12) }}>
@@ -161,12 +161,12 @@ export const HskExamQuestionCard = memo(({ question, selectedOptionId, onSelectO
                   {isReviewMode && isSelected && !isCorrectAnswer && <Svg height="14" viewBox="0 0 24 24" width="14"><Path d="M18 6L6 18M6 6l12 12" fill="none" stroke={iconColor} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" /></Svg>}
                 </View>
               )}
-              {opt.text && <Text style={{ fontSize: ms(14), color: textColor, fontWeight: '600', flex: 1 }}>{opt.text}</Text>}
+              {opt.text && <Text style={{ fontSize: ms(15), color: textColor, fontWeight: '600', flex: 1 }}>{opt.text}</Text>}
               
               {opt.imageUrl && <Image source={opt.imageUrl} style={{ width: hs(80), height: vs(80), borderRadius: ms(8), marginLeft: hs(8) }} resizeMode="contain" />}
 
               {isReviewMode && isCorrectAnswer && (
-                 <Text style={{ fontSize: ms(12), color: '#15803D', fontWeight: '700', marginLeft: 'auto', paddingLeft: hs(8) }}>Đáp án đúng</Text>
+                 <Text style={{ fontSize: ms(13), color: '#15803D', fontWeight: '700', marginLeft: 'auto', paddingLeft: hs(8) }}>Đáp án đúng</Text>
               )}
             </TouchableOpacity>
           );

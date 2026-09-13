@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, Modal, ScrollView, TouchableWithoutFeedback } from 'react-native';
-import Svg, { Path, Circle, Rect } from 'react-native-svg';
+import Svg, { Path } from 'react-native-svg';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ms, hs, vs } from '@/theme';
 
@@ -80,7 +80,7 @@ export const ReadingPracticeSetupView = ({ onBack, onStartPractice }: Props) => 
         </View>
 
         {/* Topic Selection */}
-        <Text style={{ fontSize: ms(14), fontWeight: '700', color: '#111827', marginBottom: vs(12) }}>
+        <Text style={{ fontSize: ms(16), fontWeight: '800', color: '#111827', marginBottom: vs(12) }}>
           Chọn chủ đề / bài học
         </Text>
         <TouchableOpacity
@@ -146,7 +146,7 @@ export const ReadingPracticeSetupView = ({ onBack, onStartPractice }: Props) => 
                 shadowRadius: 10,
                 elevation: 5,
               }}>
-                <Text style={{ fontSize: ms(15), fontWeight: '800', color: '#111827', paddingHorizontal: hs(16), paddingBottom: vs(12) }}>
+                <Text style={{ fontSize: ms(16), fontWeight: '800', color: '#111827', paddingHorizontal: hs(16), paddingBottom: vs(12) }}>
                   Chủ đề
                 </Text>
                 <ScrollView showsVerticalScrollIndicator={false}>

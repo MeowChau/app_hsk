@@ -1,7 +1,7 @@
 import React from 'react';
 import { TouchableOpacity, Text, View } from 'react-native';
 import Svg, { Path, Circle } from 'react-native-svg';
-import { ExamResult, HskExam } from '../types';
+import { ExamResult, HskExam } from '../../types';
 import { ms, hs, vs } from '@/theme';
 
 interface Props {
@@ -66,7 +66,7 @@ export const HskExamCard = ({ item, onPress, result, onHistoryPress }: Props) =>
               <Path d="M3 18v-6a9 9 0 0 1 18 0v6" fill="none" stroke="#EF4444" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
               <Path d="M21 19a2 2 0 0 1-2 2h-1v-4h3v2zM3 19a2 2 0 0 0 2 2h1v-4H3v2z" stroke="#EF4444" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" fill="none" />
             </Svg>
-            <Text style={{ fontSize: ms(13), color: '#374151', fontWeight: '600' }}>
+            <Text style={{ fontSize: ms(14), color: '#374151', fontWeight: '600' }}>
               {item.listeningCount} câu nghe
             </Text>
           </View>
@@ -75,7 +75,7 @@ export const HskExamCard = ({ item, onPress, result, onHistoryPress }: Props) =>
               <Path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" fill="none" stroke="#EF4444" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
               <Path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" fill="none" stroke="#EF4444" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
             </Svg>
-            <Text style={{ fontSize: ms(13), color: '#374151', fontWeight: '600' }}>
+            <Text style={{ fontSize: ms(14), color: '#374151', fontWeight: '600' }}>
               {item.readingCount} câu đọc
             </Text>
           </View>
@@ -118,9 +118,9 @@ export const HskExamCard = ({ item, onPress, result, onHistoryPress }: Props) =>
               <Circle cx="12" cy="12" r="10" fill="none" stroke="#059669" strokeWidth="2" />
               <Path d="M8 12l3 3 5-5" fill="none" stroke="#059669" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
             </Svg>
-            <Text style={{ fontSize: ms(11), color: '#059669', fontWeight: '700', marginLeft: hs(4) }}>Lịch sử</Text>
+            <Text style={{ fontSize: ms(12), color: '#059669', fontWeight: '700', marginLeft: hs(4) }}>Lịch sử</Text>
           </View>
-          <Text style={{ fontSize: ms(12), color: '#DC2626', fontWeight: '800' }}>
+          <Text style={{ fontSize: ms(13), color: '#DC2626', fontWeight: '800' }}>
             {result.score}%
           </Text>
         </TouchableOpacity>

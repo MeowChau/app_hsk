@@ -4,7 +4,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Paths } from '@/navigation/paths';
 import { BottomTabBar } from '@/components/organisms/BottomTabBar';
 
-import { HomeContent } from '@/screens/Home/HomeContent';
+import { HomeContent } from '@/screens/Home/Home';
 import { EducationContent } from '@/screens/Education/Education';
 import { GameContent } from '@/screens/Game/Game';
 import { StatisticsContent } from '@/screens/Statistics/Statistics';

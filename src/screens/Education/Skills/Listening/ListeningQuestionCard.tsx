@@ -24,7 +24,7 @@ const AudioRow = ({ question, bookmarked, onToggleBookmark }: {
   <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: vs(12) }}>
     {/* Index badge - grey circle, left */}
     <View style={{ width: ms(30), height: ms(30), borderRadius: ms(15), backgroundColor: '#E5E7EB', justifyContent: 'center', alignItems: 'center', marginRight: hs(8) }}>
-      <Text style={{ color: '#374151', fontWeight: '800', fontSize: ms(13) }}>{question.index}</Text>
+      <Text style={{ color: '#374151', fontWeight: '800', fontSize: ms(14) }}>{question.index}</Text>
     </View>
 
     {/* Spacer */}
@@ -45,7 +45,7 @@ const AudioRow = ({ question, bookmarked, onToggleBookmark }: {
       </TouchableOpacity>
 
       {/* Time */}
-      <Text style={{ fontSize: ms(11), color: '#9CA3AF' }}>0:00 / 0:00</Text>
+      <Text style={{ fontSize: ms(13), color: '#9CA3AF' }}>0:00 / 0:00</Text>
 
       {/* Progress bar */}
       <View style={{ width: hs(60), height: vs(3), backgroundColor: '#D1D5DB', borderRadius: ms(2) }}>
@@ -107,7 +107,7 @@ const ImageSelectOptions = ({ question, selectedOptionId, onSelectOption }: any)
               borderWidth: isSelected ? 0 : 1, borderColor: '#E5E7EB',
               justifyContent: 'center', alignItems: 'center',
             }}>
-              <Text style={{ color: isSelected ? '#FFFFFF' : '#4B5563', fontWeight: '700', fontSize: ms(11) }}>{opt.label}</Text>
+              <Text style={{ color: isSelected ? '#FFFFFF' : '#4B5563', fontWeight: '700', fontSize: ms(13) }}>{opt.label}</Text>
             </View>
           </View>
           {/* Image fills card */}
@@ -150,11 +150,11 @@ const VocabSelectOptions = ({ question, selectedOptionId, onSelectOption }: any)
             justifyContent: 'flex-start',
           }}
         >
-          <Text style={{ fontSize: ms(10), color: '#9CA3AF', fontWeight: '600', marginBottom: vs(2) }}>{opt.label}</Text>
+          <Text style={{ fontSize: ms(13), color: '#9CA3AF', fontWeight: '600', marginBottom: vs(2) }}>{opt.label}</Text>
           {opt.pinyin && (
-            <Text style={{ fontSize: ms(11), color: '#9CA3AF', marginBottom: vs(2) }}>{opt.pinyin}</Text>
+            <Text style={{ fontSize: ms(13), color: '#9CA3AF', marginBottom: vs(2) }}>{opt.pinyin}</Text>
           )}
-          <Text style={{ fontSize: ms(17), color: isSelected ? '#1E3A8A' : '#111827', fontWeight: '600' }}>{opt.text}</Text>
+          <Text style={{ fontSize: ms(18), color: isSelected ? '#1E3A8A' : '#111827', fontWeight: '600' }}>{opt.text}</Text>
         </TouchableOpacity>
       );
     })}
@@ -223,10 +223,10 @@ const GroupSelectOptions = ({ question, selectedOptionId, onSelectOption }: any)
       {/* Dialogue box */}
       {question.dialogue && (
         <View style={{ backgroundColor: '#F9F5EB', borderRadius: ms(8), padding: ms(10), marginBottom: vs(10), flexDirection: 'row', alignItems: 'flex-start', gap: hs(8) }}>
-          <View style={{ backgroundColor: '#6B7280', borderRadius: ms(4), paddingHorizontal: hs(5), paddingVertical: vs(2) }}>
-            <Text style={{ color: '#FFFFFF', fontSize: ms(10), fontWeight: '700' }}>问</Text>
+          <View style={{ backgroundColor: '#6B7280', borderRadius: ms(4), paddingHorizontal: hs(6), paddingVertical: vs(2) }}>
+            <Text style={{ color: '#FFFFFF', fontSize: ms(12), fontWeight: '700' }}>问</Text>
           </View>
-          <Text style={{ flex: 1, fontSize: ms(13), color: '#374151', lineHeight: vs(20) }}>{question.dialogue}</Text>
+          <Text style={{ flex: 1, fontSize: ms(14), color: '#374151', lineHeight: vs(22) }}>{question.dialogue}</Text>
         </View>
       )}
 
@@ -247,7 +247,7 @@ const GroupSelectOptions = ({ question, selectedOptionId, onSelectOption }: any)
                 justifyContent: 'center', alignItems: 'center',
               }}
             >
-              <Text style={{ color: isSelected ? '#FFFFFF' : '#4B5563', fontWeight: '700', fontSize: ms(14) }}>{letter}</Text>
+              <Text style={{ color: isSelected ? '#FFFFFF' : '#4B5563', fontWeight: '700', fontSize: ms(15) }}>{letter}</Text>
             </TouchableOpacity>
           );
         })}

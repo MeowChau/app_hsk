@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, TouchableOpacity, Text } from 'react-native';
-import { HSK_LEVELS } from '../mockData';
+import { HSK_LEVELS } from '../../mockData';
 import { ms, hs, vs } from '@/theme';
 
 interface Props {

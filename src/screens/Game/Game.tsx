@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, SafeAreaView, useWindowDimensions } from 'react-native';
 import Svg, { Path, Circle, Rect } from 'react-native-svg';
 import { hs, vs, ms } from '@/theme';
-import { LeaderboardRow } from './LeaderboardRow';
-import { GameMatchCard } from './GameMatchCard';
+import { LeaderboardRow } from './components/LeaderboardRow';
+import { GameMatchCard } from './components/GameMatchCard';
 import { GameMatchingView } from './Matching';
 import { GameBattleView, type MatchResultData } from './Battle';
 
@@ -34,7 +34,6 @@ export function GameContent({ navigation, route, targetView: propTargetView }: a
   // Quản lý Lịch sử thi đấu và Điểm kinh nghiệm (XP) tích lũy
   const [matchHistory, setMatchHistory] = useState<MatchHistoryItem[]>([]);
   const [userTotalXp, setUserTotalXp] = useState<number>(0);
-  const [userTotalScore, setUserTotalScore] = useState<number>(0);
 
   // Đồng bộ viewState ngay lập tức trong render cycle khi params thay đổi (không bị delay/flicker sang màn main)
   let viewState = internalViewState;
@@ -68,7 +67,6 @@ export function GameContent({ navigation, route, targetView: propTargetView }: a
       };
       setMatchHistory((prev) => [newItem, ...prev]);
       setUserTotalXp((prev) => prev + result.xpEarned);
-      setUserTotalScore((prev) => prev + result.myScore);
     }
     setViewState('main');
   };
@@ -260,18 +258,9 @@ export function GameContent({ navigation, route, targetView: propTargetView }: a
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
       <ScrollView contentContainerStyle={{ padding: ms(16), paddingTop: vs(16) }} showsVerticalScrollIndicator={false}>
-        {/* Header có nút mũi tên quay lại chuẩn Figma */}
-        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: screenHeight > 750 ? 32 : 20 }}>
-          <TouchableOpacity
-            onPress={() => navigation?.goBack?.()}
-            activeOpacity={0.7}
-            style={{ width: hs(40), height: vs(40), alignItems: 'center', justifyContent: 'center', marginRight: hs(8), marginLeft: hs(-8) }}
-          >
-            <Svg height="26" viewBox="0 0 24 24" width="26" fill="none">
-              <Path d="M19 12H5M12 19l-7-7 7-7" stroke="#0E84F2" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />
-            </Svg>
-          </TouchableOpacity>
-          <Text style={{ fontSize: ms(24), fontWeight: '900', color: '#111827' }}>Game PK (1 vs 1)</Text>
+        {/* Header */}
+        <View style={{ marginBottom: screenHeight > 750 ? vs(28) : vs(20) }}>
+          <Text style={{ fontSize: ms(26), fontWeight: '900', color: '#111827' }}>Game PK (1 vs 1)</Text>
         </View>
 
         {/* Cụm Bắt đầu tìm người */}

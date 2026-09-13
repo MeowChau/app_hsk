@@ -20,7 +20,7 @@ export const ListeningPracticeResultView = ({ score, correctCount, totalCount, o
         <Text style={{ fontSize: ms(20), fontWeight: '700', color: '#111827', marginBottom: vs(8) }}>
           Luyện tập kỹ năng nghe
         </Text>
-        <Text style={{ fontSize: ms(13), color: '#4B5563', lineHeight: vs(22), marginBottom: vs(32) }}>
+        <Text style={{ fontSize: ms(14), color: '#4B5563', lineHeight: vs(22), marginBottom: vs(32) }}>
           Luyện nghe theo 3 chế độ: Nghe chọn ảnh, nghe chọn từ vựng và nghe chọn True/False (thêm Nghe chọn các hình ảnh theo số lượng và bài nghe cho HSK 3)
         </Text>
 
@@ -42,7 +42,7 @@ export const ListeningPracticeResultView = ({ score, correctCount, totalCount, o
           <Text style={{ fontSize: ms(48), fontWeight: '800', color: '#1E3A8A', marginBottom: vs(8) }}>
             {score}%
           </Text>
-          <Text style={{ fontSize: ms(14), color: '#4B5563', fontWeight: '500', marginBottom: vs(24) }}>
+          <Text style={{ fontSize: ms(14), color: '#4B5563', fontWeight: '600', marginBottom: vs(24) }}>
             Đúng {correctCount}/{totalCount} câu
           </Text>
 
@@ -55,14 +55,14 @@ export const ListeningPracticeResultView = ({ score, correctCount, totalCount, o
                 backgroundColor: '#FFFFFF',
                 borderWidth: 1, borderColor: '#D1D5DB',
                 borderRadius: ms(8),
-                paddingVertical: vs(10),
-                paddingHorizontal: hs(16),
+                paddingVertical: vs(12),
+                paddingHorizontal: hs(18),
               }}
             >
               <Svg height="14" viewBox="0 0 24 24" width="14">
                 <Path d="M20 12H4M10 18l-6-6 6-6" fill="none" stroke="#374151" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
               </Svg>
-              <Text style={{ color: '#374151', fontSize: ms(13), fontWeight: '600' }}>Đổi học liệu</Text>
+              <Text style={{ color: '#374151', fontSize: ms(14), fontWeight: '700' }}>Đổi học liệu</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -71,14 +71,14 @@ export const ListeningPracticeResultView = ({ score, correctCount, totalCount, o
                 flexDirection: 'row', alignItems: 'center', gap: hs(6),
                 backgroundColor: '#1E3A8A',
                 borderRadius: ms(8),
-                paddingVertical: vs(10),
-                paddingHorizontal: hs(16),
+                paddingVertical: vs(12),
+                paddingHorizontal: hs(18),
               }}
             >
               <Svg height="14" viewBox="0 0 24 24" width="14">
                 <Path d="M2 12a10 10 0 1 0 10-10v3M2 12h3M2 12V9" fill="none" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               </Svg>
-              <Text style={{ color: '#FFFFFF', fontSize: ms(13), fontWeight: '600' }}>Làm lại</Text>
+              <Text style={{ color: '#FFFFFF', fontSize: ms(14), fontWeight: '700' }}>Làm lại</Text>
             </TouchableOpacity>
           </View>
         </View>
