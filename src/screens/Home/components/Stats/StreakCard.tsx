@@ -1,32 +1,104 @@
 import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { useTheme, hs, vs, ms } from '@/theme';
+import { useProfile } from '@/services/auth';
+import { useStreakLeaderboard } from '@/services/leaderboard';
+import { useDashboardStats, useCheckIn } from '@/services/analytics';
 
 interface StreakCardProps {
   days?: Array<{ label: string; active: boolean }>;
-  streakCount?: string;
-  recordCount?: string;
+  streakCount?: string | number;
+  recordCount?: string | number;
   onCheckIn?: () => void;
 }
 
-const DEFAULT_DAYS = [
-  { label: 'T2', active: true },
-  { label: 'T3', active: false },
-  { label: 'T4', active: false },
-  { label: 'T5', active: false },
-  { label: 'T6', active: false },
-  { label: 'T7', active: false },
-  { label: 'CN', active: false },
-];
-
 export const StreakCard = ({
-  days = DEFAULT_DAYS,
-  streakCount = '"Số lượng"',
-  recordCount = '0 ngày',
-  onCheckIn,
+  days: propDays,
+  streakCount: propStreakCount,
+  recordCount: propRecordCount,
+  onCheckIn: propOnCheckIn,
 }: StreakCardProps) => {
   const { layout } = useTheme();
+  const { data: profile } = useProfile();
+  const { data: leaderboardData } = useStreakLeaderboard();
+  const { data: dashboardData } = useDashboardStats();
+  const checkInMutation = useCheckIn();
+
+  // Tìm thông tin của user hiện tại từ leaderboard và dashboard
+  const currentUserItem = leaderboardData?.leaderboard?.find(
+    (item) => item.id === profile?.id,
+  );
+
+  const currentStreak =
+    propStreakCount !== undefined
+      ? Number(propStreakCount) || 0
+      : currentUserItem?.currentStreak ?? 0;
+
+  const longestStreak =
+    propRecordCount !== undefined
+      ? propRecordCount
+      : currentUserItem?.longestStreak ?? dashboardData?.longestStreak ?? 0;
+
+  // Kiểm tra xem hôm nay đã điểm danh / học chưa
+  const isTodayStudied =
+    (dashboardData?.timeToday ?? 0) > 0 ||
+    currentUserItem?.streakStatus === 'active';
+
+  // Tính toán 7 ngày trong tuần hiện tại (T2 -> CN)
+  const today = new Date();
+  const currentDayOfWeek = today.getDay(); // 0: CN, 1: T2, ..., 6: T7
+  const currentWeekDayIndex = currentDayOfWeek === 0 ? 6 : currentDayOfWeek - 1; // 0: T2, ..., 6: CN
+
+  const weekDayLabels = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
+  const computedDays = propDays ?? weekDayLabels.map((label, idx) => {
+    let active = false;
+    if (idx === currentWeekDayIndex) {
+      active = isTodayStudied;
+    } else if (idx < currentWeekDayIndex) {
+      const daysAgo = currentWeekDayIndex - idx;
+      if (daysAgo < currentStreak) {
+        active = true;
+      }
+      if (!active && dashboardData?.chart7Days) {
+        const chartIndex = 6 - daysAgo;
+        if (chartIndex >= 0 && (dashboardData.chart7Days[chartIndex] ?? 0) > 0) {
+          active = true;
+        }
+      }
+    }
+    return { label, active };
+  });
+
+  const handleCheckIn = () => {
+    if (propOnCheckIn) {
+      propOnCheckIn();
+      return;
+    }
+
+    if (isTodayStudied) {
+      Alert.alert(
+        'Đã điểm danh',
+        'Bạn đã điểm danh và học tập hôm nay rồi! Hãy quay lại vào ngày mai nhé.',
+      );
+      return;
+    }
+
+    checkInMutation.mutate(
+      { durationInSeconds: 60, module: 'daily_checkin' },
+      {
+        onSuccess: () => {
+          Alert.alert(
+            'Điểm danh thành công! 🎉',
+            'Chuỗi ngày học của bạn đã được duy trì và bạn được cộng +2 XP.',
+          );
+        },
+        onError: () => {
+          Alert.alert('Lỗi', 'Không thể điểm danh lúc này, vui lòng thử lại sau.');
+        },
+      },
+    );
+  };
 
   return (
     <View style={{ paddingHorizontal: hs(16), marginBottom: vs(20) }}>
@@ -44,25 +116,64 @@ export const StreakCard = ({
           shadowRadius: 5,
         }}
       >
+        {/* Header */}
         <View style={[layout.row, layout.itemsCenter, { marginBottom: vs(14) }]}>
-          <View style={{ backgroundColor: '#FFB74D', borderRadius: ms(21), height: vs(42), width: hs(42) }} />
+          <View
+            style={{
+              alignItems: 'center',
+              backgroundColor: '#FFF3E0',
+              borderRadius: ms(21),
+              height: vs(42),
+              justifyContent: 'center',
+              width: hs(42),
+            }}
+          >
+            <Text style={{ fontSize: ms(22) }}>🔥</Text>
+          </View>
           <Text style={{ color: '#111827', fontSize: ms(16), fontWeight: '700', marginLeft: hs(12) }}>
             Streak của bạn
           </Text>
         </View>
+
+        {/* Streak number info */}
         <View style={[layout.row, layout.itemsCenter, { marginBottom: vs(16) }]}>
-          <View style={{ backgroundColor: '#FFB74D', borderRadius: ms(18), height: vs(36), marginRight: hs(10), width: hs(36) }} />
+          <View
+            style={{
+              alignItems: 'center',
+              backgroundColor: '#FFE0B2',
+              borderRadius: ms(18),
+              height: vs(36),
+              justifyContent: 'center',
+              marginRight: hs(10),
+              width: hs(36),
+            }}
+          >
+            <Text style={{ fontSize: ms(18) }}>⚡</Text>
+          </View>
           <View>
             <Text style={{ color: '#111827', fontSize: ms(16), fontWeight: '700' }}>
-              {streakCount} ngày liên tiếp
+              {currentStreak} ngày liên tiếp
             </Text>
-            <Text style={{ color: '#E53935', fontSize: ms(16), fontWeight: '700', marginTop: vs(1) }}>
-              Cố gắng quá!
+            <Text
+              style={{
+                color: currentStreak > 0 ? '#E53935' : '#6B7280',
+                fontSize: ms(14),
+                fontWeight: '700',
+                marginTop: vs(1),
+              }}
+            >
+              {currentStreak > 0
+                ? isTodayStudied
+                  ? 'Duy trì rất tốt!'
+                  : 'Cố gắng quá!'
+                : 'Bắt đầu chuỗi học ngay!'}
             </Text>
           </View>
         </View>
+
+        {/* Weekly Day Circles (T2 -> CN) */}
         <View style={[layout.row, layout.justifyBetween, { marginBottom: vs(14), paddingHorizontal: hs(4) }]}>
-          {days.map((item, index) => (
+          {computedDays.map((item, index) => (
             <View key={index} style={{ alignItems: 'center' }}>
               <Text
                 style={{
@@ -77,6 +188,7 @@ export const StreakCard = ({
               <View
                 style={{
                   alignItems: 'center',
+                  backgroundColor: item.active ? '#FFEBEE' : '#F9FAFB',
                   borderColor: item.active ? '#E53935' : '#E0E0E0',
                   borderRadius: ms(14),
                   borderWidth: 1.5,
@@ -84,19 +196,31 @@ export const StreakCard = ({
                   justifyContent: 'center',
                   width: hs(28),
                 }}
-              />
+              >
+                {item.active ? (
+                  <View
+                    style={{
+                      backgroundColor: '#E53935',
+                      borderRadius: ms(5),
+                      height: vs(10),
+                      width: hs(10),
+                    }}
+                  />
+                ) : null}
+              </View>
             </View>
           ))}
         </View>
 
-        {/* Daily Check-in Card */}
+        {/* Daily Check-in Button */}
         <TouchableOpacity
           activeOpacity={0.8}
-          onPress={onCheckIn}
+          disabled={checkInMutation.isPending}
+          onPress={handleCheckIn}
           style={{
             alignItems: 'center',
-            backgroundColor: '#FFF5F5',
-            borderColor: '#FFCDD2',
+            backgroundColor: isTodayStudied ? '#F0FDF4' : '#FFF5F5',
+            borderColor: isTodayStudied ? '#BBF7D0' : '#FFCDD2',
             borderRadius: ms(12),
             borderWidth: 1,
             flexDirection: 'row',
@@ -110,28 +234,44 @@ export const StreakCard = ({
             <Svg height="20" style={{ marginRight: hs(10) }} viewBox="0 0 24 24" width="20">
               <Path
                 d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20a2 2 0 002 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11z"
-                fill="#E53935"
+                fill={isTodayStudied ? '#16A34A' : '#E53935'}
               />
             </Svg>
             <View>
-              <Text style={{ color: '#E53935', fontSize: ms(16), fontWeight: '700' }}>
-                Điểm danh hôm nay
+              <Text
+                style={{
+                  color: isTodayStudied ? '#16A34A' : '#E53935',
+                  fontSize: ms(15),
+                  fontWeight: '700',
+                }}
+              >
+                {isTodayStudied ? 'Đã điểm danh hôm nay' : 'Điểm danh hôm nay'}
               </Text>
-              <Text style={{ color: '#757575', fontSize: ms(13), marginTop: vs(1) }}>
-                Để chuỗi ngày học +2 XP
+              <Text
+                style={{
+                  color: isTodayStudied ? '#15803D' : '#757575',
+                  fontSize: ms(12),
+                  marginTop: vs(1),
+                }}
+              >
+                {isTodayStudied ? 'Chuỗi ngày học đã duy trì' : 'Để chuỗi ngày học +2 XP'}
               </Text>
             </View>
           </View>
-          <Svg height="14" viewBox="0 0 24 24" width="14">
-            <Path
-              d="M9 5l7 7-7 7"
-              fill="none"
-              stroke="#E53935"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2.5"
-            />
-          </Svg>
+          {checkInMutation.isPending ? (
+            <ActivityIndicator color={isTodayStudied ? '#16A34A' : '#E53935'} size="small" />
+          ) : (
+            <Svg height="14" viewBox="0 0 24 24" width="14">
+              <Path
+                d={isTodayStudied ? 'M5 13l4 4L19 7' : 'M9 5l7 7-7 7'}
+                fill="none"
+                stroke={isTodayStudied ? '#16A34A' : '#E53935'}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2.5"
+              />
+            </Svg>
+          )}
         </TouchableOpacity>
 
         {/* Record info */}
@@ -153,8 +293,8 @@ export const StreakCard = ({
                 fill="#F5A623"
               />
             </Svg>
-            <Text style={{ color: '#4B5563', fontSize: ms(16), fontWeight: '600' }}>
-              Kỷ lục: {recordCount}
+            <Text style={{ color: '#4B5563', fontSize: ms(14), fontWeight: '600' }}>
+              Kỷ lục: {longestStreak} ngày
             </Text>
           </View>
           <Svg height="14" viewBox="0 0 24 24" width="14">
@@ -172,3 +312,4 @@ export const StreakCard = ({
     </View>
   );
 };
+export default StreakCard;

@@ -29,6 +29,8 @@
         <action android:name="android.intent.action.VIEW" />
         <category android:name="android.intent.category.DEFAULT" />
         <category android:name="android.intent.category.BROWSABLE" />
+        <data android:scheme="http" android:host="192.168.1.7" android:port="3001" android:pathPrefix="/password-change" />
+        <data android:scheme="http" android:host="192.168.1.7" android:port="3001" android:pathPrefix="/api/v1/auth/password-change" />
         <data android:scheme="tricehsk" android:host="reset-password" />
         <data android:scheme="apphsk" android:host="reset-password" />
         <data android:scheme="tricehsk" />

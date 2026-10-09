@@ -8,6 +8,7 @@ import { GameMatchCard } from './components/GameMatchCard';
 import { GameMatchingView } from './Matching';
 import { GameBattleView, type MatchResultData } from './Battle';
 import { useProfile } from '@/services/auth/useAuth';
+import { useStreakLeaderboard } from '@/services/leaderboard';
 
 interface MatchHistoryItem {
   id: string;
@@ -39,6 +40,8 @@ export function GameContent({ navigation, route, targetView: propTargetView }: a
 
   // Đồng bộ viewState ngay lập tức trong render cycle khi params thay đổi (không bị delay/flicker sang màn main)
   const { data: profile } = useProfile();
+  const { data: leaderboardData } = useStreakLeaderboard();
+  const gameLeaderboardList = leaderboardData?.leaderboard || [];
   let viewState = internalViewState;
   if (currentKey && currentKey !== lastHandledKey) {
     setLastHandledKey(currentKey);
@@ -218,14 +221,21 @@ export function GameContent({ navigation, route, targetView: propTargetView }: a
           {/* Bảng xếp hạng (Box) */}
           <View style={{ backgroundColor: '#FAFAFA', borderRadius: ms(12), borderWidth: 1, borderColor: '#F0F2F5', overflow: 'hidden', flex: 1 }}>
             <ScrollView contentContainerStyle={{ paddingHorizontal: hs(16), paddingVertical: vs(16), rowGap: vs(16) }} showsVerticalScrollIndicator={false}>
-              <LeaderboardRow rank={1} name="Thùy Dương" level={24} xp="120.083" bg="#F5A623" color="#FFFFFF" />
-              <LeaderboardRow rank={2} name="Đào Thị Ngọc Hân" level={20} xp="82.856" bg="#D6B4E6" color="#FFFFFF" />
-              <LeaderboardRow rank={3} name="HD Travel Hoàng Hùng" level={18} xp="33.856" bg="#FF7043" color="#FFFFFF" />
-              <LeaderboardRow rank={4} name="Kiều Chấn Minh 2k17 Fan Cr7" level={15} xp="29.817" bg="#F0F2F5" color="#4B5563" />
-              <LeaderboardRow rank={5} name="LOAN THẢO NGUYỄN" level={14} xp="26.761" bg="#F0F2F5" color="#4B5563" />
-              <LeaderboardRow rank={6} name="Thị Huyền Diệu Nguyễn" level={14} xp="24.295" bg="#F0F2F5" color="#4B5563" />
-              <LeaderboardRow rank={7} name="Băng Hải" level={12} xp="22.783" bg="#F0F2F5" color="#4B5563" />
-              <LeaderboardRow rank={8} name="Trang Minh" level={11} xp="21.490" bg="#F0F2F5" color="#4B5563" />
+              {gameLeaderboardList.length > 0 ? (
+                gameLeaderboardList.map((item, idx) => (
+                  <LeaderboardRow
+                    key={item.id || idx}
+                    rank={idx + 1}
+                    name={item.fullName || item.email || `Học viên #${item.id}`}
+                    level={item.currentHskLevel || item.level || 1}
+                    xp={item.currentStreak > 0 ? `${item.currentStreak} ngày` : `${(item.currentExp || 0).toLocaleString('vi-VN')}`}
+                    bg={idx === 0 ? '#F5A623' : idx === 1 ? '#D6B4E6' : idx === 2 ? '#FF7043' : '#F0F2F5'}
+                    color={idx < 3 ? '#FFFFFF' : '#4B5563'}
+                  />
+                ))
+              ) : (
+                <Text style={{ textAlign: 'center', color: '#9E9E9E', marginTop: vs(20) }}>Chưa có dữ liệu bảng xếp hạng</Text>
+              )}
             </ScrollView>
           </View>
 

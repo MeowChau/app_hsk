@@ -7,3 +7,4 @@ export * from './vocabulary';
 export * from './exams';
 export * from './leaderboard';
 export * from './game';
+export * from './analytics';

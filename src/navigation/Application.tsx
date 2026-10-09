@@ -27,12 +27,37 @@ const instantTransitionSpec = {
 };
 
 const linking = {
-  prefixes: ['tricehsk://', 'apphsk://'],
+  prefixes: [
+    'tricehsk://',
+    'apphsk://',
+    'http://192.168.1.7:3001',
+  ],
   config: {
     screens: {
-      [Paths.ResetPassword]: 'reset-password',
+      [Paths.ResetPassword]: 'password-change',
       [Paths.Login]: 'login',
     },
+  },
+  getStateFromPath: (path: string, options: any) => {
+    if (path.includes('reset-password') || path.includes('password-change')) {
+      const queryString = path.includes('?') ? path.split('?')[1] : '';
+      const params: Record<string, string> = {};
+      if (queryString) {
+        const searchParams = new URLSearchParams(queryString);
+        searchParams.forEach((value, key) => {
+          params[key] = value;
+        });
+      }
+      return {
+        routes: [
+          {
+            name: Paths.ResetPassword,
+            params,
+          },
+        ],
+      };
+    }
+    return undefined;
   },
 };
 
