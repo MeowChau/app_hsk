@@ -2,6 +2,10 @@ import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { UserAvatar } from '@/components/atoms';
 import { useTheme, hs, vs, ms } from '@/theme';
+import { useProfile } from '@/services/auth/useAuth';
+
+import { useStreakLeaderboard } from '@/services/leaderboard/useLeaderboard';
+import { ActivityIndicator } from 'react-native';
 
 interface HomeLeaderboardCardProps {
   onSeeAll: () => void;
@@ -10,6 +14,8 @@ interface HomeLeaderboardCardProps {
   userRank?: number;
 }
 
+const RANK_COLORS = ['#F5A623', '#7E57C2', '#FF7043'];
+
 export const HomeLeaderboardCard = ({
   onSeeAll,
   userXp = 3850,
@@ -17,6 +23,8 @@ export const HomeLeaderboardCard = ({
   userRank = 4,
 }: HomeLeaderboardCardProps) => {
   const { layout } = useTheme();
+  const { data: profile } = useProfile();
+  const { data, isLoading } = useStreakLeaderboard({ limit: 3 });
 
   return (
     <View style={{ paddingHorizontal: hs(16), marginBottom: vs(24) }}>
@@ -53,104 +61,48 @@ export const HomeLeaderboardCard = ({
         </View>
 
         <View style={{ rowGap: vs(12) }}>
-          {/* Rank 1 */}
-          <View style={[layout.row, layout.itemsCenter, layout.justifyBetween]}>
-            <View style={[layout.row, layout.itemsCenter]}>
-              <View
-                style={{
-                  alignItems: 'center',
-                  backgroundColor: '#F5A623',
-                  borderRadius: ms(12),
-                  height: vs(24),
-                  justifyContent: 'center',
-                  width: hs(24),
-                }}
-              >
-                <Text style={{ color: '#FFFFFF', fontSize: ms(11), fontWeight: '800' }}>1</Text>
+          {isLoading ? (
+            <ActivityIndicator color="#1E3A8A" style={{ marginVertical: vs(20) }} />
+          ) : (
+            data?.rankings.map((r, index) => (
+              <View key={r.userId} style={[layout.row, layout.itemsCenter, layout.justifyBetween]}>
+                <View style={[layout.row, layout.itemsCenter]}>
+                  <View
+                    style={{
+                      alignItems: 'center',
+                      backgroundColor: RANK_COLORS[index] || '#BDBDBD',
+                      borderRadius: ms(12),
+                      height: vs(24),
+                      justifyContent: 'center',
+                      width: hs(24),
+                    }}
+                  >
+                    <Text style={{ color: '#FFFFFF', fontSize: ms(11), fontWeight: '800' }}>{r.rank}</Text>
+                  </View>
+                  <View
+                    style={{
+                      backgroundColor: '#E0E0E0',
+                      borderRadius: ms(16),
+                      height: vs(32),
+                      marginLeft: hs(10),
+                      marginRight: hs(10),
+                      width: hs(32),
+                      overflow: 'hidden',
+                    }}
+                  >
+                    {r.avatar ? <UserAvatar size={ms(32)} /> : null}
+                  </View>
+                  <View>
+                    <Text style={{ color: '#111827', fontSize: ms(16), fontWeight: '700' }}>{r.userName}</Text>
+                    <Text style={{ color: '#9E9E9E', fontSize: ms(12), marginTop: vs(1) }}>HSK {r.hskLevel}</Text>
+                  </View>
+                </View>
+                <Text style={{ color: '#4B5563', fontSize: ms(14), fontWeight: '700' }}>
+                  {r.currentStreak} ngày
+                </Text>
               </View>
-              <View
-                style={{
-                  backgroundColor: '#E0E0E0',
-                  borderRadius: ms(16),
-                  height: vs(32),
-                  marginLeft: hs(10),
-                  marginRight: hs(10),
-                  width: hs(32),
-                }}
-              />
-              <View>
-                <Text style={{ color: '#111827', fontSize: ms(16), fontWeight: '700' }}>Thư</Text>
-                <Text style={{ color: '#9E9E9E', fontSize: ms(12), marginTop: vs(1) }}>Level 14</Text>
-              </View>
-            </View>
-            <Text style={{ color: '#4B5563', fontSize: ms(14), fontWeight: '700' }}>5.665 XP</Text>
-          </View>
-
-          {/* Rank 2 */}
-          <View style={[layout.row, layout.itemsCenter, layout.justifyBetween]}>
-            <View style={[layout.row, layout.itemsCenter]}>
-              <View
-                style={{
-                  alignItems: 'center',
-                  backgroundColor: '#7E57C2',
-                  borderRadius: ms(12),
-                  height: vs(24),
-                  justifyContent: 'center',
-                  width: hs(24),
-                }}
-              >
-                <Text style={{ color: '#FFFFFF', fontSize: ms(11), fontWeight: '800' }}>2</Text>
-              </View>
-              <View
-                style={{
-                  backgroundColor: '#E0E0E0',
-                  borderRadius: ms(16),
-                  height: vs(32),
-                  marginLeft: hs(10),
-                  marginRight: hs(10),
-                  width: hs(32),
-                }}
-              />
-              <View>
-                <Text style={{ color: '#111827', fontSize: ms(16), fontWeight: '700' }}>12 Minh</Text>
-                <Text style={{ color: '#9E9E9E', fontSize: ms(12), marginTop: vs(1) }}>Level 8</Text>
-              </View>
-            </View>
-            <Text style={{ color: '#4B5563', fontSize: ms(14), fontWeight: '700' }}>5.010 XP</Text>
-          </View>
-
-          {/* Rank 3 */}
-          <View style={[layout.row, layout.itemsCenter, layout.justifyBetween]}>
-            <View style={[layout.row, layout.itemsCenter]}>
-              <View
-                style={{
-                  alignItems: 'center',
-                  backgroundColor: '#FF7043',
-                  borderRadius: ms(12),
-                  height: vs(24),
-                  justifyContent: 'center',
-                  width: hs(24),
-                }}
-              >
-                <Text style={{ color: '#FFFFFF', fontSize: ms(11), fontWeight: '800' }}>3</Text>
-              </View>
-              <View
-                style={{
-                  backgroundColor: '#E0E0E0',
-                  borderRadius: ms(16),
-                  height: vs(32),
-                  marginLeft: hs(10),
-                  marginRight: hs(10),
-                  width: hs(32),
-                }}
-              />
-              <View>
-                <Text style={{ color: '#111827', fontSize: ms(16), fontWeight: '700' }}>Quỳnh Chu</Text>
-                <Text style={{ color: '#9E9E9E', fontSize: ms(12), marginTop: vs(1) }}>Level 7</Text>
-              </View>
-            </View>
-            <Text style={{ color: '#4B5563', fontSize: ms(14), fontWeight: '700' }}>4.435 XP</Text>
-          </View>
+            ))
+          )}
 
           {/* Current User Row (Mock Rank 4) */}
           <View
@@ -184,10 +136,10 @@ export const HomeLeaderboardCard = ({
               <UserAvatar size={ms(32)} style={{ marginRight: hs(10) }} />
               <View>
                 <Text style={{ color: '#111827', fontSize: ms(16), fontWeight: '700' }}>
-                  Hoàng Văn Hùng <Text style={{ color: '#E53935' }}>(Bạn)</Text>
+                  {profile?.fullName || 'Bạn'} <Text style={{ color: '#E53935' }}>(Bạn)</Text>
                 </Text>
                 <Text style={{ color: '#9E9E9E', fontSize: ms(12), marginTop: vs(1) }}>
-                  Level {userLevel}
+                  Level {profile?.currentHskLevel || userLevel}
                 </Text>
               </View>
             </View>

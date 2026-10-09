@@ -71,6 +71,7 @@ export interface ExamResult {
   readingCorrect: number;
   date: string;
   answers: Record<string, string>;
+  questions?: ExamQuestion[];
 }
 
 // =========================================================

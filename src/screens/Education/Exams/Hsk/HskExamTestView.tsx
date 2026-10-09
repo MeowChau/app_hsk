@@ -2,7 +2,6 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { View, Text, SafeAreaView, FlatList, TouchableOpacity, Alert } from 'react-native';
 import Svg, { Rect } from 'react-native-svg';
 import { BackButton } from '@/components/atoms';
-import { ALL_HSK_EXAMS } from '../../mockData';
 import { HskExamQuestionCard } from './HskExamQuestionCard';
 import { ms, hs, vs } from '@/theme';
 import { SubmitConfirmModal, QuestionGridModal, QuestionGridSection } from '@/screens/Education/components';
@@ -37,10 +36,33 @@ const ExamTimer = ({ durationMin }: { durationMin: number }) => {
   );
 };
 
+import { ActivityIndicator } from 'react-native';
+import { examsApi } from '@/services/exams/api';
+import { transformBackendExamToApp } from '@/services/exams/transformers';
+import { HskExam } from '../../types';
+
 export const HskExamTestView = ({ examId, durationMin, onBack, onSubmit, isReviewMode, reviewAnswers }: Props) => {
-  // Find exam data
-  const examLevel = parseInt(examId.match(/hsk(\d)/)?.[1] || '1');
-  const fullExam = ALL_HSK_EXAMS[examLevel]?.find(e => e.id === examId);
+  const [fullExam, setFullExam] = useState<HskExam | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const examLevel = fullExam?.level || 1;
+
+  useEffect(() => {
+    const fetchExam = async () => {
+      try {
+        setIsLoading(true);
+        const res = await examsApi.getExamById(Number(examId));
+        const examApp = transformBackendExamToApp(res);
+        setFullExam(examApp);
+      } catch (err) {
+        console.warn('Failed to fetch exam:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchExam();
+  }, [examId]);
+
   const questions = fullExam?.questions || [];
 
   const [answers, setAnswers] = useState<Record<string, string>>(reviewAnswers || {});
@@ -93,6 +115,7 @@ export const HskExamTestView = ({ examId, durationMin, onBack, onSubmit, isRevie
       readingCorrect: readCorrect,
       date: new Date().toLocaleDateString('vi-VN'),
       answers,
+      questions,
     };
     
     onSubmit(result);
@@ -168,6 +191,14 @@ export const HskExamTestView = ({ examId, durationMin, onBack, onSubmit, isRevie
       isReviewMode={isReviewMode}
     />
   ), [answers, bookmarks, handleSelectOption, handleToggleBookmark, isReviewMode]);
+
+  if (isLoading) {
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: '#E5E7EB', justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color="#1E3A8A" />
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#E5E7EB' }}>

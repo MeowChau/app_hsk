@@ -1,8 +1,7 @@
-import React, { useState, useCallback, useMemo, memo, useRef } from 'react';
+import React, { useState, useCallback, useMemo, memo, useRef, useEffect } from 'react';
 import { View, Text, SafeAreaView, FlatList, TouchableOpacity, Image, Alert } from 'react-native';
 import Svg, { Path, Rect } from 'react-native-svg';
 import { ListeningQuestionCard } from './ListeningQuestionCard';
-import { generateListeningQuestions } from './listeningMockData';
 import { ListeningPracticeQuestion, ListeningPracticeOption } from '../../types';
 import { ms, hs, vs } from '@/theme';
 import { SubmitConfirmModal, QuestionGridModal } from '@/screens/Education/components';
@@ -203,11 +202,35 @@ function buildFlatData(questions: ListeningPracticeQuestion[]): FlatItem[] {
 // ============================================================
 // MAIN VIEW
 // ============================================================
+import { educationApi } from '@/services/education/api';
+import { transformQuestionToListening } from '@/services/education/transformers';
+
 export const ListeningPracticeView = ({ hskLevel, topic, onBack, onSubmit }: Props) => {
-  const questions = useMemo(
-    () => generateListeningQuestions(hskLevel, topic),
-    [hskLevel, topic],
-  );
+  const [questions, setQuestions] = useState<ListeningPracticeQuestion[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchQuestions = async () => {
+      try {
+        setIsLoading(true);
+        const setsRes = await educationApi.getPracticeSets({ hskLevel, topic, skill: 'LISTENING', limit: 1 });
+        if (setsRes.data.length > 0) {
+          const setId = setsRes.data[0].id;
+          const setDetails = await educationApi.getPracticeSetById(setId);
+          const mappedQuestions = (setDetails.practiceSetQuestions || [])
+            .map((psq, idx) => transformQuestionToListening(psq.question, idx + 1));
+          setQuestions(mappedQuestions);
+        } else {
+          setQuestions([]);
+        }
+      } catch (err) {
+        console.warn('Failed to fetch listening questions', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchQuestions();
+  }, [hskLevel, topic]);
 
   const flatData = useMemo(() => buildFlatData(questions), [questions]);
 
@@ -306,6 +329,25 @@ export const ListeningPracticeView = ({ hskLevel, topic, onBack, onSubmit }: Pro
       />
     );
   }, [answers, bookmarks, handleSelectOption, handleToggleBookmark]);
+
+  if (isLoading) {
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: '#E5E7EB', justifyContent: 'center', alignItems: 'center' }}>
+        <Text style={{ fontSize: ms(16), color: '#4B5563' }}>Đang tải dữ liệu...</Text>
+      </SafeAreaView>
+    );
+  }
+
+  if (questions.length === 0) {
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: '#E5E7EB', justifyContent: 'center', alignItems: 'center' }}>
+        <Text style={{ fontSize: ms(16), color: '#4B5563', marginBottom: vs(16) }}>Không có câu hỏi nào.</Text>
+        <TouchableOpacity onPress={onBack} style={{ padding: ms(12), backgroundColor: '#1E3A8A', borderRadius: ms(8) }}>
+          <Text style={{ color: '#FFFFFF', fontWeight: 'bold' }}>Quay lại</Text>
+        </TouchableOpacity>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#E5E7EB' }}>

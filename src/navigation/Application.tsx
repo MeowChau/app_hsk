@@ -6,7 +6,7 @@ import { Paths } from '@/navigation/paths';
 import type { RootStackParamList } from '@/navigation/types';
 import { useTheme } from '@/theme';
 
-import { Example, Login, Onboarding, Register, Startup, Survey } from '@/screens';
+import { Example, Login, Onboarding, Register, Startup, Survey, ForgotPassword, ResetPassword } from '@/screens';
 import { BottomTabNavigator } from '@/navigation/BottomTabNavigator';
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -51,6 +51,8 @@ function ApplicationNavigator() {
           <Stack.Screen component={Login} name={Paths.Login} />
           <Stack.Screen component={Register} name={Paths.Register} />
           <Stack.Screen component={Survey} name={Paths.Survey} />
+          <Stack.Screen component={ForgotPassword} name={Paths.ForgotPassword} />
+          <Stack.Screen component={ResetPassword} name={Paths.ResetPassword} />
           <Stack.Screen component={Example} name={Paths.Example} />
         </Stack.Navigator>
       </NavigationContainer>

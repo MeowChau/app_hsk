@@ -9,3 +9,5 @@ export { default as Profile } from './Profile/Profile';
 export { default as Education } from './Education/Education';
 export { default as Game } from './Game/Game';
 export { default as Survey } from './Survey/Survey';
+export { default as ForgotPassword } from './ForgotPassword/ForgotPassword';
+export { default as ResetPassword } from './ForgotPassword/ResetPassword';

@@ -17,13 +17,24 @@ import { SafeScreen } from '@/components/templates';
 import { Paths } from '@/navigation/paths';
 import { useTheme, hs, vs, ms } from '@/theme';
 
-export function ProfileContent({ onLogout }: { onLogout?: () => void }) {
+import { useProfile } from '@/services/auth/useAuth';
 
-  const [displayName, setDisplayName] = useState('Hoàng Văn Hùng');
-  const [email] = useState('hunghv@gmail.com');
-  const [currentHskLevel, setCurrentHskLevel] = useState(1);
+export function ProfileContent({ onLogout }: { onLogout?: () => void }) {
+  const { data: profile } = useProfile();
+  
+  const [displayName, setDisplayName] = useState(profile?.fullName || 'Người dùng');
+  const [email] = useState(profile?.email || 'email@example.com');
+  const [currentHskLevel, setCurrentHskLevel] = useState(profile?.currentHskLevel || 1);
   const [showPinyin, setShowPinyin] = useState(true);
   const [anonymousActivity, setAnonymousActivity] = useState(true);
+
+  // Sync state when profile data loads
+  React.useEffect(() => {
+    if (profile) {
+      setDisplayName(profile.fullName || 'Người dùng');
+      setCurrentHskLevel(profile.currentHskLevel || 1);
+    }
+  }, [profile]);
 
   return (
     <ScrollView

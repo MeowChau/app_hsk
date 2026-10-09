@@ -27,4 +27,6 @@ export type RootStackParamList = {
   [Paths.Statistics]: undefined;
   [Paths.Profile]: undefined;
   [Paths.Survey]: undefined;
+  [Paths.ForgotPassword]: undefined;
+  [Paths.ResetPassword]: { hash: string; email: string };
 };

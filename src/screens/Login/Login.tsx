@@ -16,11 +16,50 @@ import { Button, Logo } from '@/components/atoms';
 import { InputField, AuthDivider, GoogleSignInButton } from '@/components/molecules';
 import { SafeScreen } from '@/components/templates';
 
+import { Alert } from 'react-native';
+import { useLogin } from '@/services/auth';
+
 function Login({ navigation }: RootScreenProps<Paths.Login>) {
   const { colors, fonts, gutters, layout } = useTheme();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const loginMutation = useLogin();
+
+  const handleLogin = () => {
+    const trimmedEmail = email.trim();
+    const trimmedPassword = password.trim();
+
+    if (!trimmedEmail || !trimmedPassword) {
+      Alert.alert('Lỗi', 'Vui lòng nhập đầy đủ email và mật khẩu');
+      return;
+    }
+
+    loginMutation.mutate(
+      { email: trimmedEmail, password: trimmedPassword },
+      {
+        onSuccess: () => {
+          navigation.navigate(Paths.MainTabs);
+        },
+        onError: (err: any) => {
+          const defaultMsg = 'Đăng nhập không thành công. Vui lòng kiểm tra lại thông tin.';
+          if (err?.response) {
+            err.response
+              .json()
+              .then((data: any) => {
+                const apiMsg = data?.message || data?.errors?.email || data?.errors?.password;
+                Alert.alert('Đăng nhập thất bại', apiMsg || defaultMsg);
+              })
+              .catch(() => {
+                Alert.alert('Đăng nhập thất bại', defaultMsg);
+              });
+            return;
+          }
+          Alert.alert('Đăng nhập thất bại', err?.message || defaultMsg);
+        },
+      },
+    );
+  };
 
   return (
     <SafeScreen style={{ backgroundColor: '#FFFFFF' }}>
@@ -97,14 +136,21 @@ function Login({ navigation }: RootScreenProps<Paths.Login>) {
               secureTextEntry
               value={password}
             />
+            <TouchableOpacity 
+              style={{ alignSelf: 'flex-end', marginTop: vs(12) }}
+              onPress={() => navigation.navigate(Paths.ForgotPassword)}
+            >
+              <Text style={{ color: '#1E40AF', fontSize: ms(14), fontWeight: '600' }}>
+                Quên mật khẩu?
+              </Text>
+            </TouchableOpacity>
           </View>
 
           {/* Main Action Button */}
           <Button
             fullWidth
-            onPress={() => {
-              navigation.navigate(Paths.MainTabs);
-            }}
+            loading={loginMutation.isPending}
+            onPress={handleLogin}
             title="Đăng nhập"
             variant="primary"
           />

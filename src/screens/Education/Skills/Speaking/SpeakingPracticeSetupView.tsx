@@ -6,26 +6,34 @@ import { ScreenHeader } from '@/components/molecules';
 import { ms, hs, vs } from '@/theme';
 import { TopicPickerModal } from '../components';
 
+import { educationApi } from '@/services/education/api';
+
 interface Props {
   onBack: () => void;
   onStartPractice: (topic: string) => void;
 }
 
-const TOPICS = [
-  'Đặt câu hỏi và đo lường từ ngữ (28 từ)',
-  'Món ăn (26 từ)',
-  'Gia đình (18 từ)',
-  'Chữ số (16 từ)',
-  'Nghiên cứu (22 từ)',
-  'Trong lớp (23 từ)',
-  'Các tòa nhà (21 từ)',
-  'Vận chuyển (20 từ)',
-  'Sự chuyển động (20 từ)',
-  'Đại từ (35 từ)',
-];
-
 export const SpeakingPracticeSetupView = ({ onBack, onStartPractice }: Props) => {
-  const [selectedTopic, setSelectedTopic] = useState<string>(TOPICS[0]);
+  const [topics, setTopics] = useState<any[]>([]);
+  const [selectedTopic, setSelectedTopic] = useState<string>('');
+
+  React.useEffect(() => {
+    const fetchTopics = async () => {
+      try {
+        const res = await educationApi.getTopics();
+        const topicList = res.filter((t: any) => t.speakingCount > 0);
+        setTopics(topicList);
+        if (topicList.length > 0) {
+          setSelectedTopic(topicList[0].topicKey);
+        } else {
+          setSelectedTopic('');
+        }
+      } catch (err) {
+        console.warn('Failed to fetch topics', err);
+      }
+    };
+    fetchTopics();
+  }, []);
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
@@ -39,11 +47,11 @@ export const SpeakingPracticeSetupView = ({ onBack, onStartPractice }: Props) =>
 
         {/* Topic Selection */}
         <TopicPickerModal
-          selectedLabel={selectedTopic}
-          topics={TOPICS}
-          getTopicLabel={t => t}
-          isSelected={t => t === selectedTopic}
-          onSelectTopic={setSelectedTopic}
+          selectedLabel={topics.find(t => t.topicKey === selectedTopic)?.titleVi || selectedTopic || 'Chọn chủ đề'}
+          topics={topics}
+          getTopicLabel={t => `${t.titleVi} (${t.speakingCount} từ)`}
+          isSelected={t => t.topicKey === selectedTopic}
+          onSelectTopic={t => setSelectedTopic(t.topicKey)}
         />
       </ScrollView>
 

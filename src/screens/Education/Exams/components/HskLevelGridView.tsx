@@ -1,7 +1,15 @@
 import React from 'react';
 import { View, TouchableOpacity, Text } from 'react-native';
-import { HSK_LEVELS } from '../../mockData';
 import { ms, hs, vs } from '@/theme';
+
+const HSK_LEVELS = [
+  { level: 1, title: 'HSK 1', subtitle: 'Sơ cấp' },
+  { level: 2, title: 'HSK 2', subtitle: 'Sơ cấp' },
+  { level: 3, title: 'HSK 3', subtitle: 'Trung cấp' },
+  { level: 4, title: 'HSK 4', subtitle: 'Trung cấp' },
+  { level: 5, title: 'HSK 5', subtitle: 'Cao cấp' },
+  { level: 6, title: 'HSK 6', subtitle: 'Cao cấp' },
+];
 
 interface Props {
   onSelectLevel: (level: number) => void;

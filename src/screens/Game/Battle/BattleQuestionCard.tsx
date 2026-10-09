@@ -1,7 +1,14 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { hs, vs, ms } from '@/theme';
-import type { BattleQuestion } from './mockQuestions';
+export interface BattleQuestion {
+  id: number;
+  hanzi: string;
+  pinyin: string;
+  prompt: string;
+  options: string[];
+  correctIndex: number;
+}
 
 interface BattleQuestionCardProps {
   question: BattleQuestion;

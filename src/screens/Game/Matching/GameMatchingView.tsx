@@ -13,12 +13,15 @@ interface GameMatchingViewProps {
   userName?: string;
 }
 
+import { useProfile } from '@/services/auth/useAuth';
+
 export const GameMatchingView = ({
   onCancel,
   onMatchSuccess,
-  userName = 'Hoàng Văn Hùng',
 }: GameMatchingViewProps) => {
+  const { data: profile } = useProfile();
   const [isMatched, setIsMatched] = React.useState(false);
+  const userName = profile?.fullName || 'Người chơi';
 
   // Demo: Sau 3s là tìm thấy đối thủ thành công
   React.useEffect(() => {

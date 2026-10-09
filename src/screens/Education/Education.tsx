@@ -20,7 +20,7 @@ import { WritingPracticeSetupView } from './Skills/Writing/WritingPracticeSetupV
 import { WritingPracticeFlashcardView } from './Skills/Writing/WritingPracticeFlashcardView';
 import { WritingPracticeView } from './Skills/Writing/WritingPracticeView';
 import { WritingPracticeResultView } from './Skills/Writing/WritingPracticeResultView';
-import { generateWritingWords } from './Skills/Writing/writingMockData';
+// import { generateWritingWords } from './Skills/Writing/writingMockData';
 import type { SkillType, EducationViewMode, ExamResult } from './types';
 
 export function EducationContent({ navigation }: any) {
@@ -130,9 +130,10 @@ export function EducationContent({ navigation }: any) {
     if (selectedSkill === 'VIET') {
       return (
         <WritingPracticeSetupView
-          hskLevel={1}
+          hskLevel={selectedHsk}
           onBack={() => setViewMode('main')}
           onStart={(topic) => {
+            setPracticeHsk(selectedHsk);
             setPracticeTopic(topic);
             setViewMode('skillFlashcard');
           }}
@@ -153,10 +154,10 @@ export function EducationContent({ navigation }: any) {
   }
 
   if (viewMode === 'skillFlashcard') {
-    const words = generateWritingWords(1, practiceTopic);
     return (
       <WritingPracticeFlashcardView
-        words={words}
+        hskLevel={practiceHsk}
+        topic={practiceTopic}
         onBack={() => setViewMode('skillSetup')}
         onFinishFlashcards={() => setViewMode('skillPractice')}
       />
@@ -253,6 +254,7 @@ export function EducationContent({ navigation }: any) {
           totalCount={result?.totalCount || 0}
           answeredCount={result?.answeredCount || 0}
           statuses={result?.statuses || {}}
+          words={result?.words || []}
           onBackToSetup={() => setViewMode('skillSetup')}
           onRetake={() => setViewMode('skillPractice')}
         />

@@ -5,7 +5,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ScreenHeader } from '@/components/molecules';
 import { ms, hs, vs } from '@/theme';
 import { TopicPickerModal } from '../components';
-import { WRITING_PRACTICE_TOPICS, WritingPracticeTopic } from './writingMockData';
+import { vocabularyApi } from '@/services/vocabulary';
+
+interface WritingPracticeTopic {
+  id: string;
+  title: string;
+  wordCount: number;
+}
 
 interface Props {
   hskLevel: number;
@@ -14,8 +20,35 @@ interface Props {
 }
 
 export const WritingPracticeSetupView = ({ hskLevel, onBack, onStart }: Props) => {
-  const topics = WRITING_PRACTICE_TOPICS[hskLevel] || [];
-  const [selectedTopic, setSelectedTopic] = useState<WritingPracticeTopic>(topics[0]);
+  const [topics, setTopics] = useState<WritingPracticeTopic[]>([]);
+  const [selectedTopic, setSelectedTopic] = useState<WritingPracticeTopic | null>(null);
+
+  React.useEffect(() => {
+    const fetchTopics = async () => {
+      try {
+        // Tạm thời lấy danh sách đếm topic từ backend. Backend trả về { 'HSK1-L04': 25 }
+        const counts = await vocabularyApi.getTopicCounts();
+        
+        // Convert sang mảng và lọc những topic thuộc hskLevel hiện tại 
+        // (Giả sử topic name bắt đầu bằng `HSK${hskLevel}`)
+        const topicList: WritingPracticeTopic[] = Object.keys(counts)
+          .filter(topic => topic.startsWith(`HSK${hskLevel}`))
+          .map((topic, index) => ({
+            id: topic,
+            title: topic,
+            wordCount: counts[topic],
+          }));
+          
+        setTopics(topicList);
+        if (topicList.length > 0) {
+          setSelectedTopic(topicList[0]);
+        }
+      } catch (err) {
+        console.warn('Failed to fetch topics', err);
+      }
+    };
+    fetchTopics();
+  }, [hskLevel]);
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#FFFFFF' }}>

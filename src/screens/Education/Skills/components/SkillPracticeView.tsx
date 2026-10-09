@@ -1,9 +1,15 @@
 import React from 'react';
 import { View } from 'react-native';
 import { SkillBoxCard } from './SkillBoxCard';
-import { SKILLS } from '../../mockData';
 import { SkillType } from '../../types';
 import { hs } from '@/theme';
+
+const SKILLS = [
+  { id: 'NGHE', name: 'Kỹ năng Nghe' },
+  { id: 'NOI', name: 'Kỹ năng Nói' },
+  { id: 'DOC', name: 'Kỹ năng Đọc' },
+  { id: 'VIET', name: 'Kỹ năng Viết' },
+];
 
 interface Props {
   selectedSkill: SkillType;

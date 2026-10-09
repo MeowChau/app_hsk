@@ -16,6 +16,9 @@ import { Button, Logo } from '@/components/atoms';
 import { InputField, AuthDivider, GoogleSignInButton } from '@/components/molecules';
 import { SafeScreen } from '@/components/templates';
 
+import { Alert } from 'react-native';
+import { useRegister } from '@/services/auth';
+
 function Register({ navigation }: RootScreenProps<Paths.Register>) {
   const { colors, fonts, gutters, layout } = useTheme();
 
@@ -23,6 +26,66 @@ function Register({ navigation }: RootScreenProps<Paths.Register>) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const registerMutation = useRegister();
+
+  const handleRegister = () => {
+    const trimmedUsername = username.trim();
+    const trimmedEmail = email.trim();
+    const trimmedPassword = password.trim();
+
+    if (!trimmedUsername || !trimmedEmail || !trimmedPassword) {
+      Alert.alert('Lỗi', 'Vui lòng điền đầy đủ các thông tin đăng ký');
+      return;
+    }
+
+    if (trimmedPassword !== confirmPassword.trim()) {
+      Alert.alert('Lỗi', 'Mật khẩu xác nhận không trùng khớp');
+      return;
+    }
+
+    if (trimmedPassword.length < 6) {
+      Alert.alert('Lỗi', 'Mật khẩu phải có độ dài tối thiểu 6 ký tự');
+      return;
+    }
+
+    registerMutation.mutate(
+      {
+        username: trimmedUsername,
+        email: trimmedEmail,
+        password: trimmedPassword,
+      },
+      {
+        onSuccess: () => {
+          Alert.alert(
+            'Đăng ký thành công',
+            'Tài khoản đã được tạo thành công! Vui lòng chờ quản trị viên duyệt trước khi đăng nhập.',
+            [
+              {
+                text: 'OK',
+                onPress: () => navigation.navigate(Paths.Login),
+              },
+            ],
+          );
+        },
+        onError: (err: any) => {
+          const defaultMsg = 'Đăng ký không thành công. Vui lòng thử lại sau.';
+          if (err?.response) {
+            err.response
+              .json()
+              .then((data: any) => {
+                const apiMsg = data?.message || data?.errors?.email || data?.errors?.username;
+                Alert.alert('Đăng ký thất bại', apiMsg || defaultMsg);
+              })
+              .catch(() => {
+                Alert.alert('Đăng ký thất bại', defaultMsg);
+              });
+            return;
+          }
+          Alert.alert('Đăng ký thất bại', err?.message || defaultMsg);
+        },
+      },
+    );
+  };
 
   return (
     <SafeScreen style={{ backgroundColor: '#FFFFFF' }}>
@@ -116,9 +179,8 @@ function Register({ navigation }: RootScreenProps<Paths.Register>) {
           {/* Main Action Button */}
           <Button
             fullWidth
-            onPress={() => {
-              navigation.navigate(Paths.Survey);
-            }}
+            loading={registerMutation.isPending}
+            onPress={handleRegister}
             title="Đăng ký"
             variant="primary"
           />

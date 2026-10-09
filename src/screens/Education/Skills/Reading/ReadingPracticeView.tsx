@@ -2,7 +2,6 @@ import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react'
 import { View, Text, SafeAreaView, TouchableOpacity, Alert, FlatList, BackHandler } from 'react-native';
 import Svg, { Path, Rect } from 'react-native-svg';
 import { ReadingPracticeQuestion } from '../../types';
-import { generateReadingQuestions } from './readingMockData';
 import { ms, hs, vs } from '@/theme';
 import { SubmitConfirmModal, QuestionGridModal } from '@/screens/Education/components';
 
@@ -205,9 +204,37 @@ const ReadingQuestionCard = React.memo(({ question, selectedOptionId, onSelectOp
   );
 });
 
+import { educationApi } from '@/services/education/api';
+import { transformQuestionToReading } from '@/services/education/transformers';
+
 export const ReadingPracticeView = ({ hskLevel, topic, onBack, onSubmit }: Props) => {
-  const questions = useMemo(() => generateReadingQuestions(hskLevel.toString(), topic), [hskLevel, topic]);
-  
+  const [questions, setQuestions] = useState<ReadingPracticeQuestion[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchQuestions = async () => {
+      try {
+        setIsLoading(true);
+        // Find a practice set matching hskLevel, topic, and skill
+        const setsRes = await educationApi.getPracticeSets({ hskLevel, topic, skill: 'READING', limit: 1 });
+        if (setsRes.data.length > 0) {
+          const setId = setsRes.data[0].id;
+          const setDetails = await educationApi.getPracticeSetById(setId);
+          const mappedQuestions = (setDetails.practiceSetQuestions || [])
+            .map((psq, idx) => transformQuestionToReading(psq.question, idx + 1));
+          setQuestions(mappedQuestions);
+        } else {
+          setQuestions([]);
+        }
+      } catch (err) {
+        console.warn('Failed to fetch reading questions', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchQuestions();
+  }, [hskLevel, topic]);
+
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [bookmarks, setBookmarks] = useState<Record<string, boolean>>({});
   const [showSubmitModal, setShowSubmitModal] = useState(false);
@@ -278,6 +305,25 @@ export const ReadingPracticeView = ({ hskLevel, topic, onBack, onSubmit }: Props
     isBookmarked: !!bookmarks[q.id],
     isCurrent: idx === currentIndex,
   })), [questions, answers, bookmarks, currentIndex]);
+
+  if (isLoading) {
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: '#E5E7EB', justifyContent: 'center', alignItems: 'center' }}>
+        <Text style={{ fontSize: ms(16), color: '#4B5563' }}>Đang tải dữ liệu...</Text>
+      </SafeAreaView>
+    );
+  }
+
+  if (questions.length === 0) {
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: '#E5E7EB', justifyContent: 'center', alignItems: 'center' }}>
+        <Text style={{ fontSize: ms(16), color: '#4B5563', marginBottom: vs(16) }}>Không có câu hỏi nào.</Text>
+        <TouchableOpacity onPress={onBack} style={{ padding: ms(12), backgroundColor: '#1E3A8A', borderRadius: ms(8) }}>
+          <Text style={{ color: '#FFFFFF', fontWeight: 'bold' }}>Quay lại</Text>
+        </TouchableOpacity>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#E5E7EB' }}>

@@ -11,4 +11,6 @@ export const enum Paths {
   Game = 'game',
   MainTabs = 'mainTabs',
   Survey = 'survey',
+  ForgotPassword = 'forgotPassword',
+  ResetPassword = 'resetPassword',
 }

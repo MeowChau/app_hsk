@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { View, Text, SafeAreaView, TouchableOpacity, Alert, Platform, PermissionsAndroid, ScrollView } from 'react-native';
 import Svg, { Path, Rect } from 'react-native-svg';
-import { generateSpeakingQuestions } from './speakingMockData';
+import { educationApi } from '@/services/education/api';
+import { transformQuestionToSpeaking } from '@/services/education/transformers';
 import { SpeakingPracticeQuestion } from '../../types';
 import { ms, hs, vs } from '@/theme';
 import { SubmitConfirmModal, QuestionGridModal } from '@/screens/Education/components';
@@ -27,8 +28,29 @@ export const SpeakingPracticeView = ({ topic, onBack, onSubmit }: Props) => {
 
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
+  const [isLoading, setIsLoading] = useState(true);
+
   useEffect(() => {
-    setQuestions(generateSpeakingQuestions(topic));
+    const fetchQuestions = async () => {
+      try {
+        setIsLoading(true);
+        const setsRes = await educationApi.getPracticeSets({ topic, skill: 'SPEAKING', limit: 1 });
+        if (setsRes.data.length > 0) {
+          const setId = setsRes.data[0].id;
+          const setDetails = await educationApi.getPracticeSetById(setId);
+          const mappedQuestions = (setDetails.practiceSetQuestions || [])
+            .map(psq => transformQuestionToSpeaking(psq.question));
+          setQuestions(mappedQuestions);
+        } else {
+          setQuestions([]);
+        }
+      } catch (err) {
+        console.warn('Failed to fetch speaking questions', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchQuestions();
   }, [topic]);
 
   const currentQ = questions[currentIndex];
@@ -137,7 +159,24 @@ export const SpeakingPracticeView = ({ topic, onBack, onSubmit }: Props) => {
     isCurrent: index === currentIndex,
   })), [questions, results, currentIndex]);
 
-  if (!currentQ) return <View />;
+  if (isLoading) {
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: '#E5E7EB', justifyContent: 'center', alignItems: 'center' }}>
+        <Text style={{ fontSize: ms(16), color: '#4B5563' }}>Đang tải dữ liệu...</Text>
+      </SafeAreaView>
+    );
+  }
+
+  if (questions.length === 0 || !currentQ) {
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: '#E5E7EB', justifyContent: 'center', alignItems: 'center' }}>
+        <Text style={{ fontSize: ms(16), color: '#4B5563', marginBottom: vs(16) }}>Không có câu hỏi nào.</Text>
+        <TouchableOpacity onPress={onBack} style={{ padding: ms(12), backgroundColor: '#1E3A8A', borderRadius: ms(8) }}>
+          <Text style={{ color: '#FFFFFF', fontWeight: 'bold' }}>Quay lại</Text>
+        </TouchableOpacity>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#E5E7EB' }}>

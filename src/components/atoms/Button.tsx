@@ -2,13 +2,11 @@ import React from 'react';
 import { TouchableOpacity, TouchableOpacityProps, Text, ActivityIndicator, View } from 'react-native';
 import { useTheme } from '@/theme';
 import { IconByVariant } from '@/components/atoms';
-import type { IconPaths } from '@/theme/assets/icons';
-
 interface ButtonProps extends TouchableOpacityProps {
   title: string;
   variant?: 'primary' | 'outline' | 'text';
   loading?: boolean;
-  icon?: IconPaths;
+  icon?: string;
   fullWidth?: boolean;
 }
 

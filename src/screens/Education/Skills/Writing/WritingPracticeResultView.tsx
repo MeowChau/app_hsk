@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { View, Text, SafeAreaView, ScrollView, TouchableOpacity } from 'react-native';
 import { ms, hs, vs } from '@/theme';
 import { PracticeResultCard } from '../components';
-import { generateWritingWords } from './writingMockData';
 
 interface Props {
   hskLevel: number;
@@ -10,6 +9,7 @@ interface Props {
   totalCount: number;
   answeredCount: number;
   statuses: Record<string, string>;
+  words?: any[];
   onBackToSetup: () => void;
   onRetake: () => void;
 }
@@ -20,11 +20,11 @@ export const WritingPracticeResultView = ({
   totalCount,
   answeredCount,
   statuses,
+  words = [],
   onBackToSetup,
   onRetake,
 }: Props) => {
   const [filterMode, setFilterMode] = useState<'ALL' | 'UNWRITTEN'>('ALL');
-  const words = generateWritingWords(hskLevel, topicId);
   const effectiveTotal = totalCount || words.length || 1;
   const score = Math.round((answeredCount / effectiveTotal) * 100);
   const unwrittenCount = Math.max(0, effectiveTotal - answeredCount);

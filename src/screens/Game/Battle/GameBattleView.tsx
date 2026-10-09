@@ -5,7 +5,6 @@ import { BattleHeader } from './BattleHeader';
 import { BattleQuestionCard } from './BattleQuestionCard';
 import { BattleScoreBar } from './BattleScoreBar';
 import { BattleResultView, type MatchResultData } from './BattleResultView';
-import { MOCK_QUESTIONS } from './mockQuestions';
 
 interface GameBattleViewProps {
   onExit: (result?: MatchResultData) => void;
@@ -15,10 +14,15 @@ interface GameBattleViewProps {
 const QUESTIONS_PER_PLAYER = 4;
 const TOTAL_MATCH_QUESTIONS = QUESTIONS_PER_PLAYER * 2;
 
+import { ActivityIndicator } from 'react-native';
+import { gameApi } from '@/services/game/api';
+
 export const GameBattleView = ({
   onExit,
   opponentName = 'Hạ Ngân',
 }: GameBattleViewProps) => {
+  const [questions, setQuestions] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [questionIndex, setQuestionIndex] = useState(0);
   const [isMyTurn, setIsMyTurn] = useState(true);
   const [timeLeft, setTimeLeft] = useState(15);
@@ -32,7 +36,23 @@ export const GameBattleView = ({
   const [isGameOver, setIsGameOver] = useState(false);
   const [myCorrectCount, setMyCorrectCount] = useState(0);
 
-  const currentQuestion = MOCK_QUESTIONS[questionIndex % MOCK_QUESTIONS.length];
+  useEffect(() => {
+    const fetchQuestions = async () => {
+      try {
+        setIsLoading(true);
+        const fetched = await gameApi.getBattleQuestions(TOTAL_MATCH_QUESTIONS);
+        setQuestions(fetched);
+      } catch (e) {
+        console.warn(e);
+        setQuestions([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchQuestions();
+  }, []);
+
+  const currentQuestion = questions.length > 0 ? questions[questionIndex % questions.length] : null;
   // Số thứ tự câu hỏi của người chơi hiện tại (1 -> 4)
   const currentTurnForPlayer = Math.floor(questionIndex / 2) + 1;
 
@@ -167,6 +187,14 @@ export const GameBattleView = ({
       ]
     );
   };
+
+  if (isLoading || !currentQuestion) {
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: '#FFFFFF', justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator color="#1E3A8A" size="large" />
+      </SafeAreaView>
+    );
+  }
 
   // Khi hết số câu hỏi của cả 2 bên, hiển thị màn hình Tổng kết kết quả trận đấu
   if (isGameOver) {

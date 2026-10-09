@@ -21,7 +21,10 @@ export interface HomeContentProps {
   onNavigateToProfile: () => void;
 }
 
+import { useProfile } from '@/services/auth/useAuth';
+
 export function HomeContent({ onSwitchTab, onNavigateToProfile }: HomeContentProps) {
+  const { data: profile } = useProfile();
   const { layout } = useTheme();
   const { width: screenWidth } = useWindowDimensions();
   const bannerWidth = screenWidth - 32;
@@ -65,7 +68,7 @@ export function HomeContent({ onSwitchTab, onNavigateToProfile }: HomeContentPro
           >
             <UserAvatar size={ms(22)} style={{ marginRight: hs(6) }} />
             <Text style={{ color: '#212121', fontSize: ms(14), fontWeight: '600' }}>
-              Hoàng Văn Hùng
+              {profile?.fullName || 'Người dùng'}
             </Text>
           </TouchableOpacity>
         </View>

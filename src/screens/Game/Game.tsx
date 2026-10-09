@@ -7,6 +7,7 @@ import { LeaderboardRow } from './components/LeaderboardRow';
 import { GameMatchCard } from './components/GameMatchCard';
 import { GameMatchingView } from './Matching';
 import { GameBattleView, type MatchResultData } from './Battle';
+import { useProfile } from '@/services/auth/useAuth';
 
 interface MatchHistoryItem {
   id: string;
@@ -37,6 +38,7 @@ export function GameContent({ navigation, route, targetView: propTargetView }: a
   const [userTotalXp, setUserTotalXp] = useState<number>(0);
 
   // Đồng bộ viewState ngay lập tức trong render cycle khi params thay đổi (không bị delay/flicker sang màn main)
+  const { data: profile } = useProfile();
   let viewState = internalViewState;
   if (currentKey && currentKey !== lastHandledKey) {
     setLastHandledKey(currentKey);
@@ -232,8 +234,8 @@ export function GameContent({ navigation, route, targetView: propTargetView }: a
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <UserAvatar size={ms(32)} backgroundColor="#3730A3" style={{ marginRight: hs(10) }} />
               <View>
-                <Text style={{ color: '#111827', fontSize: ms(16), fontWeight: '800' }}>Hoàng Văn Hùng <Text style={{ color: '#E53935' }}>(Bạn)</Text></Text>
-                <Text style={{ color: '#9E9E9E', fontSize: ms(14), marginTop: vs(1), fontWeight: '500' }}>Level {1 + Math.floor(userTotalXp / 200)}</Text>
+                <Text style={{ color: '#111827', fontSize: ms(16), fontWeight: '800' }}>{profile?.fullName || 'Người chơi'} <Text style={{ color: '#E53935' }}>(Bạn)</Text></Text>
+                <Text style={{ color: '#9E9E9E', fontSize: ms(14), marginTop: vs(1), fontWeight: '500' }}>Level {profile?.currentHskLevel || 1 + Math.floor(userTotalXp / 200)}</Text>
               </View>
             </View>
             <View style={{ alignItems: 'flex-end' }}>

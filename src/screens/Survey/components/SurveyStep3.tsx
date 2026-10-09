@@ -62,9 +62,7 @@ export const SurveyStep3 = ({ onNext }: Props) => {
         open={showOtherPicker}
         date={date}
         mode="time"
-        is24hour={true}
         locale="vi-VN"
-        androidVariant="iosClone"
         title="Chọn thời gian luyện tập"
         confirmText="Xác nhận"
         cancelText="Hủy"

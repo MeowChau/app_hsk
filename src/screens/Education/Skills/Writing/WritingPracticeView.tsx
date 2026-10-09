@@ -4,7 +4,14 @@ import Svg, { Path, Rect } from 'react-native-svg';
 import { WebView } from 'react-native-webview';
 import { ms, hs, vs } from '@/theme';
 import { SubmitConfirmModal, QuestionGridModal } from '@/screens/Education/components';
-import { generateWritingWords } from './writingMockData';
+import { vocabularyApi } from '@/services/vocabulary';
+
+interface WritingPracticeWord {
+  id: string;
+  character: string;
+  pinyin: string;
+  meaning: string;
+}
 import { HANZI_WRITER_JS } from './hanziWriterBundle';
 import { PRELOADED_CHAR_DATA } from './writingCharData';
 
@@ -16,8 +23,30 @@ interface Props {
 }
 
 export const WritingPracticeView = ({ hskLevel, topic, onBack, onSubmit }: Props) => {
-  const words = React.useMemo(() => generateWritingWords(hskLevel, topic), [hskLevel, topic]);
-  
+  const [words, setWords] = useState<WritingPracticeWord[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  React.useEffect(() => {
+    const fetchWords = async () => {
+      try {
+        setIsLoading(true);
+        const res = await vocabularyApi.getVocabularies({ hskLevel, topic, limit: 1000 });
+        const fetchedWords: WritingPracticeWord[] = res.data.map(v => ({
+          id: v.id.toString(),
+          character: v.hanzi,
+          pinyin: v.pinyin,
+          meaning: v.meaning,
+        }));
+        setWords(fetchedWords);
+      } catch (err) {
+        console.warn('Failed to fetch words', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchWords();
+  }, [hskLevel, topic]);
+
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [showGridModal, setShowGridModal] = useState(false);
@@ -259,8 +288,10 @@ export const WritingPracticeView = ({ hskLevel, topic, onBack, onSubmit }: Props
 
   useEffect(() => {
     // When character changes, tell WebView to draw the new character
-    webViewRef.current?.injectJavaScript(`changeChar("${currentWord.character}"); true;`);
-  }, [currentIndex, currentWord.character]);
+    if (currentWord?.character) {
+      webViewRef.current?.injectJavaScript(`changeChar("${currentWord.character}"); true;`);
+    }
+  }, [currentIndex, currentWord?.character]);
 
   const handleWebViewMessage = (event: any) => {
     try {
@@ -302,8 +333,27 @@ export const WritingPracticeView = ({ hskLevel, topic, onBack, onSubmit }: Props
 
   const handleConfirmSubmit = () => {
     setShowSubmitModal(false);
-    onSubmit({ totalCount, answeredCount, statuses });
+    onSubmit({ totalCount, answeredCount, statuses, words });
   };
+
+  if (isLoading) {
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: '#FFFFFF', justifyContent: 'center', alignItems: 'center' }}>
+        <Text style={{ fontSize: ms(16), color: '#4B5563' }}>Đang tải dữ liệu...</Text>
+      </SafeAreaView>
+    );
+  }
+
+  if (!currentWord) {
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: '#FFFFFF', justifyContent: 'center', alignItems: 'center' }}>
+        <Text style={{ fontSize: ms(16), color: '#4B5563', marginBottom: vs(16) }}>Không có từ vựng nào trong chủ đề này.</Text>
+        <TouchableOpacity onPress={onBack} style={{ padding: ms(12), backgroundColor: '#1E3A8A', borderRadius: ms(8) }}>
+          <Text style={{ color: '#FFFFFF', fontWeight: 'bold' }}>Quay lại</Text>
+        </TouchableOpacity>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#FFFFFF' }}>

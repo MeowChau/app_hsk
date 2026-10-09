@@ -1,8 +1,8 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, FlatList, SafeAreaView, ActivityIndicator, Modal, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, Keyboard } from 'react-native';
 import { ScreenHeader } from '@/components/molecules';
 import { HskExamCard } from './HskExamCard';
-import { ALL_HSK_EXAMS } from '../../mockData';
+import { examsApi } from '@/services/exams/api';
 import { HskExam, ExamResult } from '../../types';
 import { ms, hs, vs } from '@/theme';
 
@@ -15,13 +15,38 @@ interface Props {
 }
 
 export const HskExamListView = ({ hskLevel, onBack, onSelectExam, examResults, onViewResult }: Props) => {
-  const fullList = ALL_HSK_EXAMS[hskLevel] || [];
+  const [fullList, setFullList] = useState<HskExam[]>([]);
   const [displayedCount, setDisplayedCount] = useState<number>(10);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isLoadingMore, setIsLoadingMore] = useState<boolean>(false);
   const loadingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const [selectedExam, setSelectedExam] = useState<HskExam | null>(null);
   const [examTime, setExamTime] = useState<string>('');
+
+  useEffect(() => {
+    const fetchExams = async () => {
+      try {
+        setIsLoading(true);
+        const res = await examsApi.getExams({ hskLevel, limit: 100 });
+        const mapped: HskExam[] = res.data.map(e => ({
+          id: e.id.toString(),
+          level: e.hskLevel,
+          name: e.title,
+          timeLimit: 30, // Default mock or parse from description if needed
+          listeningCount: Math.floor((e.totalQuestions || 0) / 2),
+          readingCount: Math.ceil((e.totalQuestions || 0) / 2),
+          questions: [],
+        }));
+        setFullList(mapped);
+      } catch (err) {
+        console.warn('Failed to fetch exams', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchExams();
+  }, [hskLevel]);
 
   const handlePressExam = (item: HskExam) => {
     console.log('[HskExamListView] handlePressExam called:', item.id, item.name);
@@ -54,6 +79,17 @@ export const HskExamListView = ({ hskLevel, onBack, onSelectExam, examResults, o
   };
 
   const visibleExams = fullList.slice(0, displayedCount);
+
+  if (isLoading) {
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: '#FAF9F6' }}>
+        <ScreenHeader title={`HSK ${hskLevel} - Đề thi thử`} onBack={onBack} />
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <ActivityIndicator size="large" color="#1E3A8A" />
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#FAF9F6' }}>

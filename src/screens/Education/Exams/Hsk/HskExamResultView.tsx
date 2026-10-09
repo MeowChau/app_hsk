@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { View, Text, SafeAreaView, ScrollView, TouchableOpacity } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { ExamResult } from '../../types';
-import { ALL_HSK_EXAMS } from '../../mockData';
 import { ms, hs, vs } from '@/theme';
 import { ScreenHeader } from '@/components/molecules';
 
@@ -15,11 +14,9 @@ interface Props {
 
 export const HskExamResultView = ({ result, onBack, onReview, onRetake }: Props) => {
   const [filterMode, setFilterMode] = useState<'ALL' | 'WRONG'>('WRONG');
-  const examLevel = parseInt(result.examId.match(/hsk(\d)/)?.[1] || '1');
   const examIndex = result.examId.split('_')[1] || '1';
 
-  const fullExam = ALL_HSK_EXAMS[examLevel]?.find(e => e.id === result.examId);
-  const questions = fullExam?.questions || [];
+  const questions = result.questions || [];
 
   const wrongCount = result.totalCount - result.correctCount;
 

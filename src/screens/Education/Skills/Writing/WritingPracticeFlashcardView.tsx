@@ -3,17 +3,49 @@ import { View, Text, SafeAreaView, TouchableOpacity, StyleSheet, Dimensions } fr
 import Svg, { Path } from 'react-native-svg';
 import { ScreenHeader } from '@/components/molecules';
 import { ms, hs, vs } from '@/theme';
-import { WritingPracticeWord } from './writingMockData';
+import { vocabularyApi } from '@/services/vocabulary';
+
+interface WritingPracticeWord {
+  id: string;
+  character: string;
+  pinyin: string;
+  meaning: string;
+}
 
 interface Props {
-  words: WritingPracticeWord[];
+  hskLevel: number;
+  topic: string;
   onBack: () => void;
   onFinishFlashcards: () => void;
 }
 
 const { width } = Dimensions.get('window');
 
-export const WritingPracticeFlashcardView = ({ words, onBack, onFinishFlashcards }: Props) => {
+export const WritingPracticeFlashcardView = ({ hskLevel, topic, onBack, onFinishFlashcards }: Props) => {
+  const [words, setWords] = useState<WritingPracticeWord[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  React.useEffect(() => {
+    const fetchWords = async () => {
+      try {
+        setIsLoading(true);
+        const res = await vocabularyApi.getVocabularies({ hskLevel, topic, limit: 1000 });
+        const fetchedWords: WritingPracticeWord[] = res.data.map(v => ({
+          id: v.id.toString(),
+          character: v.hanzi,
+          pinyin: v.pinyin,
+          meaning: v.meaning,
+        }));
+        setWords(fetchedWords);
+      } catch (err) {
+        console.warn('Failed to fetch words for flashcard', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchWords();
+  }, [hskLevel, topic]);
+
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showMeaning, setShowMeaning] = useState(false);
 
@@ -38,6 +70,25 @@ export const WritingPracticeFlashcardView = ({ words, onBack, onFinishFlashcards
   };
 
   const isLastCard = currentIndex === words.length - 1;
+
+  if (isLoading) {
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: '#FFFFFF', justifyContent: 'center', alignItems: 'center' }}>
+        <Text style={{ fontSize: ms(16), color: '#4B5563' }}>Đang tải dữ liệu...</Text>
+      </SafeAreaView>
+    );
+  }
+
+  if (!word) {
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: '#FFFFFF', justifyContent: 'center', alignItems: 'center' }}>
+        <Text style={{ fontSize: ms(16), color: '#4B5563', marginBottom: vs(16) }}>Không có từ vựng nào.</Text>
+        <TouchableOpacity onPress={onBack} style={{ padding: ms(12), backgroundColor: '#1E3A8A', borderRadius: ms(8) }}>
+          <Text style={{ color: '#FFFFFF', fontWeight: 'bold' }}>Quay lại</Text>
+        </TouchableOpacity>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
