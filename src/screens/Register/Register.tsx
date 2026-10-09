@@ -73,7 +73,16 @@ function Register({ navigation }: RootScreenProps<Paths.Register>) {
             err.response
               .json()
               .then((data: any) => {
-                const apiMsg = data?.message || data?.errors?.email || data?.errors?.username;
+                let apiMsg = data?.message;
+                if (data?.errors?.email === 'emailAlreadyExists') {
+                  apiMsg = 'Email này đã được đăng ký. Vui lòng sử dụng email khác hoặc chuyển sang Đăng nhập.';
+                } else if (data?.errors?.username === 'usernameAlreadyExists') {
+                  apiMsg = 'Tên người dùng này đã tồn tại. Vui lòng chọn tên khác.';
+                } else if (data?.errors?.email) {
+                  apiMsg = data.errors.email;
+                } else if (data?.errors?.username) {
+                  apiMsg = data.errors.username;
+                }
                 Alert.alert('Đăng ký thất bại', apiMsg || defaultMsg);
               })
               .catch(() => {

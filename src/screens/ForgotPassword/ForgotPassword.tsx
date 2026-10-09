@@ -13,28 +13,42 @@ const ForgotPassword = ({ navigation }: RootScreenProps<Paths.ForgotPassword>) =
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleSendOtp = async () => {
-    if (!email) {
+  const handleSendLink = async () => {
+    const trimmedEmail = email.trim();
+    if (!trimmedEmail) {
       Alert.alert('Lỗi', 'Vui lòng nhập email');
       return;
     }
 
     try {
       setIsLoading(true);
-      const data = await instance.post('auth/forgot/password', {
-        json: { email }
-      }).json<{ hash: string }>();
+      await instance.post('auth/forgot/password', {
+        json: { email: trimmedEmail }
+      });
       
-      // data contains { hash: string }
-      navigation.navigate(Paths.ResetPassword, { hash: data.hash, email });
+      Alert.alert(
+        'Đã gửi liên kết',
+        `Liên kết đặt lại mật khẩu đã được gửi đến email ${trimmedEmail}.\n\nVui lòng kiểm tra hộp thư và nhấn vào liên kết để chuyển về màn hình đổi mật khẩu!`,
+        [
+          {
+            text: 'Về trang đăng nhập',
+            onPress: () => navigation.navigate(Paths.Login),
+          },
+          {
+            text: 'Ở lại',
+            style: 'cancel',
+          },
+        ]
+      );
     } catch (e: any) {
-      // Ky error parsing
-      let errorMessage = e.message;
+      let errorMessage = 'Không thể gửi yêu cầu đặt lại mật khẩu. Vui lòng thử lại sau.';
       if (e.response) {
         try {
           const errData = await e.response.json();
-          errorMessage = errData.message || errorMessage;
+          errorMessage = errData.message || (errData.errors?.email ? 'Email không tồn tại trong hệ thống.' : errorMessage);
         } catch (_) {}
+      } else if (e.message) {
+        errorMessage = e.message;
       }
       Alert.alert('Lỗi', errorMessage);
     } finally {
@@ -55,7 +69,7 @@ const ForgotPassword = ({ navigation }: RootScreenProps<Paths.ForgotPassword>) =
               Quên mật khẩu?
             </Text>
             <Text style={{ fontSize: 14, color: '#6B7280', lineHeight: 20 }}>
-              Đừng lo lắng! Vui lòng nhập địa chỉ email liên kết với tài khoản của bạn để nhận mã khôi phục.
+              Đừng lo lắng! Vui lòng nhập địa chỉ email liên kết với tài khoản của bạn để nhận liên kết đổi mật khẩu.
             </Text>
           </View>
 
@@ -73,8 +87,8 @@ const ForgotPassword = ({ navigation }: RootScreenProps<Paths.ForgotPassword>) =
           <Button
             fullWidth
             loading={isLoading}
-            onPress={handleSendOtp}
-            title="Gửi mã xác nhận"
+            onPress={handleSendLink}
+            title="Gửi liên kết đổi mật khẩu"
             variant="primary"
           />
 

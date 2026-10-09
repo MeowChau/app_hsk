@@ -66,3 +66,36 @@ export const isAuthenticated = (): boolean => {
   const token = getToken();
   return Boolean(token && token.length > 0);
 };
+
+export const APP_STORAGE_KEYS = {
+  HAS_COMPLETED_SURVEY: 'app.has_completed_survey',
+  SURVEY_DATA: 'app.survey_data',
+} as const;
+
+export interface SurveyData {
+  currentLevel: string;
+  targetLevel: string;
+  dailyTime: string;
+}
+
+export const hasCompletedSurvey = (): boolean => {
+  return authStorage.getBoolean(APP_STORAGE_KEYS.HAS_COMPLETED_SURVEY) ?? false;
+};
+
+export const setCompletedSurvey = (completed: boolean = true): void => {
+  authStorage.set(APP_STORAGE_KEYS.HAS_COMPLETED_SURVEY, completed);
+};
+
+export const saveSurveyData = (data: SurveyData): void => {
+  authStorage.set(APP_STORAGE_KEYS.SURVEY_DATA, JSON.stringify(data));
+};
+
+export const getSurveyData = (): SurveyData | null => {
+  const raw = authStorage.getString(APP_STORAGE_KEYS.SURVEY_DATA);
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw) as SurveyData;
+  } catch {
+    return null;
+  }
+};

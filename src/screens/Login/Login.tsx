@@ -47,7 +47,10 @@ function Login({ navigation }: RootScreenProps<Paths.Login>) {
             err.response
               .json()
               .then((data: any) => {
-                const apiMsg = data?.message || data?.errors?.email || data?.errors?.password;
+                let apiMsg = data?.message || data?.errors?.email || data?.errors?.password;
+                if (data?.errors?.status === 'accountPendingApproval' || data?.errors?.status === 'accountNotActive') {
+                  apiMsg = data?.message || 'Tài khoản của bạn đang chờ duyệt từ phía admin. Vui lòng quay lại sau khi tài khoản được duyệt.';
+                }
                 Alert.alert('Đăng nhập thất bại', apiMsg || defaultMsg);
               })
               .catch(() => {

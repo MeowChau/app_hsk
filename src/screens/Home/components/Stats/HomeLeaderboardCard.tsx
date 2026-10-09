@@ -64,8 +64,15 @@ export const HomeLeaderboardCard = ({
           {isLoading ? (
             <ActivityIndicator color="#1E3A8A" style={{ marginVertical: vs(20) }} />
           ) : (
-            data?.rankings.map((r, index) => (
-              <View key={r.userId} style={[layout.row, layout.itemsCenter, layout.justifyBetween]}>
+            (data?.rankings || (data as any)?.leaderboard?.map((item: any, idx: number) => ({
+              userId: item.id || idx + 1,
+              userName: item.fullName || item.userName || 'Học viên',
+              avatar: item.photo?.path || item.avatar || null,
+              currentStreak: item.currentStreak ?? 0,
+              hskLevel: item.currentHskLevel || item.level || 1,
+              rank: idx + 1,
+            })) || []).map((r: any, index: number) => (
+              <View key={r.userId || index} style={[layout.row, layout.itemsCenter, layout.justifyBetween]}>
                 <View style={[layout.row, layout.itemsCenter]}>
                   <View
                     style={{
@@ -77,7 +84,7 @@ export const HomeLeaderboardCard = ({
                       width: hs(24),
                     }}
                   >
-                    <Text style={{ color: '#FFFFFF', fontSize: ms(11), fontWeight: '800' }}>{r.rank}</Text>
+                    <Text style={{ color: '#FFFFFF', fontSize: ms(11), fontWeight: '800' }}>{r.rank || index + 1}</Text>
                   </View>
                   <View
                     style={{
@@ -98,7 +105,7 @@ export const HomeLeaderboardCard = ({
                   </View>
                 </View>
                 <Text style={{ color: '#4B5563', fontSize: ms(14), fontWeight: '700' }}>
-                  {r.currentStreak} ngày
+                  {r.currentStreak ?? 0} ngày
                 </Text>
               </View>
             ))
@@ -136,7 +143,7 @@ export const HomeLeaderboardCard = ({
               <UserAvatar size={ms(32)} style={{ marginRight: hs(10) }} />
               <View>
                 <Text style={{ color: '#111827', fontSize: ms(16), fontWeight: '700' }}>
-                  {profile?.fullName || 'Bạn'} <Text style={{ color: '#E53935' }}>(Bạn)</Text>
+                  {profile?.fullName || profile?.username || 'Bạn'} <Text style={{ color: '#E53935' }}>(Bạn)</Text>
                 </Text>
                 <Text style={{ color: '#9E9E9E', fontSize: ms(12), marginTop: vs(1) }}>
                   Level {profile?.currentHskLevel || userLevel}

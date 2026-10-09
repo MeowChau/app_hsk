@@ -7,12 +7,6 @@ import { Platform } from 'react-native';
  * - iOS Simulator / Web: localhost points to host machine
  * - Physical Device: can configure your LAN IP (e.g. 172.16.9.0)
  */
-const getDefaultHost = (): string => {
-  if (Platform.OS === 'android') {
-    return 'http://192.168.1.8:3001';
-  }
-  return 'http://192.168.1.8:3001';
-};
 
 const resolveApiBaseUrl = (): string => {
   const envUrl = process.env.API_URL;
@@ -20,12 +14,13 @@ const resolveApiBaseUrl = (): string => {
     envUrl &&
     envUrl.trim().length > 0 &&
     !envUrl.includes('jsonplaceholder') &&
-    !envUrl.includes('10.0.2.2')
+    !envUrl.includes('10.0.2.2') &&
+    !envUrl.includes('192.168.1.8')
   ) {
     // Ensure no trailing slash for consistency
     return envUrl.trim().replace(/\/+$/, '');
   }
-  return 'http://192.168.1.8:3001/api/v1';
+  return 'http://192.168.1.7:3001/api/v1';
 };
 
 export const API_BASE_URL = resolveApiBaseUrl();

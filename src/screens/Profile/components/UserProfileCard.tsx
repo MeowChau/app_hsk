@@ -8,9 +8,17 @@ interface UserProfileCardProps {
   displayName: string;
   setDisplayName: (name: string) => void;
   email: string;
+  onSave?: () => void;
+  isSaving?: boolean;
 }
 
-export function UserProfileCard({ displayName, setDisplayName, email }: UserProfileCardProps) {
+export function UserProfileCard({
+  displayName,
+  setDisplayName,
+  email,
+  onSave,
+  isSaving = false,
+}: UserProfileCardProps) {
   const { layout } = useTheme();
 
   return (
@@ -178,17 +186,20 @@ export function UserProfileCard({ displayName, setDisplayName, email }: UserProf
         {/* Save Changes Button */}
         <TouchableOpacity
           activeOpacity={0.8}
+          disabled={isSaving}
+          onPress={onSave}
           style={{
             alignItems: 'center',
-            backgroundColor: '#64748B',
+            backgroundColor: '#1E3A8A',
             borderRadius: ms(8),
             justifyContent: 'center',
             paddingHorizontal: hs(18),
             paddingVertical: vs(10),
+            opacity: isSaving ? 0.7 : 1,
           }}
         >
           <Text style={{ color: '#FFFFFF', fontSize: ms(14), fontWeight: '700' }}>
-            Lưu thay đổi
+            {isSaving ? 'Đang lưu...' : 'Lưu thay đổi'}
           </Text>
         </TouchableOpacity>
 

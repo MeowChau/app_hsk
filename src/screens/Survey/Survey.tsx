@@ -1,10 +1,11 @@
 import type { RootScreenProps } from '@/navigation/types';
 import React, { useState } from 'react';
-import { View, SafeAreaView } from 'react-native';
+import { View, Text, TouchableOpacity, SafeAreaView } from 'react-native';
 
 import { Paths } from '@/navigation/paths';
-import { useTheme, hs, vs } from '@/theme';
+import { useTheme, hs, vs, ms } from '@/theme';
 import { Logo } from '@/components/atoms';
+import { isAuthenticated, saveSurveyData, setCompletedSurvey } from '@/services/storage';
 
 import { SurveyPaginator } from './components/SurveyPaginator';
 import { SurveyStep1 } from './components/SurveyStep1';
@@ -20,26 +21,75 @@ export default function Survey({ navigation }: RootScreenProps<Paths.Survey>) {
     dailyTime: '',
   });
 
-  const handleNext = (key: keyof typeof answers, value: string) => {
-    setAnswers((prev) => ({ ...prev, [key]: value }));
-    
-    if (step < 3) {
-      setStep(step + 1);
-    } else {
-      // Hoàn thành survey -> Điều hướng vào màn hình chính
+  const finishSurvey = (finalAnswers: typeof answers) => {
+    setCompletedSurvey(true);
+    saveSurveyData(finalAnswers);
+
+    if (isAuthenticated()) {
       navigation.reset({
         index: 0,
         routes: [{ name: Paths.MainTabs }],
       });
+    } else {
+      navigation.reset({
+        index: 0,
+        routes: [{ name: Paths.Onboarding }],
+      });
     }
+  };
+
+  const handleNext = (key: keyof typeof answers, value: string) => {
+    const nextAnswers = { ...answers, [key]: value };
+    setAnswers(nextAnswers);
+    
+    if (step < 3) {
+      setStep(step + 1);
+    } else {
+      finishSurvey(nextAnswers);
+    }
+  };
+
+  const handleSkip = () => {
+    finishSurvey(answers);
   };
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
       <View style={[layout.flex_1, { paddingVertical: vs(20) }]}>
         {/* Header */}
-        <View style={{ paddingHorizontal: hs(24), marginBottom: vs(20) }}>
+        <View
+          style={[
+            layout.row,
+            layout.justifyBetween,
+            layout.itemsCenter,
+            { paddingHorizontal: hs(24), marginBottom: vs(20) },
+          ]}
+        >
           <Logo variant="primary" />
+
+          <View style={[layout.row, layout.itemsCenter, { columnGap: hs(12) }]}>
+            {step > 1 && (
+              <TouchableOpacity
+                activeOpacity={0.7}
+                onPress={() => setStep((s) => Math.max(1, s - 1))}
+                style={{ paddingHorizontal: hs(8), paddingVertical: vs(4) }}
+              >
+                <Text style={{ color: '#6B7280', fontSize: ms(14), fontWeight: '600' }}>
+                  Quay lại
+                </Text>
+              </TouchableOpacity>
+            )}
+
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={handleSkip}
+              style={{ paddingHorizontal: hs(8), paddingVertical: vs(4) }}
+            >
+              <Text style={{ color: '#0E84F2', fontSize: ms(14), fontWeight: '600' }}>
+                Bỏ qua
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Content Area */}

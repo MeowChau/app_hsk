@@ -25,6 +25,15 @@
         <action android:name="android.intent.action.MAIN" />
         <category android:name="android.intent.category.LAUNCHER" />
       </intent-filter>
+      <intent-filter>
+        <action android:name="android.intent.action.VIEW" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <category android:name="android.intent.category.BROWSABLE" />
+        <data android:scheme="tricehsk" android:host="reset-password" />
+        <data android:scheme="apphsk" android:host="reset-password" />
+        <data android:scheme="tricehsk" />
+        <data android:scheme="apphsk" />
+      </intent-filter>
     </activity>
   </application>
 </manifest>

@@ -234,7 +234,7 @@ export function GameContent({ navigation, route, targetView: propTargetView }: a
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <UserAvatar size={ms(32)} backgroundColor="#3730A3" style={{ marginRight: hs(10) }} />
               <View>
-                <Text style={{ color: '#111827', fontSize: ms(16), fontWeight: '800' }}>{profile?.fullName || 'Người chơi'} <Text style={{ color: '#E53935' }}>(Bạn)</Text></Text>
+                <Text style={{ color: '#111827', fontSize: ms(16), fontWeight: '800' }}>{profile?.fullName || profile?.username || 'Người chơi'} <Text style={{ color: '#E53935' }}>(Bạn)</Text></Text>
                 <Text style={{ color: '#9E9E9E', fontSize: ms(14), marginTop: vs(1), fontWeight: '500' }}>Level {profile?.currentHskLevel || 1 + Math.floor(userTotalXp / 200)}</Text>
               </View>
             </View>

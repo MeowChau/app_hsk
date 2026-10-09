@@ -68,7 +68,7 @@ export function HomeContent({ onSwitchTab, onNavigateToProfile }: HomeContentPro
           >
             <UserAvatar size={ms(22)} style={{ marginRight: hs(6) }} />
             <Text style={{ color: '#212121', fontSize: ms(14), fontWeight: '600' }}>
-              {profile?.fullName || 'Người dùng'}
+              {profile?.fullName || profile?.username || 'Người dùng'}
             </Text>
           </TouchableOpacity>
         </View>
@@ -106,7 +106,7 @@ export function HomeContent({ onSwitchTab, onNavigateToProfile }: HomeContentPro
 
       {/* ================= CÁC CARD CHÍNH ================= */}
       {/* Card 1: Tiến độ hàng ngày */}
-      <DailyProgressCard userName="Hoàng Văn Hùng" onStartLearning={() => onSwitchTab('learn')} />
+      <DailyProgressCard userName={profile?.fullName || profile?.username || 'Bạn'} onStartLearning={() => onSwitchTab('learn')} />
 
       {/* Card 2: Tiếp tục học */}
       <ContinueLearningCard onContinue={() => onSwitchTab('learn')} />

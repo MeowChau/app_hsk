@@ -13,6 +13,7 @@ import { ProfileContent } from '@/screens/Profile/Profile';
 import type { RootTabParamList } from '@/navigation/types';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { View } from 'react-native';
+import { SafeScreen } from '@/components/templates';
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
 
@@ -56,7 +57,7 @@ export function BottomTabNavigator() {
       <Tab.Screen 
         name={Paths.Home} 
         children={(props) => (
-          <View style={{ flex: 1, backgroundColor: '#FFF' }}>
+          <SafeScreen style={{ backgroundColor: '#FFF' }}>
             <HomeContent 
               onSwitchTab={(tab, params) => {
                 let targetRoute: Paths = Paths.Home;
@@ -68,7 +69,7 @@ export function BottomTabNavigator() {
               }}
               onNavigateToProfile={() => props.navigation.navigate(Paths.Profile)} 
             />
-          </View>
+          </SafeScreen>
         )}
       />
       <Tab.Screen name={Paths.Learn} component={EducationContent} />

@@ -21,7 +21,7 @@ export const GameMatchingView = ({
 }: GameMatchingViewProps) => {
   const { data: profile } = useProfile();
   const [isMatched, setIsMatched] = React.useState(false);
-  const userName = profile?.fullName || 'Người chơi';
+  const userName = profile?.fullName || profile?.username || 'Người chơi';
 
   // Demo: Sau 3s là tìm thấy đối thủ thành công
   React.useEffect(() => {

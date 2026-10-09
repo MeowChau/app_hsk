@@ -26,12 +26,22 @@ const instantTransitionSpec = {
   },
 };
 
+const linking = {
+  prefixes: ['tricehsk://', 'apphsk://'],
+  config: {
+    screens: {
+      [Paths.ResetPassword]: 'reset-password',
+      [Paths.Login]: 'login',
+    },
+  },
+};
+
 function ApplicationNavigator() {
   const { navigationTheme } = useTheme();
 
   return (
     <SafeAreaProvider>
-      <NavigationContainer theme={navigationTheme}>
+      <NavigationContainer linking={linking} theme={navigationTheme}>
         <Stack.Navigator
           detachInactiveScreens={false}
           initialRouteName={Paths.Startup} //

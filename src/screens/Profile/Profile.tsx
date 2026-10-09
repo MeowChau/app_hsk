@@ -2,6 +2,7 @@ import type { RootScreenProps } from '@/navigation/types';
 
 import React, { useState } from 'react';
 import {
+  Alert,
   ScrollView,
   Text,
   TouchableOpacity,
@@ -17,12 +18,16 @@ import { SafeScreen } from '@/components/templates';
 import { Paths } from '@/navigation/paths';
 import { useTheme, hs, vs, ms } from '@/theme';
 
-import { useProfile } from '@/services/auth/useAuth';
+import { useLogout, useProfile, useUpdateProfile } from '@/services/auth/useAuth';
 
 export function ProfileContent({ onLogout }: { onLogout?: () => void }) {
   const { data: profile } = useProfile();
+  const updateProfileMutation = useUpdateProfile();
+  const logoutMutation = useLogout();
   
-  const [displayName, setDisplayName] = useState(profile?.fullName || 'Người dùng');
+  const [displayName, setDisplayName] = useState(
+    profile?.fullName || profile?.username || 'Người dùng',
+  );
   const [email] = useState(profile?.email || 'email@example.com');
   const [currentHskLevel, setCurrentHskLevel] = useState(profile?.currentHskLevel || 1);
   const [showPinyin, setShowPinyin] = useState(true);
@@ -31,109 +36,138 @@ export function ProfileContent({ onLogout }: { onLogout?: () => void }) {
   // Sync state when profile data loads
   React.useEffect(() => {
     if (profile) {
-      setDisplayName(profile.fullName || 'Người dùng');
+      setDisplayName(profile.fullName || profile.username || 'Người dùng');
       setCurrentHskLevel(profile.currentHskLevel || 1);
     }
   }, [profile]);
+
+  const handleSaveProfile = () => {
+    const trimmed = displayName.trim();
+    if (!trimmed) {
+      Alert.alert('Lỗi', 'Tên hiển thị không được để trống');
+      return;
+    }
+    updateProfileMutation.mutate(
+      { fullName: trimmed, username: trimmed },
+      {
+        onSuccess: () => {
+          Alert.alert('Thành công', 'Đã cập nhật thông tin tài khoản!');
+        },
+        onError: () => {
+          Alert.alert('Lỗi', 'Không thể lưu thay đổi. Vui lòng thử lại sau.');
+        },
+      },
+    );
+  };
+
+  const handleLogout = () => {
+    logoutMutation.mutate(undefined, {
+      onSettled: () => {
+        onLogout?.();
+      },
+    });
+  };
 
   return (
     <ScrollView
       contentContainerStyle={{ paddingBottom: vs(24) }}
       showsVerticalScrollIndicator={false}
     >
-          {/* ================= HEADER ================= */}
-          <View style={{ paddingHorizontal: hs(16), paddingTop: vs(16), paddingBottom: vs(16) }}>
-            {/* Title */}
-            <Text
-              style={{
-                color: '#000000',
-                fontSize: ms(28),
-                fontWeight: '800',
-                marginBottom: vs(4),
-              }}
-            >
-              Tài khoản người dùng
-            </Text>
+      {/* ================= HEADER ================= */}
+      <View style={{ paddingHorizontal: hs(16), paddingTop: vs(16), paddingBottom: vs(16) }}>
+        {/* Title */}
+        <Text
+          style={{
+            color: '#000000',
+            fontSize: ms(28),
+            fontWeight: '800',
+            marginBottom: vs(4),
+          }}
+        >
+          Tài khoản người dùng
+        </Text>
 
-            {/* Subtitle */}
-            <Text
-              style={{
-                color: '#000000',
-                fontSize: ms(16),
-                lineHeight: ms(18),
-              }}
-            >
-              Thông tin tài khoản, cài đặt & cập nhật thông tin
-            </Text>
-          </View>
+        {/* Subtitle */}
+        <Text
+          style={{
+            color: '#000000',
+            fontSize: ms(16),
+            lineHeight: ms(18),
+          }}
+        >
+          Thông tin tài khoản, cài đặt & cập nhật thông tin
+        </Text>
+      </View>
 
-          {/* ================= CARD 1: HỒ SƠ ================= */}
-          <View style={{ paddingHorizontal: hs(16), marginBottom: vs(16) }}>
-            <UserProfileCard
-              displayName={displayName}
-              email={email}
-              setDisplayName={setDisplayName}
+      {/* ================= CARD 1: HỒ SƠ ================= */}
+      <View style={{ paddingHorizontal: hs(16), marginBottom: vs(16) }}>
+        <UserProfileCard
+          displayName={displayName}
+          email={email}
+          isSaving={updateProfileMutation.isPending}
+          onSave={handleSaveProfile}
+          setDisplayName={setDisplayName}
+        />
+      </View>
+
+      {/* ================= CARD 1.5: TRÌNH ĐỘ HSK ================= */}
+      <View style={{ paddingHorizontal: hs(16), marginBottom: vs(16) }}>
+        <HskLevelSettingsCard 
+          currentLevel={currentHskLevel}
+          onLevelChange={setCurrentHskLevel}
+        />
+      </View>
+
+      {/* ================= CARD 2: HIỂN THỊ KHI HỌC ================= */}
+      <View style={{ paddingHorizontal: hs(16), marginBottom: vs(16) }}>
+        <DisplaySettingsCard
+          setShowPinyin={setShowPinyin}
+          showPinyin={showPinyin}
+        />
+      </View>
+
+      {/* ================= CARD 3: QUYỀN RIÊNG TƯ ================= */}
+      <View style={{ paddingHorizontal: hs(16), marginBottom: vs(20) }}>
+        <PrivacySettingsCard
+          anonymousActivity={anonymousActivity}
+          setAnonymousActivity={setAnonymousActivity}
+        />
+      </View>
+
+      {/* ================= LOGOUT ACTION BUTTON ================= */}
+      <View style={{ alignItems: 'center', marginBottom: vs(16) }}>
+        <TouchableOpacity
+          activeOpacity={0.8}
+          delayPressIn={0}
+          onPress={handleLogout}
+          style={{
+            alignItems: 'center',
+            backgroundColor: '#0E84F2',
+            borderRadius: ms(24),
+            flexDirection: 'row',
+            justifyContent: 'center',
+            paddingHorizontal: hs(28),
+            paddingVertical: vs(12),
+          }}
+        >
+          <Svg height="18" style={{ marginRight: hs(8) }} viewBox="0 0 24 24" width="18">
+            <Path
+              d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"
+              fill="#FFFFFF"
             />
-          </View>
-
-          {/* ================= CARD 1.5: TRÌNH ĐỘ HSK ================= */}
-          <View style={{ paddingHorizontal: hs(16), marginBottom: vs(16) }}>
-            <HskLevelSettingsCard 
-              currentLevel={currentHskLevel}
-              onLevelChange={setCurrentHskLevel}
-            />
-          </View>
-
-          {/* ================= CARD 2: HIỂN THỊ KHI HỌC ================= */}
-          <View style={{ paddingHorizontal: hs(16), marginBottom: vs(16) }}>
-            <DisplaySettingsCard
-              setShowPinyin={setShowPinyin}
-              showPinyin={showPinyin}
-            />
-          </View>
-
-          {/* ================= CARD 3: QUYỀN RIÊNG TƯ ================= */}
-          <View style={{ paddingHorizontal: hs(16), marginBottom: vs(20) }}>
-            <PrivacySettingsCard
-              anonymousActivity={anonymousActivity}
-              setAnonymousActivity={setAnonymousActivity}
-            />
-          </View>
-
-          {/* ================= LOGOUT ACTION BUTTON ================= */}
-          <View style={{ alignItems: 'center', marginBottom: vs(16) }}>
-            <TouchableOpacity
-              activeOpacity={0.8}
-              delayPressIn={0}
-              onPress={onLogout}
-              style={{
-                alignItems: 'center',
-                backgroundColor: '#0E84F2',
-                borderRadius: ms(24),
-                flexDirection: 'row',
-                justifyContent: 'center',
-                paddingHorizontal: hs(28),
-                paddingVertical: vs(12),
-              }}
-            >
-              <Svg height="18" style={{ marginRight: hs(8) }} viewBox="0 0 24 24" width="18">
-                <Path
-                  d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"
-                  fill="#FFFFFF"
-                />
-              </Svg>
-              <Text
-                style={{
-                  color: '#FFFFFF',
-                  fontSize: ms(14),
-                  fontWeight: '700',
-                }}
-              >
-                Đăng xuất
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </ScrollView>
+          </Svg>
+          <Text
+            style={{
+              color: '#FFFFFF',
+              fontSize: ms(14),
+              fontWeight: '700',
+            }}
+          >
+            Đăng xuất
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </ScrollView>
   );
 }
 
