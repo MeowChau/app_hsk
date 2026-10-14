@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, SafeAreaView, useWindowDimensions } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { useIsFocused } from '@react-navigation/native';
+import { Alert, View, Text, TouchableOpacity, ScrollView, SafeAreaView, useWindowDimensions } from 'react-native';
 import Svg, { Path, Circle } from 'react-native-svg';
 import { UserAvatar } from '@/components/atoms';
 import { hs, vs, ms } from '@/theme';
@@ -9,6 +10,8 @@ import { GameMatchingView } from './Matching';
 import { GameBattleView, type MatchResultData } from './Battle';
 import { useProfile } from '@/services/auth/useAuth';
 import { useStreakLeaderboard } from '@/services/leaderboard';
+import { usePkGame } from '@/services/game/usePkGame';
+import { useCheckIn } from '@/services/analytics';
 
 interface MatchHistoryItem {
   id: string;
@@ -18,11 +21,15 @@ interface MatchHistoryItem {
   totalQuestions: number;
   score: number;
   isWin: boolean;
+  isDraw?: boolean;
   xpEarned: number;
 }
 
 export function GameContent({ navigation, route, targetView: propTargetView }: any) {
   const { height: screenHeight } = useWindowDimensions();
+  const checkInMutation = useCheckIn();
+  const isFocused = useIsFocused();
+  const [matchAttempt, setMatchAttempt] = useState(0);
 
   // Lấy targetView và timestamp từ route params hoặc props
   const currentTargetView = route?.params?.targetView || propTargetView;
@@ -36,10 +43,10 @@ export function GameContent({ navigation, route, targetView: propTargetView }: a
 
   // Quản lý Lịch sử thi đấu và Điểm kinh nghiệm (XP) tích lũy
   const [matchHistory, setMatchHistory] = useState<MatchHistoryItem[]>([]);
-  const [userTotalXp, setUserTotalXp] = useState<number>(0);
 
   // Đồng bộ viewState ngay lập tức trong render cycle khi params thay đổi (không bị delay/flicker sang màn main)
   const { data: profile } = useProfile();
+  const userTotalXp = profile?.currentExp || 0;
   const { data: leaderboardData } = useStreakLeaderboard();
   const gameLeaderboardList = leaderboardData?.leaderboard || [];
   let viewState = internalViewState;
@@ -58,41 +65,45 @@ export function GameContent({ navigation, route, targetView: propTargetView }: a
     }
   };
 
-  // Cập nhật Lịch sử thi đấu và BXH khi hoàn thành trận PK trở về sảnh
-  const handleBattleExit = (result?: MatchResultData) => {
-    if (result) {
-      const newItem: MatchHistoryItem = {
-        id: Date.now().toString(),
-        matchIndex: matchHistory.length + 1,
-        opponentName: result.opponentName || 'Hạ Ngân',
-        correctCount: result.correctCount,
-        totalQuestions: result.totalQuestions,
-        score: result.myScore,
-        isWin: result.isWin,
-        xpEarned: result.xpEarned,
-      };
-      setMatchHistory((prev) => [newItem, ...prev]);
-      setUserTotalXp((prev) => prev + result.xpEarned);
+  const pk = usePkGame(isFocused && (viewState === 'matching' || viewState === 'battle'), profile?.id, profile?.currentHskLevel || 1, matchAttempt);
+  useEffect(() => {
+    if (!isFocused && (viewState === 'matching' || viewState === 'battle')) setViewState('main');
+  }, [isFocused, viewState]);
+  const handleSearch = () => { setMatchAttempt(value => value + 1); setViewState('matching'); };
+
+  const handleBattleComplete = async (result: MatchResultData, durationInSeconds: number) => {
+    const outcomes = await Promise.allSettled([
+      ...(durationInSeconds > 0 ? [checkInMutation.mutateAsync({ durationInSeconds, module: 'game_battle' })] : []),
+    ]);
+    if (outcomes.some(outcome => outcome.status === 'rejected')) {
+      Alert.alert('Chưa lưu thời gian học', 'Vui lòng kiểm tra kết nối và thử lại sau.');
     }
-    setViewState('main');
+    setMatchHistory(previous => [{ id: pk.state.match?.roomId || Date.now().toString(), matchIndex: previous.length + 1, opponentName: result.opponentName, correctCount: result.correctCount, totalQuestions: result.totalQuestions, score: result.myScore, isWin: result.isWin, isDraw: result.isDraw, xpEarned: 0 }, ...previous]);
   };
 
+  // Cập nhật Lịch sử thi đấu và BXH khi hoàn thành trận PK trở về sảnh
+  const handleBattleExit = () => { setViewState('main'); };
+
   // Màn hình Tìm đối thủ (Matching)
-  if (viewState === 'matching') {
+  if ((viewState === 'matching' || viewState === 'battle') && pk.state.phase !== 'playing' && pk.state.phase !== 'finished') {
     return (
       <GameMatchingView
         onCancel={() => setViewState('main')}
-        onMatchSuccess={() => setViewState('battle')}
+        state={pk.state}
+        onReady={pk.ready}
       />
     );
   }
 
   // Màn hình Thi đấu PK (Battle)
-  if (viewState === 'battle') {
+  if ((viewState === 'matching' || viewState === 'battle') && (pk.state.phase === 'playing' || pk.state.phase === 'finished')) {
     return (
       <GameBattleView
         onExit={handleBattleExit}
-        opponentName="Hạ Ngân"
+        onComplete={handleBattleComplete}
+        state={pk.state}
+        onAnswer={pk.answer}
+        onPlayAgain={handleSearch}
       />
     );
   }
@@ -132,9 +143,9 @@ export function GameContent({ navigation, route, targetView: propTargetView }: a
                     <Path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z" fill="#9333EA" />
                   </Svg>
                 </View>
-                <Text style={{ fontSize: ms(16), fontWeight: '700', color: '#111827' }}>30 câu mỗi trận</Text>
+                <Text style={{ fontSize: ms(16), fontWeight: '700', color: '#111827' }}>Tối đa 10 câu mỗi trận</Text>
               </View>
-              <Text style={{ fontSize: ms(14), color: '#4B5563', lineHeight: ms(20) }}>Luân phiên từng câu, mỗi người trả lời 15 câu.</Text>
+              <Text style={{ fontSize: ms(14), color: '#4B5563', lineHeight: ms(20) }}>Hai người luân phiên trả lời bộ câu hỏi chung từ máy chủ.</Text>
             </View>
 
             {/* Rule 2 */}
@@ -171,9 +182,9 @@ export function GameContent({ navigation, route, targetView: propTargetView }: a
                     <Path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1.41 16.09V20h-2.67v-1.93c-1.71-.36-3.11-1.36-3.11-2.92v-1.46h2.67v1.25c0 .6.67 1.05 1.78 1.05 1.25 0 1.78-.4 1.78-.96 0-1.46-5.11-1.11-5.11-4.04 0-1.6 1.25-2.62 2.98-2.98V6h2.67v1.98c1.51.31 2.8 1.2 2.8 2.62v1.38h-2.67v-1.11c0-.49-.53-.89-1.51-.89-1.33 0-1.78.49-1.78.98 0 1.46 5.11 1.07 5.11 4.13 0 1.55-1.25 2.62-2.94 3z" fill="#E11D48" />
                   </Svg>
                 </View>
-                <Text style={{ fontSize: ms(16), fontWeight: '700', color: '#111827' }}>Thắng 60 xu</Text>
+                <Text style={{ fontSize: ms(16), fontWeight: '700', color: '#111827' }}>Kết quả từ máy chủ</Text>
               </View>
-              <Text style={{ fontSize: ms(14), color: '#4B5563', lineHeight: ms(20) }}>Hoà 25, thua 10 — chơi là có xu, không sợ mất trắng.</Text>
+              <Text style={{ fontSize: ms(14), color: '#4B5563', lineHeight: ms(20) }}>Điểm và kết quả thắng, hòa hoặc thua được máy chủ xác nhận sau trận.</Text>
             </View>
           </View>
 
@@ -242,7 +253,7 @@ export function GameContent({ navigation, route, targetView: propTargetView }: a
           {/* Current User Row */}
           <View style={{ alignItems: 'center', backgroundColor: '#FFF5F5', borderRadius: ms(999), flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: hs(16), paddingVertical: vs(12), marginTop: vs(24), alignSelf: 'center', width: '90%' }}>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <UserAvatar size={ms(32)} backgroundColor="#3730A3" style={{ marginRight: hs(10) }} />
+              <UserAvatar photoUrl={profile?.photo?.path} size={ms(32)} backgroundColor="#3730A3" style={{ marginRight: hs(10) }} />
               <View>
                 <Text style={{ color: '#111827', fontSize: ms(16), fontWeight: '800' }}>{profile?.fullName || profile?.username || 'Người chơi'} <Text style={{ color: '#E53935' }}>(Bạn)</Text></Text>
                 <Text style={{ color: '#9E9E9E', fontSize: ms(14), marginTop: vs(1), fontWeight: '500' }}>Level {profile?.currentHskLevel || 1 + Math.floor(userTotalXp / 200)}</Text>
@@ -267,7 +278,7 @@ export function GameContent({ navigation, route, targetView: propTargetView }: a
         </View>
 
         {/* Cụm Bắt đầu tìm người */}
-        <GameMatchCard onSearch={() => setViewState('matching')} />
+        <GameMatchCard onSearch={handleSearch} />
 
         {/* Nút Luật chơi */}
         <TouchableOpacity
@@ -359,7 +370,7 @@ export function GameContent({ navigation, route, targetView: propTargetView }: a
                       color: item.isWin ? '#059669' : '#DC2626',
                     }}
                   >
-                    {item.isWin ? 'Thắng (+100 XP)' : 'Thua (+30 XP)'}
+                    {item.isWin ? 'Thắng' : item.isDraw ? 'Hòa' : 'Thua'}
                   </Text>
                 </View>
 
@@ -410,10 +421,10 @@ export function GameContent({ navigation, route, targetView: propTargetView }: a
           }}
         >
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <UserAvatar size={ms(36)} backgroundColor="#3730A3" style={{ marginRight: hs(10) }} />
+            <UserAvatar photoUrl={profile?.photo?.path} size={ms(36)} backgroundColor="#3730A3" style={{ marginRight: hs(10) }} />
             <View>
               <Text style={{ color: '#111827', fontSize: ms(15), fontWeight: '800' }}>
-                Hoàng Văn Hùng <Text style={{ color: '#E53935' }}>(Bạn)</Text>
+                {profile?.fullName || profile?.username || 'Người chơi'} <Text style={{ color: '#E53935' }}>(Bạn)</Text>
               </Text>
               <Text style={{ color: '#9E9E9E', fontSize: ms(13), marginTop: vs(1), fontWeight: '500' }}>
                 Level {1 + Math.floor(userTotalXp / 200)}

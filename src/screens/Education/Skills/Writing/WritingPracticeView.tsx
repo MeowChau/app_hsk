@@ -1,3 +1,4 @@
+import { useStudyTimer } from '@/hooks/useStudyTimer';
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, SafeAreaView, TouchableOpacity, Alert } from 'react-native';
 import Svg, { Path, Rect } from 'react-native-svg';
@@ -27,24 +28,32 @@ export const WritingPracticeView = ({ hskLevel, topic, onBack, onSubmit }: Props
   const [isLoading, setIsLoading] = useState(true);
 
   React.useEffect(() => {
+    let cancelled = false;
     const fetchWords = async () => {
       try {
         setIsLoading(true);
-        const res = await vocabularyApi.getVocabularies({ hskLevel, topic, limit: 1000 });
-        const fetchedWords: WritingPracticeWord[] = res.data.map(v => ({
+        const vocabularies = await vocabularyApi.getAllForPractice({ hskLevel, topic });
+        if (cancelled) return;
+        const fetchedWords: WritingPracticeWord[] = vocabularies.map(v => ({
           id: v.id.toString(),
           character: v.hanzi,
           pinyin: v.pinyin,
           meaning: v.meaning,
         }));
         setWords(fetchedWords);
+        setCurrentIndex(0);
+        setStatuses({});
       } catch (err) {
-        console.warn('Failed to fetch words', err);
+        if (!cancelled) {
+          setWords([]);
+          Alert.alert('Không thể tải từ vựng', 'Vui lòng kiểm tra kết nối và mở lại bài luyện.');
+        }
       } finally {
-        setIsLoading(false);
+        if (!cancelled) setIsLoading(false);
       }
     };
     fetchWords();
+    return () => { cancelled = true; };
   }, [hskLevel, topic]);
 
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -55,6 +64,7 @@ export const WritingPracticeView = ({ hskLevel, topic, onBack, onSubmit }: Props
   const webViewRef = useRef<any>(null);
   const currentWord = words[currentIndex];
 
+  const studyTimer = useStudyTimer(!isLoading && words.length > 0);
   const totalCount = words.length;
   const answeredCount = Object.keys(statuses).filter(k => statuses[k] === 'done').length;
 
@@ -139,7 +149,7 @@ export const WritingPracticeView = ({ hskLevel, topic, onBack, onSubmit }: Props
 
       <script>
         var LOCAL_CHAR_DATA = ${JSON.stringify(PRELOADED_CHAR_DATA)};
-        var currentChar = "${currentWord.character}";
+        var currentChar = ${JSON.stringify(currentWord?.character ?? '')};
         var writer = null;
 
         function notifyRN(data) {
@@ -333,7 +343,7 @@ export const WritingPracticeView = ({ hskLevel, topic, onBack, onSubmit }: Props
 
   const handleConfirmSubmit = () => {
     setShowSubmitModal(false);
-    onSubmit({ totalCount, answeredCount, statuses, words });
+    onSubmit({ totalCount, answeredCount, statuses, words, durationInSeconds: studyTimer.takeSeconds() });
   };
 
   if (isLoading) {

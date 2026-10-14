@@ -18,6 +18,7 @@ import { SafeScreen } from '@/components/templates';
 
 import { Alert } from 'react-native';
 import { useLogin } from '@/services/auth';
+import { hasCompletedSurvey } from '@/services/storage';
 
 function Login({ navigation }: RootScreenProps<Paths.Login>) {
   const { colors, fonts, gutters, layout } = useTheme();
@@ -38,8 +39,15 @@ function Login({ navigation }: RootScreenProps<Paths.Login>) {
     loginMutation.mutate(
       { email: trimmedEmail, password: trimmedPassword },
       {
-        onSuccess: () => {
-          navigation.navigate(Paths.MainTabs);
+        onSuccess: ({ user }) => {
+          navigation.reset({
+            index: 0,
+            routes: [
+              {
+                name: hasCompletedSurvey(user.id) ? Paths.MainTabs : Paths.Survey,
+              },
+            ],
+          });
         },
         onError: (err: any) => {
           const defaultMsg = 'Đăng nhập không thành công. Vui lòng kiểm tra lại thông tin.';

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { useTheme, hs, vs, ms } from '@/theme';
@@ -21,8 +21,10 @@ export const StreakCard = ({
 }: StreakCardProps) => {
   const { layout } = useTheme();
   const { data: profile } = useProfile();
-  const { data: leaderboardData } = useStreakLeaderboard();
-  const { data: dashboardData } = useDashboardStats();
+  const { data: leaderboardData, isError: leaderboardError } = useStreakLeaderboard();
+  const { data: dashboardData, isError: dashboardError } = useDashboardStats();
+  const [checkedInDate, setCheckedInDate] = useState<string | null>(null);
+  const todayKey = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(new Date());
   const checkInMutation = useCheckIn();
 
   // Tìm thông tin của user hiện tại từ leaderboard và dashboard
@@ -42,7 +44,7 @@ export const StreakCard = ({
 
   // Kiểm tra xem hôm nay đã điểm danh / học chưa
   const isTodayStudied =
-    (dashboardData?.timeToday ?? 0) > 0 ||
+    checkedInDate === todayKey || (dashboardData?.timeToday ?? 0) > 0 ||
     currentUserItem?.streakStatus === 'active';
 
   // Tính toán 7 ngày trong tuần hiện tại (T2 -> CN)
@@ -76,6 +78,11 @@ export const StreakCard = ({
       return;
     }
 
+    if (checkInMutation.isPending) return;
+    if (!dashboardData || !leaderboardData || dashboardError || leaderboardError) {
+      Alert.alert('Chưa tải được thống kê', 'Vui lòng thử lại sau khi dữ liệu học tập được tải xong.');
+      return;
+    }
     if (isTodayStudied) {
       Alert.alert(
         'Đã điểm danh',
@@ -85,16 +92,31 @@ export const StreakCard = ({
     }
 
     checkInMutation.mutate(
-      { durationInSeconds: 60, module: 'daily_checkin' },
+      { durationInSeconds: 0, module: 'daily_checkin' },
       {
         onSuccess: () => {
+          setCheckedInDate(todayKey);
           Alert.alert(
             'Điểm danh thành công! 🎉',
-            'Chuỗi ngày học của bạn đã được duy trì và bạn được cộng +2 XP.',
+            'Đã ghi nhận điểm danh hôm nay.',
           );
         },
-        onError: () => {
-          Alert.alert('Lỗi', 'Không thể điểm danh lúc này, vui lòng thử lại sau.');
+        onError: async (err: any) => {
+          let message = 'Không thể điểm danh lúc này, vui lòng thử lại sau.';
+          if (err?.response) {
+            try {
+              const data = await err.response.json();
+              if (data?.message) {
+                message = data.message;
+              }
+            } catch (_) {}
+          } else if (err?.message) {
+            message = err.message;
+          }
+          if (message === 'Unauthorized' || err?.response?.status === 401) {
+            message = 'Phiên đăng nhập đã hết hạn. Vui lòng đăng xuất và đăng nhập lại.';
+          }
+          Alert.alert('Lỗi', message);
         },
       },
     );
@@ -215,7 +237,7 @@ export const StreakCard = ({
         {/* Daily Check-in Button */}
         <TouchableOpacity
           activeOpacity={0.8}
-          disabled={checkInMutation.isPending}
+          disabled={checkInMutation.isPending || !dashboardData || !leaderboardData}
           onPress={handleCheckIn}
           style={{
             alignItems: 'center',
@@ -254,7 +276,7 @@ export const StreakCard = ({
                   marginTop: vs(1),
                 }}
               >
-                {isTodayStudied ? 'Chuỗi ngày học đã duy trì' : 'Để chuỗi ngày học +2 XP'}
+                {isTodayStudied ? 'Chuỗi ngày học đã duy trì' : 'Điểm danh hôm nay'}
               </Text>
             </View>
           </View>

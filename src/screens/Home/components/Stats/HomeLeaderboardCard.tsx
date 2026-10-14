@@ -127,7 +127,7 @@ export const HomeLeaderboardCard = ({
                       overflow: 'hidden',
                     }}
                   >
-                    <UserAvatar size={ms(32)} />
+                    <UserAvatar photoUrl={r.photo?.path} size={ms(32)} />
                   </View>
 
                   {/* Tên & Level */}
@@ -185,7 +185,7 @@ export const HomeLeaderboardCard = ({
                 </Text>
               </View>
 
-              <UserAvatar size={ms(32)} style={{ marginRight: hs(10) }} />
+              <UserAvatar photoUrl={profile?.photo?.path} size={ms(32)} style={{ marginRight: hs(10) }} />
               <View>
                 <Text style={{ color: '#111827', fontSize: ms(15), fontWeight: '700' }}>
                   {profile?.fullName || profile?.username || 'Bạn'} <Text style={{ color: '#E53935' }}>(Bạn)</Text>

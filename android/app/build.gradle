@@ -72,6 +72,10 @@ def enableProguardInReleaseBuilds = false
  */
 def jscFlavor = 'io.github.react-native-community:jsc-android:2026004.+'
 
+def apiEnvFile = rootProject.file("../.env")
+def apiEnvLine = apiEnvFile.exists() ? apiEnvFile.readLines().find { it.startsWith("API_URL=") } : null
+def appApiUri = new URI(apiEnvLine ? apiEnvLine.substring(8).trim().replace('"', '').replace("'", '') : "http://10.0.2.2:3001/api/v1")
+
 android {
     ndkVersion rootProject.ext.ndkVersion
     buildToolsVersion rootProject.ext.buildToolsVersion
@@ -79,6 +83,7 @@ android {
 
     namespace "com.apphsk"
     defaultConfig {
+        manifestPlaceholders = [apiScheme: appApiUri.scheme, apiHost: appApiUri.host, apiPort: appApiUri.port >= 0 ? appApiUri.port.toString() : (appApiUri.scheme == "https" ? "443" : "80")]
         applicationId "com.apphsk"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion

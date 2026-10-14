@@ -1,3 +1,5 @@
+import { useAudioPlayback, audioTime } from '@/services/audio/AudioProvider';
+import { imageSource } from '@/services/media';
 import React, { memo } from 'react';
 import { View, Text, TouchableOpacity, Image } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
@@ -20,7 +22,9 @@ const AudioRow = ({ question, bookmarked, onToggleBookmark }: {
   question: ListeningPracticeQuestion;
   bookmarked?: boolean;
   onToggleBookmark: (id: string) => void;
-}) => (
+}) => {
+  const audio = useAudioPlayback(question.audioUrl);
+  return (
   <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: vs(12) }}>
     {/* Index badge - grey circle, left */}
     <View style={{ width: ms(30), height: ms(30), borderRadius: ms(15), backgroundColor: '#E5E7EB', justifyContent: 'center', alignItems: 'center', marginRight: hs(8) }}>
@@ -38,18 +42,18 @@ const AudioRow = ({ question, bookmarked, onToggleBookmark }: {
       </Svg>
 
       {/* Play button */}
-      <TouchableOpacity>
+      <TouchableOpacity onPress={audio.toggle}>
         <Svg height="12" viewBox="0 0 24 24" width="12">
-          <Path d="M5 3l14 9-14 9V3z" fill="#374151" />
+          <Path d={audio.playing ? "M5 3h5v18H5zM14 3h5v18h-5z" : "M5 3l14 9-14 9V3z"} fill="#374151" />
         </Svg>
       </TouchableOpacity>
 
       {/* Time */}
-      <Text style={{ fontSize: ms(13), color: '#9CA3AF' }}>0:00 / 0:00</Text>
+      <Text style={{ fontSize: ms(13), color: '#9CA3AF' }}>{audioTime(audio.position)} / {audioTime(audio.duration)}</Text>
 
       {/* Progress bar */}
       <View style={{ width: hs(60), height: vs(3), backgroundColor: '#D1D5DB', borderRadius: ms(2) }}>
-        <View style={{ width: '0%', height: '100%', backgroundColor: '#374151', borderRadius: ms(2) }} />
+        <View style={{ width: `${audio.progress}%`, height: '100%', backgroundColor: '#374151', borderRadius: ms(2) }} />
       </View>
 
       {/* Volume small */}
@@ -76,6 +80,7 @@ const AudioRow = ({ question, bookmarked, onToggleBookmark }: {
     </View>
   </View>
 );
+};
 
 // ============================================================
 // LOẠI 1: Nghe chọn ảnh (IMAGE_SELECT)
@@ -113,7 +118,7 @@ const ImageSelectOptions = ({ question, selectedOptionId, onSelectOption }: any)
           {/* Image fills card */}
           {opt.imageUrl ? (
             <Image
-              source={opt.imageUrl}
+              source={imageSource(opt.imageUrl)}
               style={{ width: '100%', height: vs(110) }}
               resizeMode="contain"
             />

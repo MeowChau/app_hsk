@@ -1,4 +1,5 @@
 import { instance } from '../instance';
+import { battleQuestions, type BattleQuestion } from './questions';
 import { OfflineGameWord, OfflineTopScore } from './types';
 
 export const gameApi = {
@@ -24,35 +25,9 @@ export const gameApi = {
       .json<OfflineTopScore>();
   },
 
-  getBattleQuestions: async (limit: number = 8): Promise<any[]> => {
-    const res = await instance
-      .get('vocabulary', {
-        searchParams: {
-          limit: limit * 4,
-        },
-      })
-      .json<any>();
-    
-    const words = res.data || [];
-    const questions: any[] = [];
-    
-    // Group words into chunks of 4 to create options
-    for (let i = 0; i < limit && i * 4 + 3 < words.length; i++) {
-      const chunk = words.slice(i * 4, i * 4 + 4);
-      const correctIdx = Math.floor(Math.random() * 4);
-      const correctWord = chunk[correctIdx];
-      
-      questions.push({
-        id: correctWord.id,
-        hanzi: correctWord.hanzi,
-        pinyin: correctWord.pinyin,
-        prompt: 'CHỌN NGHĨA ĐÚNG CỦA TỪ',
-        options: chunk.map((w: any) => w.meaning),
-        correctIndex: correctIdx,
-      });
-    }
-    
-    return questions;
+  getBattleQuestions: async (hskLevel: number, limit: number = 8): Promise<BattleQuestion[]> => {
+    const words = await gameApi.getOfflineWords(hskLevel, limit * 4);
+    return battleQuestions(words, limit);
   },
 
   getOfflineTopScores: async (): Promise<OfflineTopScore[]> => {

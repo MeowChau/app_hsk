@@ -12,6 +12,7 @@ export interface MatchResultData {
   xpEarned: number;
   opponentName: string;
   isWin: boolean;
+  isDraw?: boolean;
 }
 
 interface BattleResultViewProps {
@@ -23,20 +24,26 @@ interface BattleResultViewProps {
   coinReward?: number;
   onPlayAgain: () => void;
   onExit: (result?: MatchResultData) => void;
+  photoUrl?: string | null;
+  isSaving?: boolean;
+  outcome?: 'win' | 'draw' | 'loss';
 }
 
 export const BattleResultView = ({
   myScore,
   opponentScore,
-  opponentName = 'Hạ Ngân',
+  opponentName = 'Đối thủ',
   correctCount = 1,
   totalUserQuestions = 4,
   coinReward = 10,
   onPlayAgain,
   onExit,
+  photoUrl,
+  isSaving = false,
+  outcome,
 }: BattleResultViewProps) => {
-  const isWinner = myScore > opponentScore;
-  const isDraw = myScore === opponentScore;
+  const isWinner = outcome ? outcome === 'win' : myScore > opponentScore;
+  const isDraw = outcome ? outcome === 'draw' : myScore === opponentScore;
 
   const resultTitle = isWinner ? 'BẠN THẮNG' : isDraw ? 'HÒA TRẬN' : 'BẠN THUA';
 
@@ -147,7 +154,7 @@ export const BattleResultView = ({
             >
               {/* Bên Bạn */}
               <View style={{ alignItems: 'center', flex: 1 }}>
-                <UserAvatar size={ms(54)} backgroundColor="#3730A3" style={{ marginBottom: vs(8), borderWidth: 2, borderColor: '#818CF8' }} />
+                <UserAvatar photoUrl={photoUrl} size={ms(54)} backgroundColor="#3730A3" style={{ marginBottom: vs(8), borderWidth: 2, borderColor: '#818CF8' }} />
                 <Text
                   style={{
                     color: '#9CA3AF',
@@ -354,7 +361,8 @@ export const BattleResultView = ({
           {/* Nút 1: ĐẤU VÁN NỮA (Tím gradient/vibrant) */}
           <TouchableOpacity
             activeOpacity={0.8}
-            onPress={onPlayAgain}
+            disabled={isSaving}
+              onPress={onPlayAgain}
             style={{
               width: '100%',
               borderRadius: ms(999),
@@ -385,7 +393,8 @@ export const BattleResultView = ({
           {/* Nút 2: VỀ SẢNH TRÒ CHƠI (Tối viền xám) */}
           <TouchableOpacity
             activeOpacity={0.7}
-            onPress={() => {
+            disabled={isSaving}
+              onPress={() => {
               const xp = isWinner ? 100 : isDraw ? 50 : 30;
               onExit({
                 myScore,

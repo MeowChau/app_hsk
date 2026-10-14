@@ -6,12 +6,13 @@ import { Button, Logo } from '@/components/atoms';
 import { useTheme } from '@/theme';
 import type { RootScreenProps } from '@/navigation/types';
 import { Paths } from '@/navigation/paths';
-import { instance } from '@/services/instance';
+import { useForgotPassword } from '@/services/auth/useAuth';
 
 const ForgotPassword = ({ navigation }: RootScreenProps<Paths.ForgotPassword>) => {
   const { fonts, layout } = useTheme();
   const [email, setEmail] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const forgotPasswordMutation = useForgotPassword();
+  const isLoading = forgotPasswordMutation.isPending;
 
   const handleSendLink = async () => {
     const trimmedEmail = email.trim();
@@ -21,11 +22,7 @@ const ForgotPassword = ({ navigation }: RootScreenProps<Paths.ForgotPassword>) =
     }
 
     try {
-      setIsLoading(true);
-      await instance.post('auth/forgot/password', {
-        json: { email: trimmedEmail }
-      });
-      
+      await forgotPasswordMutation.mutateAsync(trimmedEmail);
       Alert.alert(
         'Đã gửi liên kết',
         `Liên kết đặt lại mật khẩu đã được gửi đến email ${trimmedEmail}.\n\nVui lòng kiểm tra hộp thư và nhấn vào liên kết để chuyển về màn hình đổi mật khẩu!`,
@@ -51,8 +48,6 @@ const ForgotPassword = ({ navigation }: RootScreenProps<Paths.ForgotPassword>) =
         errorMessage = e.message;
       }
       Alert.alert('Lỗi', errorMessage);
-    } finally {
-      setIsLoading(false);
     }
   };
 

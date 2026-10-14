@@ -2,7 +2,7 @@ export type SkillType = 'NGHE' | 'NOI' | 'DOC' | 'VIET';
 
 export type EducationViewMode = 'main' | 'examList' | 'examTest' | 'examResult' | 'examReview' | 'skillSetup' | 'skillFlashcard' | 'skillPractice' | 'skillPracticeResult' | 'speakingPracticeSetup' | 'speakingPractice' | 'speakingPracticeResult' | 'readingPracticeSetup' | 'readingPractice' | 'readingPracticeResult';
 
-export type QuestionType = 'LISTENING' | 'READING';
+export type QuestionType = 'LISTENING' | 'READING' | 'WRITING';
 
 // =========================================================
 // Listening Practice - 4 loại câu hỏi
@@ -27,6 +27,7 @@ export interface ListeningPracticeQuestion {
   groupImages?: ListeningPracticeOption[];  // Group select: shared image set A-F
   options: ListeningPracticeOption[];
   correctOptionId: string;
+  audioUrl?: string;
 }
 
 // =========================================================
@@ -48,6 +49,14 @@ export interface ExamQuestion {
   text?: string;
   options: QuestionOption[];
   correctOptionId: string;
+  writing?: {
+    instruction?: string;
+    pinyin?: string;
+    hint?: string;
+    words: string[];
+    keyword?: string;
+    correctAnswers: string[];
+  };
 }
 
 export interface HskExam {
@@ -57,18 +66,22 @@ export interface HskExam {
   timeLimit: number;
   listeningCount: number;
   readingCount: number;
+  writingCount?: number;
   questions?: ExamQuestion[];
   bestScore?: number;
   lastAttemptDate?: string;
+  unsupportedSkills?: string[];
 }
 
 export interface ExamResult {
+  durationInSeconds?: number;
   examId: string;
   score: number;
   correctCount: number;
   totalCount: number;
   listeningCorrect: number;
   readingCorrect: number;
+  writingCorrect?: number;
   date: string;
   answers: Record<string, string>;
   questions?: ExamQuestion[];

@@ -4,7 +4,7 @@ export interface BackendExamSectionQuestion {
   sectionId: number;
   questionId: number;
   order: number;
-  question: BackendQuestion;
+  question?: BackendQuestion;
 }
 
 export interface BackendExamSection {

@@ -1,3 +1,4 @@
+import { useStudyTimer } from '@/hooks/useStudyTimer';
 import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import { View, Text, SafeAreaView, TouchableOpacity, Alert, FlatList, BackHandler } from 'react-native';
 import Svg, { Path, Rect } from 'react-native-svg';
@@ -9,7 +10,7 @@ interface Props {
   hskLevel: number;
   topic: string;
   onBack: () => void;
-  onSubmit?: (result: { score: number, correctCount: number, totalCount: number, answers: Record<string, string> }) => void;
+  onSubmit?: (result: { score: number, correctCount: number, totalCount: number, answers: Record<string, string>, questions: ReadingPracticeQuestion[], durationInSeconds: number }) => void;
 }
 
 import { Image } from 'react-native';
@@ -212,6 +213,7 @@ export const ReadingPracticeView = ({ hskLevel, topic, onBack, onSubmit }: Props
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    let cancelled = false;
     const fetchQuestions = async () => {
       try {
         setIsLoading(true);
@@ -222,19 +224,21 @@ export const ReadingPracticeView = ({ hskLevel, topic, onBack, onSubmit }: Props
           const setDetails = await educationApi.getPracticeSetById(setId);
           const mappedQuestions = (setDetails.practiceSetQuestions || [])
             .map((psq, idx) => transformQuestionToReading(psq.question, idx + 1));
-          setQuestions(mappedQuestions);
+          if (!cancelled) { setQuestions(mappedQuestions); setAnswers({}); setBookmarks({}); }
         } else {
-          setQuestions([]);
+          if (!cancelled) setQuestions([]);
         }
       } catch (err) {
-        console.warn('Failed to fetch reading questions', err);
+        if (!cancelled) { setQuestions([]); Alert.alert('Không thể tải bài luyện', 'Vui lòng kiểm tra kết nối và mở lại bài luyện.'); }
       } finally {
-        setIsLoading(false);
+        if (!cancelled) setIsLoading(false);
       }
     };
     fetchQuestions();
+    return () => { cancelled = true; };
   }, [hskLevel, topic]);
 
+  const studyTimer = useStudyTimer(!isLoading && questions.length > 0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [bookmarks, setBookmarks] = useState<Record<string, boolean>>({});
   const [showSubmitModal, setShowSubmitModal] = useState(false);
@@ -264,7 +268,7 @@ export const ReadingPracticeView = ({ hskLevel, topic, onBack, onSubmit }: Props
       if (answers[q.id] === q.correctOptionId) correct++;
     });
     if (onSubmit) {
-      onSubmit({ score: Math.round((correct / questions.length) * 100), correctCount: correct, totalCount: questions.length, answers });
+      onSubmit({ score: Math.round((correct / questions.length) * 100), correctCount: correct, totalCount: questions.length, answers, questions, durationInSeconds: studyTimer.takeSeconds() });
     } else {
       onBack();
     }

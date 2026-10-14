@@ -1,11 +1,13 @@
 import type { RootScreenProps } from '@/navigation/types';
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, SafeAreaView } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, TouchableOpacity, SafeAreaView, Alert } from 'react-native';
 
 import { Paths } from '@/navigation/paths';
 import { useTheme, hs, vs, ms } from '@/theme';
 import { Logo } from '@/components/atoms';
-import { isAuthenticated, saveSurveyData, setCompletedSurvey } from '@/services/storage';
+import { getUser, getSurveyData, isAuthenticated, saveSurveyData, setCompletedSurvey, setPendingSurvey } from '@/services/storage';
+import { useUpdateStudyGoals } from '@/services/auth';
+import { surveyStudyGoals } from '@/services/auth/survey';
 
 import { SurveyPaginator } from './components/SurveyPaginator';
 import { SurveyStep1 } from './components/SurveyStep1';
@@ -14,31 +16,45 @@ import { SurveyStep3 } from './components/SurveyStep3';
 
 export default function Survey({ navigation }: RootScreenProps<Paths.Survey>) {
   const { layout } = useTheme();
+  const userId = getUser<{ id: number | string }>()?.id;
+  const studyGoalsMutation = useUpdateStudyGoals();
   const [step, setStep] = useState(1);
-  const [answers, setAnswers] = useState({
+  const [answers, setAnswers] = useState(() => (userId != null ? getSurveyData(userId) : null) ?? {
     currentLevel: '',
     targetLevel: '',
     dailyTime: '',
   });
 
-  const finishSurvey = (finalAnswers: typeof answers) => {
-    setCompletedSurvey(true);
-    saveSurveyData(finalAnswers);
-
-    if (isAuthenticated()) {
+  useEffect(() => {
+    if (!isAuthenticated() || userId == null) {
       navigation.reset({
         index: 0,
-        routes: [{ name: Paths.MainTabs }],
-      });
-    } else {
-      navigation.reset({
-        index: 0,
-        routes: [{ name: Paths.Onboarding }],
+        routes: [{ name: Paths.Login }],
       });
     }
+  }, [navigation, userId]);
+
+  const finishSurvey = (finalAnswers: typeof answers) => {
+    if (!isAuthenticated() || userId == null || studyGoalsMutation.isPending) return;
+
+    saveSurveyData(userId, finalAnswers);
+    const finish = () => {
+      if (getUser<{ id: number | string }>()?.id !== userId) return;
+      setPendingSurvey(userId, false);
+      setCompletedSurvey(userId);
+      navigation.reset({ index: 0, routes: [{ name: Paths.MainTabs }] });
+    };
+    const goals = surveyStudyGoals(finalAnswers);
+    if (!Object.keys(goals).length) { finish(); return; }
+    setPendingSurvey(userId, true);
+    studyGoalsMutation.mutate(goals, {
+      onSuccess: finish,
+      onError: (error) => Alert.alert('Chưa lưu được khảo sát', `${error instanceof Error ? error.message : 'Vui lòng thử lại.'} Câu trả lời đã được giữ lại trên thiết bị.`),
+    });
   };
 
   const handleNext = (key: keyof typeof answers, value: string) => {
+    if (studyGoalsMutation.isPending) return;
     const nextAnswers = { ...answers, [key]: value };
     setAnswers(nextAnswers);
     
@@ -50,8 +66,14 @@ export default function Survey({ navigation }: RootScreenProps<Paths.Survey>) {
   };
 
   const handleSkip = () => {
-    finishSurvey(answers);
+    if (!isAuthenticated() || userId == null || studyGoalsMutation.isPending) return;
+    saveSurveyData(userId, answers);
+    setPendingSurvey(userId, Object.keys(surveyStudyGoals(answers)).length > 0);
+    setCompletedSurvey(userId);
+    navigation.reset({ index: 0, routes: [{ name: Paths.MainTabs }] });
   };
+
+  if (!isAuthenticated() || userId == null) return null;
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
@@ -70,6 +92,7 @@ export default function Survey({ navigation }: RootScreenProps<Paths.Survey>) {
           <View style={[layout.row, layout.itemsCenter, { columnGap: hs(12) }]}>
             {step > 1 && (
               <TouchableOpacity
+                disabled={studyGoalsMutation.isPending}
                 activeOpacity={0.7}
                 onPress={() => setStep((s) => Math.max(1, s - 1))}
                 style={{ paddingHorizontal: hs(8), paddingVertical: vs(4) }}
@@ -81,6 +104,7 @@ export default function Survey({ navigation }: RootScreenProps<Paths.Survey>) {
             )}
 
             <TouchableOpacity
+              disabled={studyGoalsMutation.isPending}
               activeOpacity={0.7}
               onPress={handleSkip}
               style={{ paddingHorizontal: hs(8), paddingVertical: vs(4) }}

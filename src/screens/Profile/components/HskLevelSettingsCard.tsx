@@ -4,10 +4,11 @@ import { useTheme, hs, vs, ms } from '@/theme';
 
 interface HskLevelSettingsCardProps {
   currentLevel: number;
+  isSaving?: boolean;
   onLevelChange: (level: number) => void;
 }
 
-export function HskLevelSettingsCard({ currentLevel, onLevelChange }: HskLevelSettingsCardProps) {
+export function HskLevelSettingsCard({ currentLevel, isSaving = false, onLevelChange }: HskLevelSettingsCardProps) {
   const { layout } = useTheme();
   const [modalVisible, setModalVisible] = useState(false);
   const [confirmModalVisible, setConfirmModalVisible] = useState(false);
@@ -53,6 +54,7 @@ export function HskLevelSettingsCard({ currentLevel, onLevelChange }: HskLevelSe
             Trình độ HSK hiện tại của bạn:
           </Text>
           <TouchableOpacity 
+            disabled={isSaving}
             onPress={() => setModalVisible(true)}
             style={{ 
               borderWidth: 1, 

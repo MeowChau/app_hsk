@@ -1,5 +1,5 @@
-import React from 'react';
-import { ScrollView, Text, View } from 'react-native';
+import React, { useEffect } from 'react';
+import { Alert, ScrollView, Text, View } from 'react-native';
 
 import { useTheme, hs, vs, ms } from '@/theme';
 
@@ -7,9 +7,13 @@ import { ActivityTimeCard } from './components/ActivityTimeCard';
 import { LearningTimeCard } from './components/LearningTimeCard';
 import { WeeklyChartCard } from './components/WeeklyChartCard';
 import { VocabularyStatsCard } from '@/screens/Home/components';
+import { useDashboardStats } from '@/services/analytics/useAnalytics';
 
 export function StatisticsContent() {
   const { layout } = useTheme();
+  const { data: dashboardData, isError } = useDashboardStats();
+  const dataStatus = isError ? 'Không tải được' : !dashboardData ? 'Đang tải…' : undefined;
+  useEffect(() => { if (isError) Alert.alert('Chưa tải được thống kê', 'Vui lòng kiểm tra kết nối và thử lại.'); }, [isError]);
 
   return (
     <View style={[layout.flex_1, { backgroundColor: '#FFFFFF' }]}>
@@ -41,9 +45,20 @@ export function StatisticsContent() {
         </View>
 
         {/* ================= CARDS ================= */}
-        <LearningTimeCard />
-        <WeeklyChartCard />
-        <ActivityTimeCard />
+        <LearningTimeCard
+          dataStatus={dataStatus}
+          timeToday={dashboardData?.timeToday ?? 0}
+          time7Days={dashboardData?.time7Days ?? 0}
+          timeTotal={dashboardData?.timeTotal ?? 0}
+        />
+        <WeeklyChartCard
+          dataStatus={dataStatus}
+          chart7Days={dashboardData?.chart7Days ?? []}
+          averagePerDay={dashboardData?.averagePerDay ?? 0}
+          totalDaysStudied={dashboardData?.totalDaysStudied ?? 0}
+          longestStreak={dashboardData?.longestStreak ?? 0}
+        />
+        <ActivityTimeCard dataStatus={dataStatus} />
         
         <View style={{ paddingHorizontal: hs(16), marginBottom: vs(16) }}>
           <VocabularyStatsCard />

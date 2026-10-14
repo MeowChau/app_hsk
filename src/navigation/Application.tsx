@@ -1,4 +1,6 @@
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, createNavigationContainerRef, getStateFromPath } from '@react-navigation/native';
+import { useEffect, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { createStackNavigator } from '@react-navigation/stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
@@ -8,8 +10,12 @@ import { useTheme } from '@/theme';
 
 import { Example, Login, Onboarding, Register, Startup, Survey, ForgotPassword, ResetPassword } from '@/screens';
 import { BottomTabNavigator } from '@/navigation/BottomTabNavigator';
+import { getAuthSessionVersion, isAuthenticated, subscribeAuthSession } from '@/services/storage';
+import { API_ORIGIN } from '@/services/config';
+import { AudioProvider } from '@/services/audio/AudioProvider';
 
 const Stack = createStackNavigator<RootStackParamList>();
+const navigationRef = createNavigationContainerRef<RootStackParamList>();
 
 const instantTransitionSpec = {
   close: {
@@ -30,7 +36,7 @@ const linking = {
   prefixes: [
     'tricehsk://',
     'apphsk://',
-    'http://192.168.1.7:3001',
+    API_ORIGIN,
   ],
   config: {
     screens: {
@@ -57,16 +63,28 @@ const linking = {
         ],
       };
     }
-    return undefined;
+    return getStateFromPath(path, options);
   },
 };
 
 function ApplicationNavigator() {
   const { navigationTheme } = useTheme();
+  const queryClient = useQueryClient();
+  const [sessionVersion, setSessionVersion] = useState(getAuthSessionVersion);
+
+  useEffect(() => subscribeAuthSession(() => {
+    void queryClient.cancelQueries();
+    queryClient.removeQueries();
+    setSessionVersion(getAuthSessionVersion());
+    if (!isAuthenticated() && navigationRef.isReady()) {
+      navigationRef.resetRoot({ index: 0, routes: [{ name: Paths.Login }] });
+    }
+  }), [queryClient]);
 
   return (
     <SafeAreaProvider>
-      <NavigationContainer linking={linking} theme={navigationTheme}>
+      <NavigationContainer ref={navigationRef} linking={linking} theme={navigationTheme}>
+        <AudioProvider>
         <Stack.Navigator
           detachInactiveScreens={false}
           initialRouteName={Paths.Startup} //
@@ -80,7 +98,7 @@ function ApplicationNavigator() {
             transitionSpec: instantTransitionSpec,
           }}
         >
-          <Stack.Screen component={BottomTabNavigator} name={Paths.MainTabs} />
+          <Stack.Screen key={`tabs-${sessionVersion}`} component={BottomTabNavigator} name={Paths.MainTabs} />
           <Stack.Screen component={Startup} name={Paths.Startup} />
           <Stack.Screen component={Onboarding} name={Paths.Onboarding} />
           <Stack.Screen component={Login} name={Paths.Login} />
@@ -90,6 +108,7 @@ function ApplicationNavigator() {
           <Stack.Screen component={ResetPassword} name={Paths.ResetPassword} />
           <Stack.Screen component={Example} name={Paths.Example} />
         </Stack.Navigator>
+        </AudioProvider>
       </NavigationContainer>
     </SafeAreaProvider>
   );

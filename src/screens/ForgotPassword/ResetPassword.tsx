@@ -6,7 +6,7 @@ import { Button, Logo } from '@/components/atoms';
 import { useTheme } from '@/theme';
 import type { RootScreenProps } from '@/navigation/types';
 import { Paths } from '@/navigation/paths';
-import { instance } from '@/services/instance';
+import { useResetPassword } from '@/services/auth/useAuth';
 
 const ResetPassword = ({ route, navigation }: RootScreenProps<Paths.ResetPassword>) => {
   const { fonts, layout } = useTheme();
@@ -15,7 +15,8 @@ const ResetPassword = ({ route, navigation }: RootScreenProps<Paths.ResetPasswor
 
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const resetPasswordMutation = useResetPassword();
+  const isLoading = resetPasswordMutation.isPending;
 
   const handleReset = async () => {
     if (!hash) {
@@ -51,9 +52,9 @@ const ResetPassword = ({ route, navigation }: RootScreenProps<Paths.ResetPasswor
     }
 
     try {
-      setIsLoading(true);
-      await instance.post('auth/reset/password', {
-        json: { hash, password: trimmedPassword }
+      await resetPasswordMutation.mutateAsync({
+        hash,
+        password: trimmedPassword,
       });
       
       Alert.alert(
@@ -74,8 +75,6 @@ const ResetPassword = ({ route, navigation }: RootScreenProps<Paths.ResetPasswor
         errorMessage = e.message;
       }
       Alert.alert('Lỗi', errorMessage);
-    } finally {
-      setIsLoading(false);
     }
   };
 

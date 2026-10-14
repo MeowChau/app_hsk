@@ -10,6 +10,11 @@ interface UserProfileCardProps {
   email: string;
   onSave?: () => void;
   isSaving?: boolean;
+  photoUrl?: string | null;
+  isUpdatingPhoto?: boolean;
+  onChangePhoto?: () => void;
+  onDeletePhoto?: () => void;
+  onChangePassword?: () => void;
 }
 
 export function UserProfileCard({
@@ -18,6 +23,11 @@ export function UserProfileCard({
   email,
   onSave,
   isSaving = false,
+  photoUrl,
+  isUpdatingPhoto = false,
+  onChangePhoto,
+  onDeletePhoto,
+  onChangePassword,
 }: UserProfileCardProps) {
   const { layout } = useTheme();
 
@@ -60,12 +70,14 @@ export function UserProfileCard({
       {/* Avatar Section */}
       <View style={{ alignItems: 'center', marginBottom: vs(16) }}>
         {/* Circular Avatar */}
-        <UserAvatar size={ms(88)} style={{ borderColor: '#E9D5FF', borderWidth: 1.5, marginBottom: vs(12) }} />
+        <UserAvatar photoUrl={photoUrl} size={ms(88)} style={{ borderColor: '#E9D5FF', borderWidth: 1.5, marginBottom: vs(12) }} />
 
         {/* Avatar Action Buttons */}
         <View style={[layout.row, layout.itemsCenter]}>
           <TouchableOpacity
             activeOpacity={0.7}
+            onPress={onChangePhoto}
+            disabled={isUpdatingPhoto}
             style={{
               alignItems: 'center',
               backgroundColor: '#FAF8F5',
@@ -95,6 +107,8 @@ export function UserProfileCard({
           {/* Delete Button */}
           <TouchableOpacity
             activeOpacity={0.7}
+            onPress={onDeletePhoto}
+            disabled={isUpdatingPhoto || !photoUrl}
             style={{
               alignItems: 'center',
               height: vs(32),
@@ -206,6 +220,8 @@ export function UserProfileCard({
         {/* Change Password Button */}
         <TouchableOpacity
           activeOpacity={0.8}
+          onPress={onChangePassword}
+          accessibilityRole="button"
           style={{
             alignItems: 'center',
             backgroundColor: '#FAF8F5',

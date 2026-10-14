@@ -59,9 +59,21 @@ export interface RefreshResponse {
 
 export interface UpdateProfileDto {
   fullName?: string;
-  username?: string;
+  photo?: { id: string } | null;
+}
+
+export interface UpdateStudyGoalsDto {
   currentHskLevel?: number;
   targetHskLevel?: number;
   dailyStudyTime?: number;
-  avatarFrame?: string;
+}
+
+export interface ResetPasswordDto {
+  hash: string;
+  password: string;
+}
+
+export interface ChangePasswordDto {
+  oldPassword: string;
+  password: string;
 }

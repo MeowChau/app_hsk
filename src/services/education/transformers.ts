@@ -9,6 +9,11 @@ import {
   SpeakingPracticeQuestion,
 } from '@/screens/Education/types';
 import { BackendQuestion, BackendQuestionSkill } from './types';
+import { resolveMediaUrl } from '../media';
+
+const mediaOptions = (options?: any[]) => options?.map(option => ({
+  ...option, imageUrl: resolveMediaUrl(option.imageUrl),
+}));
 
 export const toBackendSkill = (skill: SkillType): BackendQuestionSkill => {
   switch (skill) {
@@ -43,6 +48,7 @@ export const toAppSkill = (skill: BackendQuestionSkill): SkillType => {
 export const transformQuestionToListening = (
   backendQ: BackendQuestion,
   fallbackIndex: number,
+  fallbackAudioUrl?: string | null,
 ): ListeningPracticeQuestion => {
   const payload = backendQ.payload || {};
   const correctAnswer = backendQ.correctAnswer || {};
@@ -64,12 +70,12 @@ export const transformQuestionToListening = (
         label: String(opt.label ?? String.fromCharCode(65 + idx)),
         text: opt.text,
         pinyin: opt.pinyin,
-        imageUrl: opt.imageUrl,
+        imageUrl: resolveMediaUrl(opt.imageUrl),
       }))
     : [];
 
   const correctOptionId = String(
-    correctAnswer.optionId ?? correctAnswer.id ?? payload.correctOptionId ?? (options[0]?.id || 'A'),
+    correctAnswer.optionId ?? correctAnswer.id ?? correctAnswer.correctOptionId ?? payload.correctOptionId ?? '',
   );
 
   return {
@@ -79,7 +85,8 @@ export const transformQuestionToListening = (
     starred: payload.starred ?? false,
     sentence: payload.sentence,
     dialogue: payload.dialogue,
-    groupImages: payload.groupImages,
+    audioUrl: resolveMediaUrl(payload.audioUrl || fallbackAudioUrl),
+    groupImages: mediaOptions(payload.groupImages),
     options,
     correctOptionId,
   };
@@ -106,12 +113,12 @@ export const transformQuestionToReading = (
         id: String(opt.id ?? String.fromCharCode(65 + idx)),
         label: String(opt.label ?? String.fromCharCode(65 + idx)),
         text: opt.text,
-        imageUrl: opt.imageUrl,
+        imageUrl: resolveMediaUrl(opt.imageUrl),
       }))
     : [];
 
   const correctOptionId = String(
-    correctAnswer.optionId ?? correctAnswer.id ?? payload.correctOptionId ?? (options[0]?.id || 'A'),
+    correctAnswer.optionId ?? correctAnswer.id ?? correctAnswer.correctOptionId ?? payload.correctOptionId ?? '',
   );
 
   return {
@@ -121,10 +128,10 @@ export const transformQuestionToReading = (
     sentence: payload.sentence,
     pinyin: payload.pinyin,
     character: payload.character,
-    imageUrl: payload.imageUrl,
+    imageUrl: resolveMediaUrl(payload.imageUrl),
     options,
     correctOptionId,
-    groupImages: payload.groupImages,
+    groupImages: mediaOptions(payload.groupImages),
     groupVocabs: payload.groupVocabs,
     example: payload.example,
   };

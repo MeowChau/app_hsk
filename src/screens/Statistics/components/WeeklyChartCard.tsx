@@ -2,35 +2,43 @@ import React from 'react';
 import { View, Text } from 'react-native';
 import { useTheme, hs, vs, ms } from '@/theme';
 
-export function WeeklyChartCard() {
+import { formatHours } from './LearningTimeCard';
+
+export interface WeeklyChartCardProps {
+  dataStatus?: string;
+  chart7Days?: number[];
+  averagePerDay?: number;
+  totalDaysStudied?: number;
+  longestStreak?: number;
+}
+
+export function WeeklyChartCard({
+  dataStatus,
+  chart7Days = [],
+  averagePerDay = 0,
+  totalDaysStudied = 0,
+  longestStreak = 0,
+}: WeeklyChartCardProps) {
   const { layout } = useTheme();
 
-  // Dummy data for 21 bars in the 7 days chart
-  const barChartData = [
-    { height: vs(50), isEstimate: true },
-    { height: vs(50), isEstimate: true },
-    { height: vs(50), isEstimate: true },
-    { height: vs(50), isEstimate: true },
-    { height: vs(50), isEstimate: true },
-    { height: vs(50), isEstimate: true },
-    { height: vs(50), isEstimate: true },
-    { height: vs(4), isEstimate: false },
-    { height: vs(50), isEstimate: false },
-    { height: vs(12), isEstimate: false },
-    { height: vs(18), isEstimate: false },
-    { height: vs(26), isEstimate: false },
-    { height: vs(50), isEstimate: true },
-    { height: vs(50), isEstimate: true },
-    { height: vs(50), isEstimate: true },
-    { height: vs(22), isEstimate: false },
-    { height: vs(16), isEstimate: false },
-    { height: vs(20), isEstimate: false },
-    { height: vs(50), isEstimate: true },
-    { height: vs(48), isEstimate: false },
-    { height: vs(18), isEstimate: false },
-    { height: vs(56), isEstimate: false },
-    { height: vs(10), isEstimate: false },
-  ];
+  const dayNames = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
+  const safeChart = chart7Days.length === 7 ? chart7Days : [0, 0, 0, 0, 0, 0, 0];
+  const maxVal = Math.max(...safeChart, 0.1);
+  const maxDayHours = Math.max(...safeChart, 0);
+
+  const days = safeChart.map((hours, i) => {
+    const d = new Date(Date.now() - (6 - i) * 24 * 60 * 60 * 1000);
+    const label = dayNames[d.getDay()];
+    const isToday = i === 6;
+    const heightRatio = maxVal > 0 ? hours / maxVal : 0;
+    const barHeight = hours > 0 ? Math.max(vs(10), heightRatio * vs(50)) : vs(4);
+    return {
+      hours,
+      label,
+      isToday,
+      barHeight,
+    };
+  });
 
   return (
     <View style={{ paddingHorizontal: hs(16), marginBottom: vs(16) }}>
@@ -66,22 +74,33 @@ export function WeeklyChartCard() {
           style={{
             alignItems: 'flex-end',
             flexDirection: 'row',
-            height: vs(64),
+            height: vs(76),
             justifyContent: 'space-between',
             marginBottom: vs(6),
             paddingHorizontal: hs(4),
           }}
         >
-          {barChartData.map((bar, idx) => (
-            <View
-              key={idx}
-              style={{
-                backgroundColor: bar.isEstimate ? '#E2E8F0' : '#0E84F2',
-                borderRadius: ms(2),
-                height: bar.height,
-                width: hs(5),
-              }}
-            />
+          {days.map((day, idx) => (
+            <View key={idx} style={{ alignItems: 'center', flex: 1 }}>
+              <View
+                style={{
+                  backgroundColor: day.hours > 0 ? '#0E84F2' : '#E2E8F0',
+                  borderRadius: ms(3),
+                  height: day.barHeight,
+                  width: hs(14),
+                }}
+              />
+              <Text
+                style={{
+                  color: day.isToday ? '#0E84F2' : '#94A3B8',
+                  fontSize: ms(11),
+                  fontWeight: day.isToday ? '700' : '500',
+                  marginTop: vs(6),
+                }}
+              >
+                {day.label}
+              </Text>
+            </View>
           ))}
         </View>
         <Text
@@ -91,7 +110,7 @@ export function WeeklyChartCard() {
             marginBottom: vs(14),
           }}
         >
-          Cột nhạt là ngày được ước tính.
+          Cột xanh là ngày có thời gian học ghi nhận.
         </Text>
 
         {/* 2x2 Stats Grid */}
@@ -111,7 +130,7 @@ export function WeeklyChartCard() {
                 Trung bình mỗi ngày học
               </Text>
               <Text style={{ color: '#000000', fontSize: ms(16), fontWeight: '700', marginTop: vs(2) }}>
-                "Số lượng"
+                {dataStatus ?? formatHours(averagePerDay)}
               </Text>
             </View>
             <View
@@ -127,7 +146,7 @@ export function WeeklyChartCard() {
                 Số ngày có học
               </Text>
               <Text style={{ color: '#000000', fontSize: ms(16), fontWeight: '700', marginTop: vs(2) }}>
-                "Số lượng"
+                {dataStatus ?? `${totalDaysStudied} ngày`}
               </Text>
             </View>
           </View>
@@ -147,7 +166,7 @@ export function WeeklyChartCard() {
                 Ngày học nhiều nhất
               </Text>
               <Text style={{ color: '#000000', fontSize: ms(16), fontWeight: '700', marginTop: vs(2) }}>
-                "Số lượng"
+                {dataStatus ?? formatHours(maxDayHours)}
               </Text>
             </View>
             <View
@@ -163,7 +182,7 @@ export function WeeklyChartCard() {
                 Chuỗi ngày dài nhất
               </Text>
               <Text style={{ color: '#000000', fontSize: ms(16), fontWeight: '700', marginTop: vs(2) }}>
-                "Số lượng"
+                {dataStatus ?? `${longestStreak} ngày`}
               </Text>
             </View>
           </View>

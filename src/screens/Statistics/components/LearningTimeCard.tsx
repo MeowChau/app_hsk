@@ -3,7 +3,28 @@ import { View, Text } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { useTheme, hs, vs, ms } from '@/theme';
 
-export function LearningTimeCard() {
+export interface LearningTimeCardProps {
+  dataStatus?: string;
+  timeToday?: number;
+  time7Days?: number;
+  timeTotal?: number;
+}
+
+export function formatHours(hours: number = 0): string {
+  if (!hours || hours <= 0) return '0 phút';
+  const totalMinutes = Math.round(hours * 60);
+  if (totalMinutes < 60) return `${totalMinutes} phút`;
+  const h = Math.floor(totalMinutes / 60);
+  const m = totalMinutes % 60;
+  return m > 0 ? `${h}h ${m}p` : `${h} giờ`;
+}
+
+export function LearningTimeCard({
+  dataStatus,
+  timeToday = 0,
+  time7Days = 0,
+  timeTotal = 0,
+}: LearningTimeCardProps) {
   const { layout } = useTheme();
 
   return (
@@ -58,7 +79,7 @@ export function LearningTimeCard() {
               }}
             >
               <Text style={{ color: '#000000', fontSize: ms(14), fontWeight: '700' }}>
-                "Số lượng"
+                {dataStatus ?? formatHours(timeToday)}
               </Text>
               <Text style={{ color: '#000000', fontSize: ms(16), marginTop: vs(2), fontWeight: '800' }}>
                 Hôm nay
@@ -74,7 +95,7 @@ export function LearningTimeCard() {
               }}
             >
               <Text style={{ color: '#000000', fontSize: ms(14), fontWeight: '700' }}>
-                "Số lượng"
+                {dataStatus ?? formatHours(time7Days)}
               </Text>
               <Text style={{ color: '#000000', fontSize: ms(16), marginTop: vs(2), fontWeight: '800' }}>
                 7 ngày qua
@@ -92,7 +113,7 @@ export function LearningTimeCard() {
             }}
           >
             <Text style={{ color: '#000000', fontSize: ms(14), fontWeight: '700' }}>
-              "Số lượng"
+              {dataStatus ?? formatHours(timeTotal)}
             </Text>
             <Text style={{ color: '#000000', fontSize: ms(16), marginTop: vs(2), fontWeight: '800' }}>
               Tổng cộng

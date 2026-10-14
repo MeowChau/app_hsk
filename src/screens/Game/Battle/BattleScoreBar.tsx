@@ -9,6 +9,7 @@ interface BattleScoreBarProps {
   opponentName: string;
   myCombo?: number;
   opponentCombo?: number;
+  photoUrl?: string | null;
 }
 
 export const BattleScoreBar = ({
@@ -17,6 +18,7 @@ export const BattleScoreBar = ({
   opponentName,
   myCombo = 0,
   opponentCombo = 0,
+  photoUrl,
 }: BattleScoreBarProps) => {
   const total = myScore + opponentScore;
   const myRatio = total === 0 ? 0.5 : Math.max(0.15, Math.min(0.85, myScore / total));
@@ -51,7 +53,7 @@ export const BattleScoreBar = ({
       >
         {/* Left: Player */}
         <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
-          <UserAvatar size={ms(40)} backgroundColor="#3730A3" style={{ marginRight: hs(10), borderWidth: 1.5, borderColor: '#818CF8' }} />
+          <UserAvatar photoUrl={photoUrl} size={ms(40)} backgroundColor="#3730A3" style={{ marginRight: hs(10), borderWidth: 1.5, borderColor: '#818CF8' }} />
           <View>
             <Text style={{ color: '#A5B4FC', fontSize: ms(12), fontWeight: '600' }}>
               Bạn
@@ -164,7 +166,7 @@ export const BattleScoreBar = ({
                 fontWeight: '900',
               }}
             >
-              H
+              {opponentName.trim().charAt(0).toUpperCase() || '?'}
             </Text>
           </View>
         </View>

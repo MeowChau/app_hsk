@@ -4,12 +4,34 @@ import Svg, { Path } from 'react-native-svg';
 import { SectionCard } from '@/components/molecules';
 import { useTheme, hs, vs, ms } from '@/theme';
 
+import { useTopicCounts } from '@/services/vocabulary';
+
 interface VocabularyStatsCardProps {
   onPressDetail?: () => void;
+  learnedCount?: number;
+  masteredCount?: number;
+  learningCount?: number;
+  reviewCount?: number;
 }
 
-export function VocabularyStatsCard({ onPressDetail }: VocabularyStatsCardProps) {
+export function VocabularyStatsCard({
+  onPressDetail,
+  learnedCount,
+  masteredCount,
+  learningCount,
+  reviewCount,
+}: VocabularyStatsCardProps) {
   const { layout } = useTheme();
+  const { data: topicCounts } = useTopicCounts();
+  const totalWordsInTopic = React.useMemo(() => {
+    if (!topicCounts) return 0;
+    return Object.values(topicCounts).reduce((acc, count) => acc + count, 0);
+  }, [topicCounts]);
+
+  const displayLearned = learnedCount !== undefined ? `${learnedCount} từ` : '0 từ';
+  const displayMastered = masteredCount !== undefined ? `${masteredCount} từ` : '0 từ';
+  const displayLearning = learningCount !== undefined ? `${learningCount} từ` : (totalWordsInTopic > 0 ? `${totalWordsInTopic} từ` : '0 từ');
+  const displayReview = reviewCount !== undefined ? `${reviewCount} từ` : '0 từ';
 
   return (
     <SectionCard
@@ -21,22 +43,22 @@ export function VocabularyStatsCard({ onPressDetail }: VocabularyStatsCardProps)
       <View style={{ rowGap: vs(8) }}>
         <View style={[layout.row, { columnGap: hs(8) }]}>
           <View style={{ alignItems: 'center', backgroundColor: '#F5F6F8', borderRadius: ms(10), flex: 1, paddingVertical: vs(12) }}>
-            <Text style={{ color: '#000000', fontSize: ms(14), fontWeight: '700' }}>"Số lượng"</Text>
+            <Text style={{ color: '#000000', fontSize: ms(14), fontWeight: '700' }}>{displayLearned}</Text>
             <Text style={{ color: '#000000', fontSize: ms(16), fontWeight: '800', marginTop: vs(2) }}>Đã học</Text>
           </View>
           <View style={{ alignItems: 'center', backgroundColor: '#F5F6F8', borderRadius: ms(10), flex: 1, paddingVertical: vs(12) }}>
-            <Text style={{ color: '#000000', fontSize: ms(14), fontWeight: '700' }}>"Số lượng"</Text>
+            <Text style={{ color: '#000000', fontSize: ms(14), fontWeight: '700' }}>{displayMastered}</Text>
             <Text style={{ color: '#000000', fontSize: ms(16), fontWeight: '800', marginTop: vs(2) }}>Đã thuộc</Text>
           </View>
         </View>
 
         <View style={[layout.row, { columnGap: hs(8) }]}>
           <View style={{ alignItems: 'center', backgroundColor: '#F5F6F8', borderRadius: ms(10), flex: 1, paddingVertical: vs(12) }}>
-            <Text style={{ color: '#000000', fontSize: ms(14), fontWeight: '700' }}>"Số lượng"</Text>
+            <Text style={{ color: '#000000', fontSize: ms(14), fontWeight: '700' }}>{displayLearning}</Text>
             <Text style={{ color: '#000000', fontSize: ms(16), fontWeight: '800', marginTop: vs(2) }}>Đang học</Text>
           </View>
           <View style={{ alignItems: 'center', backgroundColor: '#F5F6F8', borderRadius: ms(10), flex: 1, paddingVertical: vs(12) }}>
-            <Text style={{ color: '#000000', fontSize: ms(14), fontWeight: '700' }}>"Số lượng"</Text>
+            <Text style={{ color: '#000000', fontSize: ms(14), fontWeight: '700' }}>{displayReview}</Text>
             <Text style={{ color: '#000000', fontSize: ms(16), fontWeight: '800', marginTop: vs(2) }}>Cần ôn</Text>
           </View>
         </View>

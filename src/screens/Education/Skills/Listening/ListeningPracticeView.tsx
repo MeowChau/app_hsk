@@ -1,3 +1,6 @@
+import { useAudioPlayback, audioTime } from '@/services/audio/AudioProvider';
+import { imageSource } from '@/services/media';
+import { useStudyTimer } from '@/hooks/useStudyTimer';
 import React, { useState, useCallback, useMemo, memo, useRef, useEffect } from 'react';
 import { View, Text, SafeAreaView, FlatList, TouchableOpacity, Image, Alert } from 'react-native';
 import Svg, { Path, Rect } from 'react-native-svg';
@@ -36,7 +39,7 @@ const GroupHeader = memo(({ images, exampleDialogue, exampleAnswer }: {
         >
           <Text style={{ fontSize: ms(10), fontWeight: '700', color: '#4B5563', marginBottom: vs(2) }}>{img.label}</Text>
           {img.imageUrl ? (
-            <Image source={img.imageUrl} style={{ width: '100%', height: vs(52) }} resizeMode="cover" />
+            <Image source={imageSource(img.imageUrl)} style={{ width: '100%', height: vs(52) }} resizeMode="cover" />
           ) : (
             <View style={{ width: '100%', height: vs(52), backgroundColor: '#F3F4F6' }} />
           )}
@@ -81,6 +84,7 @@ const GroupQuestionCard = memo(({ question, selectedOptionId, onSelectOption, bo
   bookmarked?: boolean;
   onToggleBookmark: (qId: string) => void;
 }) => {
+  const audio = useAudioPlayback(question.audioUrl);
   const allLetters = ['A', 'B', 'C', 'D', 'E', 'F'];
   return (
     <View style={{
@@ -104,18 +108,18 @@ const GroupQuestionCard = memo(({ question, selectedOptionId, onSelectOption, bo
         </Svg>
 
         {/* Play */}
-        <TouchableOpacity style={{ marginHorizontal: hs(4) }}>
+        <TouchableOpacity onPress={audio.toggle} style={{ marginHorizontal: hs(4) }}>
           <Svg height="11" viewBox="0 0 24 24" width="11">
-            <Path d="M5 3l14 9-14 9V3z" fill="#374151" />
+            <Path d={audio.playing ? "M5 3h5v18H5zM14 3h5v18h-5z" : "M5 3l14 9-14 9V3z"} fill="#374151" />
           </Svg>
         </TouchableOpacity>
 
         {/* Time */}
-        <Text style={{ fontSize: ms(12), color: '#9CA3AF', marginRight: hs(4) }}>0:00 / 0:00</Text>
+        <Text style={{ fontSize: ms(12), color: '#9CA3AF', marginRight: hs(4) }}>{audioTime(audio.position)} / {audioTime(audio.duration)}</Text>
 
         {/* Progress bar stretches */}
         <View style={{ flex: 1, height: vs(3), backgroundColor: '#D1D5DB', borderRadius: ms(2) }}>
-          <View style={{ width: '0%', height: '100%', backgroundColor: '#374151', borderRadius: ms(2) }} />
+          <View style={{ width: `${audio.progress}%`, height: '100%', backgroundColor: '#374151', borderRadius: ms(2) }} />
         </View>
 
         {/* Volume small */}
@@ -210,6 +214,7 @@ export const ListeningPracticeView = ({ hskLevel, topic, onBack, onSubmit }: Pro
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    let cancelled = false;
     const fetchQuestions = async () => {
       try {
         setIsLoading(true);
@@ -218,20 +223,22 @@ export const ListeningPracticeView = ({ hskLevel, topic, onBack, onSubmit }: Pro
           const setId = setsRes.data[0].id;
           const setDetails = await educationApi.getPracticeSetById(setId);
           const mappedQuestions = (setDetails.practiceSetQuestions || [])
-            .map((psq, idx) => transformQuestionToListening(psq.question, idx + 1));
-          setQuestions(mappedQuestions);
+            .map((psq, idx) => transformQuestionToListening(psq.question, idx + 1, setDetails.audioUrl));
+          if (!cancelled) { setQuestions(mappedQuestions); setAnswers({}); setBookmarks({}); }
         } else {
-          setQuestions([]);
+          if (!cancelled) setQuestions([]);
         }
       } catch (err) {
-        console.warn('Failed to fetch listening questions', err);
+        if (!cancelled) { setQuestions([]); Alert.alert('Không thể tải bài luyện', 'Vui lòng kiểm tra kết nối và mở lại bài luyện.'); }
       } finally {
-        setIsLoading(false);
+        if (!cancelled) setIsLoading(false);
       }
     };
     fetchQuestions();
+    return () => { cancelled = true; };
   }, [hskLevel, topic]);
 
+  const studyTimer = useStudyTimer(!isLoading && questions.length > 0);
   const flatData = useMemo(() => buildFlatData(questions), [questions]);
 
   const [answers, setAnswers] = useState<Record<string, string>>({});
@@ -266,7 +273,7 @@ export const ListeningPracticeView = ({ hskLevel, topic, onBack, onSubmit }: Pro
       if (answers[q.id] === q.correctOptionId) correct++;
     });
     if (onSubmit) {
-      onSubmit({ score: Math.round((correct / questions.length) * 100), correctCount: correct, totalCount: questions.length, answers });
+      onSubmit({ score: Math.round((correct / questions.length) * 100), correctCount: correct, totalCount: questions.length, answers, questions, durationInSeconds: studyTimer.takeSeconds() });
     } else {
       onBack();
     }

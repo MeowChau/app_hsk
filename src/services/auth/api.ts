@@ -6,6 +6,9 @@ import {
   User,
   UpdateProfileDto,
   RefreshResponse,
+  UpdateStudyGoalsDto,
+  ResetPasswordDto,
+  ChangePasswordDto,
 } from './types';
 import { getRefreshToken } from '../storage';
 
@@ -29,11 +32,16 @@ export const authApi = {
   },
 
   updateProfile: async (dto: UpdateProfileDto): Promise<User> => {
-    return instance
-      .patch('auth/me', {
-        json: dto,
-      })
-      .json<User>();
+    await instance.patch('auth/me', { json: dto });
+    const updated = await authApi.getMe();
+    if (dto.fullName !== undefined && updated.fullName !== dto.fullName.trim()) {
+      throw new Error('Backend chưa lưu được tên hiển thị.');
+    }
+    return updated;
+  },
+
+  changePassword: async (dto: ChangePasswordDto): Promise<void> => {
+    await instance.patch('auth/me', { json: dto });
   },
 
   refreshToken: async (): Promise<RefreshResponse> => {
@@ -58,21 +66,27 @@ export const authApi = {
     }
   },
 
-  forgotPassword: async (email: string): Promise<{ hash: string }> => {
-    return instance
-      .post('auth/forgot/password', {
-        json: { email },
-      })
-      .json<{ hash: string }>();
+  updateStudyGoals: async (dto: UpdateStudyGoalsDto): Promise<User> => {
+    await instance.patch('users/me/study-goals', { json: dto });
+    // A 200 response alone does not confirm persistence. The PATCH response
+    // can also omit HSK fields due to the backend's serialization groups.
+    const updated = await authApi.getMe();
+    const fields = ['currentHskLevel', 'targetHskLevel', 'dailyStudyTime'] as const;
+    if (fields.some((field) => dto[field] !== undefined && updated[field] !== dto[field])) {
+      throw new Error('Máy chủ chưa lưu được trình độ HSK hoặc mục tiêu học. Vui lòng thử lại sau.');
+    }
+    return updated;
   },
 
-  resetPassword: async (
-    hash: string,
-    otp: string,
-    password: string,
-  ): Promise<void> => {
+  forgotPassword: async (email: string): Promise<void> => {
+    await instance.post('auth/forgot/password', {
+      json: { email },
+    });
+  },
+
+  resetPassword: async (dto: ResetPasswordDto): Promise<void> => {
     await instance.post('auth/reset/password', {
-      json: { hash, otp, password },
+      json: dto,
     });
   },
 };

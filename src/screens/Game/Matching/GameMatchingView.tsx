@@ -1,7 +1,10 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, SafeAreaView } from 'react-native';
-import Svg, { Path } from 'react-native-svg';
-import { hs, vs, ms } from '@/theme';
+import React, { useState } from 'react';
+import { View, Text, SafeAreaView, ScrollView, Alert } from 'react-native';
+import { hs, vs, ms, useTheme } from '@/theme';
+import { Button } from '@/components/atoms';
+import { ScreenHeader } from '@/components/molecules';
+import { useProfile } from '@/services/auth/useAuth';
+import { type PkMatchingState } from '@/services/game/pkMatchmaking';
 import { MatchingPlayerCard } from './MatchingPlayerCard';
 import { MatchingOpponentCard } from './MatchingOpponentCard';
 import { MatchingVsBadge } from './MatchingVsBadge';
@@ -9,203 +12,72 @@ import { MatchingProgressBar } from './MatchingProgressBar';
 
 interface GameMatchingViewProps {
   onCancel: () => void;
-  onMatchSuccess?: (opponent: { name: string }) => void;
-  userName?: string;
+  state: PkMatchingState;
+  onReady: () => Promise<void>;
 }
 
-import { useProfile } from '@/services/auth/useAuth';
-
-export const GameMatchingView = ({
-  onCancel,
-  onMatchSuccess,
-}: GameMatchingViewProps) => {
-  const { data: profile } = useProfile();
-  const [isMatched, setIsMatched] = React.useState(false);
-  const userName = profile?.fullName || profile?.username || 'Người chơi';
-
-  // Demo: Sau 3s là tìm thấy đối thủ thành công
-  React.useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsMatched(true);
-    }, 3000);
-
-    return () => clearTimeout(timer);
-  }, []);
-
+export const GameMatchingView = ({ onCancel, state, onReady }: GameMatchingViewProps) => {
+  const { colors } = useTheme();
+  const profileQuery = useProfile();
+  const profile = profileQuery.data;
+  const [readyBusy, setReadyBusy] = useState(false);
+  const level = state.hskLevel || profile?.currentHskLevel || 1;
+  const matched = state.phase === 'matched';
+  const failed = state.phase === 'error' || (!profile && !!profileQuery.error);
+  const searching = !failed && !matched;
+  const opponentId = state.match?.users.find(id => id !== profile?.id);
+  const opponent = state.match?.players.find(user => user.id === opponentId);
+  const opponentName = opponent?.name || (opponentId ? 'Người chơi #' + opponentId : 'Đối thủ');
+  const myReady = !!state.room?.readyUserIds.includes(profile?.id || 0);
+  const peerReady = !!state.room?.readyUserIds.includes(opponentId || 0);
+  const handleReady = async () => {
+    if (readyBusy || myReady) return;
+    setReadyBusy(true);
+    try { await onReady(); }
+    catch (error) { Alert.alert('Chưa thể sẵn sàng', error instanceof Error ? error.message : 'Vui lòng thử lại.'); }
+    finally { setReadyBusy(false); }
+  };
+  const title = failed ? 'Chưa thể ghép trận' : matched ? 'Đã tìm thấy đối thủ' : state.phase === 'connecting' ? 'Đang kết nối PK' : 'Đang tìm đối thủ';
+  const subtitle = failed ? state.message || 'Không thể tải tài khoản. Vui lòng quay lại sảnh.'
+    : matched ? 'Đối thủ: ' + opponentName + '. ' + (myReady ? 'Đang chờ đối thủ xác nhận sẵn sàng.' : 'Bấm Sẵn sàng để bắt đầu khi cả hai đã xác nhận.')
+    : state.phase === 'connecting' ? 'Đang kết nối máy chủ để tìm người chơi thật.'
+    : 'Đang tìm người chơi cùng HSK ' + level + '.' + (state.onlineCount !== undefined ? ' Có ' + state.onlineCount + ' người đang kết nối.' : '');
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
-      {/* Header */}
-      <View
-        style={{
-          flexDirection: 'row',
-          alignItems: 'center',
-          paddingHorizontal: hs(16),
-          paddingVertical: vs(12),
-          borderBottomWidth: 1,
-          borderBottomColor: '#F3F4F6',
-        }}
-      >
-        <TouchableOpacity
-          onPress={onCancel}
-          activeOpacity={0.7}
-          style={{
-            width: hs(40),
-            height: vs(40),
-            alignItems: 'center',
-            justifyContent: 'center',
-            marginRight: hs(8),
-          }}
-        >
-          <Svg height="26" viewBox="0 0 24 24" width="26" fill="none">
-            <Path
-              d="M19 12H5M12 19l-7-7 7-7"
-              stroke="#0E84F2"
-              strokeWidth={2.5}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </Svg>
-        </TouchableOpacity>
-        <Text style={{ fontSize: ms(18), fontWeight: '700', color: '#111827' }}>
-          {isMatched ? 'Ghép trận thành công' : 'Tìm đối thủ'}
-        </Text>
-      </View>
-
-      <View
-        style={{
-          flex: 1,
-          paddingHorizontal: hs(20),
-          paddingTop: vs(40),
-          alignItems: 'center',
-        }}
-      >
-        {/* ================= KHỐI 2 NGƯỜI CHƠI & VS ================= */}
-        <View
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'center',
-            width: '100%',
-            marginBottom: vs(40),
-          }}
-        >
-          <MatchingPlayerCard userName={userName} />
-          <MatchingVsBadge />
-          <MatchingOpponentCard isMatched={isMatched} opponentName="Hạ Ngân" />
+      <ScreenHeader title={matched ? 'Đã ghép trận' : 'Tìm đối thủ PK'} onBack={onCancel} />
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: hs(20), paddingTop: vs(32), paddingBottom: vs(24), alignItems: 'center' }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', width: '100%', marginBottom: vs(28) }}>
+          <MatchingPlayerCard userName={profile?.fullName || profile?.username || 'Bạn'} photoUrl={profile?.photo?.path}
+            statusText={failed ? 'Kết nối gián đoạn' : matched ? myReady ? 'Sẵn sàng' : 'Chờ sẵn sàng' : state.phase === 'connecting' ? 'Đang kết nối' : 'Đang chờ ghép'}
+            tone={failed ? 'error' : myReady ? 'matched' : 'pending'} busy={searching} />
+          <MatchingVsBadge active={searching} />
+          <MatchingOpponentCard isMatched={matched} opponentName={opponentName} photoUrl={opponent?.photoUrl} ready={peerReady} busy={searching} failed={failed} />
         </View>
-
-        {/* ================= TIÊU ĐỀ TRẠNG THÁI ================= */}
-        <Text
-          style={{
-            fontSize: ms(22),
-            fontWeight: '800',
-            color: isMatched ? '#059669' : '#111827',
-            marginBottom: vs(8),
-            textAlign: 'center',
-          }}
-        >
-          {isMatched ? 'Ghép trận thành công!' : 'Đang tìm đối thủ ...'}
-        </Text>
-        <Text
-          style={{
-            fontSize: ms(14),
-            color: isMatched ? '#059669' : '#6B7280',
-            textAlign: 'center',
-            marginBottom: vs(28),
-          }}
-        >
-          {isMatched
-            ? 'Đã tìm thấy đối thủ Hạ Ngân. Bạn có thể vào trận hoặc huỷ.'
-            : 'Đang dò những người chơi đang chờ trong game.'}
-        </Text>
-
-        {/* ================= THANH TIẾN ĐỘ & TIMER ================= */}
-        <MatchingProgressBar isMatched={isMatched} />
-
-        {/* ================= NÚT THAO TÁC DƯỚI ================= */}
-        {isMatched ? (
-          <View style={{ width: '100%', alignItems: 'center' }}>
-            {/* Nút Vào trận ngay */}
-            <TouchableOpacity
-              activeOpacity={0.8}
-              onPress={() => onMatchSuccess?.({ name: 'Hạ Ngân' })}
-              style={{
-                width: '85%',
-                borderRadius: ms(999),
-                paddingVertical: vs(14),
-                backgroundColor: '#059669',
-                alignItems: 'center',
-                justifyContent: 'center',
-                shadowColor: '#059669',
-                shadowOffset: { width: 0, height: 4 },
-                shadowOpacity: 0.3,
-                shadowRadius: 6,
-                elevation: 4,
-                marginBottom: vs(12),
-              }}
-            >
-              <Text
-                style={{
-                  color: '#FFFFFF',
-                  fontSize: ms(16),
-                  fontWeight: '800',
-                }}
-              >
-                Vào trận ngay
-              </Text>
-            </TouchableOpacity>
-
-            {/* Nút Huỷ trận */}
-            <TouchableOpacity
-              activeOpacity={0.7}
-              onPress={onCancel}
-              style={{
-                width: '85%',
-                borderColor: '#FCA5A5',
-                borderWidth: 1.5,
-                borderRadius: ms(999),
-                paddingVertical: vs(12),
-                backgroundColor: '#FFF5F5',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <Text
-                style={{
-                  color: '#DC2626',
-                  fontSize: ms(15),
-                  fontWeight: '700',
-                }}
-              >
-                Huỷ trận đấu
-              </Text>
-            </TouchableOpacity>
-          </View>
-        ) : (
-          <TouchableOpacity
-            activeOpacity={0.7}
-            onPress={onCancel}
-            style={{
-              borderColor: '#E5E7EB',
-              borderWidth: 1.5,
-              borderRadius: ms(999),
-              paddingHorizontal: hs(32),
-              paddingVertical: vs(12),
-              backgroundColor: '#FFFFFF',
-            }}
-          >
-            <Text
-              style={{
-                color: '#4B5563',
-                fontSize: ms(15),
-                fontWeight: '700',
-              }}
-            >
-              Huỷ tìm kiếm
-            </Text>
-          </TouchableOpacity>
+        <Text accessibilityRole="header" style={{ fontSize: ms(24), fontWeight: '800', color: failed ? colors.red500 : '#111827', textAlign: 'center', marginBottom: vs(12) }}>{title}</Text>
+        <Text accessibilityLiveRegion="polite" style={{ fontSize: ms(14), lineHeight: ms(22), color: colors.text, textAlign: 'center', marginBottom: vs(24), paddingHorizontal: hs(8) }}>{subtitle}</Text>
+        <MatchingProgressBar isMatched={matched} active={searching} readyCount={state.room?.readyUserIds.length || 0} />
+        {matched && (
+          <Button
+            title={myReady ? 'Đang chờ đối thủ' : 'Sẵn sàng vào trận'}
+            onPress={handleReady}
+            disabled={myReady || readyBusy}
+            loading={readyBusy}
+            fullWidth
+            accessibilityRole="button"
+            accessibilityLabel={readyBusy ? 'Đang xác nhận sẵn sàng' : myReady ? 'Đang chờ đối thủ' : 'Sẵn sàng vào trận'}
+            accessibilityState={{ disabled: myReady || readyBusy, busy: readyBusy }}
+            style={{ minHeight: vs(52), backgroundColor: myReady ? colors.gray50 : '#1F4086', marginBottom: vs(12) }}
+          />
         )}
-      </View>
+        <Button
+          title={failed ? 'Về sảnh' : matched ? 'Rời màn ghép trận' : 'Dừng tìm kiếm'}
+          onPress={onCancel}
+          variant={failed ? 'primary' : 'outline'}
+          fullWidth
+          accessibilityRole="button"
+          style={{ minHeight: vs(52), ...(failed ? { backgroundColor: '#1F4086' } : { borderColor: colors.gray100 }) }}
+        />
+      </ScrollView>
     </SafeAreaView>
   );
 };

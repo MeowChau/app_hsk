@@ -94,8 +94,8 @@ export const BattleHeader = ({
             }}
           >
             {isMyTurn
-              ? `Lượt của bạn — chọn đáp án ngay${turnNumber ? ` (${turnNumber}/${maxTurnsPerPlayer})` : ''}`
-              : `Lượt của ${opponentName} — bạn theo dõi${turnNumber ? ` (${turnNumber}/${maxTurnsPerPlayer})` : ''}`}
+              ? `Lượt của bạn${turnNumber ? ` (${turnNumber}/${maxTurnsPerPlayer})` : ''}`
+              : `Lượt đối thủ${turnNumber ? ` (${turnNumber}/${maxTurnsPerPlayer})` : ''}`}
           </Text>
           <Text
             numberOfLines={1}
@@ -108,7 +108,7 @@ export const BattleHeader = ({
           >
             {isMyTurn
               ? 'Đối thủ đang theo dõi lượt của bạn'
-              : 'Câu này không tính điểm của bạn.'}
+              : `${opponentName} đang trả lời`}
           </Text>
         </View>
       </View>

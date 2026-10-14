@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ScreenHeader } from '@/components/molecules';
 import { ms, hs, vs } from '@/theme';
 import { TopicPickerModal } from '../components';
-import { vocabularyApi } from '@/services/vocabulary';
+import { vocabularyApi } from '@/services/vocabulary/api';
 
 interface WritingPracticeTopic {
   id: string;
@@ -24,30 +24,24 @@ export const WritingPracticeSetupView = ({ hskLevel, onBack, onStart }: Props) =
   const [selectedTopic, setSelectedTopic] = useState<WritingPracticeTopic | null>(null);
 
   React.useEffect(() => {
+    let cancelled = false;
+    setTopics([]);
+    setSelectedTopic(null);
     const fetchTopics = async () => {
       try {
-        // Tạm thời lấy danh sách đếm topic từ backend. Backend trả về { 'HSK1-L04': 25 }
-        const counts = await vocabularyApi.getTopicCounts();
-        
-        // Convert sang mảng và lọc những topic thuộc hskLevel hiện tại 
-        // (Giả sử topic name bắt đầu bằng `HSK${hskLevel}`)
-        const topicList: WritingPracticeTopic[] = Object.keys(counts)
-          .filter(topic => topic.startsWith(`HSK${hskLevel}`))
-          .map((topic, index) => ({
-            id: topic,
-            title: topic,
-            wordCount: counts[topic],
-          }));
+        const topicList = await vocabularyApi.getTopicsForWriting(hskLevel);
+        if (cancelled) return;
           
         setTopics(topicList);
         if (topicList.length > 0) {
           setSelectedTopic(topicList[0]);
         }
       } catch (err) {
-        console.warn('Failed to fetch topics', err);
+        if (!cancelled) Alert.alert('Không thể tải chủ đề', 'Vui lòng kiểm tra kết nối và mở lại bài luyện.');
       }
     };
     fetchTopics();
+    return () => { cancelled = true; };
   }, [hskLevel]);
 
   return (

@@ -2,8 +2,14 @@ import React from 'react';
 import { View, Text } from 'react-native';
 import { useTheme, hs, vs, ms } from '@/theme';
 
-export function ActivityTimeCard() {
+interface ActivityTimeCardProps {
+  dataStatus?: string;
+}
+
+export function ActivityTimeCard({ dataStatus }: ActivityTimeCardProps) {
   const { layout } = useTheme();
+  // The dashboard API exposes totals and daily time, but no activity breakdown.
+  const activityStatus = dataStatus ?? 'Chưa có dữ liệu';
 
   return (
     <View style={{ paddingHorizontal: hs(16), marginBottom: vs(16) }}>
@@ -43,7 +49,7 @@ export function ActivityTimeCard() {
                 Ôn tập
               </Text>
               <Text style={{ color: '#9CA3AF', fontSize: ms(12) }}>
-                {'<1 phút • 0%'}
+                {activityStatus}
               </Text>
             </View>
             <View
@@ -63,7 +69,7 @@ export function ActivityTimeCard() {
                 Bài học
               </Text>
               <Text style={{ color: '#6B7280', fontSize: ms(12) }}>
-                1 giờ 1 phút • 63%
+                {activityStatus}
               </Text>
             </View>
             <View
@@ -80,7 +86,7 @@ export function ActivityTimeCard() {
                   backgroundColor: '#10B981',
                   borderRadius: ms(3),
                   height: '100%',
-                  width: '63%',
+                  width: '0%',
                 }}
               />
             </View>
@@ -93,7 +99,7 @@ export function ActivityTimeCard() {
                 Chép chính tả
               </Text>
               <Text style={{ color: '#9CA3AF', fontSize: ms(12) }}>
-                {'<1 phút • 0%'}
+                {activityStatus}
               </Text>
             </View>
             <View
@@ -113,7 +119,7 @@ export function ActivityTimeCard() {
                 Luyện gõ
               </Text>
               <Text style={{ color: '#6B7280', fontSize: ms(12) }}>
-                35 phút • 36%
+                {activityStatus}
               </Text>
             </View>
             <View
@@ -130,7 +136,7 @@ export function ActivityTimeCard() {
                   backgroundColor: '#F59E0B',
                   borderRadius: ms(3),
                   height: '100%',
-                  width: '36%',
+                  width: '0%',
                 }}
               />
             </View>

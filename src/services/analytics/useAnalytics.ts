@@ -25,7 +25,7 @@ export const useCheckIn = () => {
   return useMutation({
     mutationFn: (dto?: Partial<PingSessionDto>) =>
       analyticsApi.pingSession({
-        durationInSeconds: dto?.durationInSeconds ?? 60,
+        durationInSeconds: dto?.durationInSeconds ?? 0,
         module: dto?.module ?? 'daily_checkin',
       }),
     onSuccess: () => {

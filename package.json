@@ -3,9 +3,11 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "android": "react-native run-android",
+    "android": "node scripts/connect-local-backend.cjs && react-native run-android && node scripts/connect-local-backend.cjs",
     "ios": "react-native run-ios",
-    "start": "react-native start",
+    "start": "node scripts/connect-local-backend.cjs && react-native start",
+    "connect:backend": "node scripts/connect-local-backend.cjs",
+    "pk:client": "node scripts/pk-client.cjs",
     "test": "jest",
     "lint:rules": "eslint .",
     "lint:code-format": "prettier --check \"{src,__mocks__}/**/*.{js,json,md,ts,tsx,yml,yaml}\"",
@@ -39,6 +41,7 @@
     "react-native-svg": "^15.12.1",
     "react-native-webview": "^14.0.1",
     "react-native-worklets": "^0.12.1",
+    "socket.io-client": "4.8.3",
     "zod": "^4.0.14"
   },
   "devDependencies": {

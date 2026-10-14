@@ -1,8 +1,9 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, FlatList, SafeAreaView, ActivityIndicator, Modal, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, Keyboard } from 'react-native';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { View, Text, FlatList, SafeAreaView, ActivityIndicator, Modal, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, Keyboard, Alert } from 'react-native';
 import { ScreenHeader } from '@/components/molecules';
 import { HskExamCard } from './HskExamCard';
-import { examsApi } from '@/services/exams/api';
+import { examsApi, ExamResponseMismatchError } from '@/services/exams/api';
+import { transformBackendExamToApp } from '@/services/exams/transformers';
 import { HskExam, ExamResult } from '../../types';
 import { ms, hs, vs } from '@/theme';
 
@@ -16,40 +17,59 @@ interface Props {
 
 export const HskExamListView = ({ hskLevel, onBack, onSelectExam, examResults, onViewResult }: Props) => {
   const [fullList, setFullList] = useState<HskExam[]>([]);
-  const [displayedCount, setDisplayedCount] = useState<number>(10);
+  const [page, setPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const generation = useRef(0);
+  const requestInFlight = useRef(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isLoadingMore, setIsLoadingMore] = useState<boolean>(false);
-  const loadingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const [selectedExam, setSelectedExam] = useState<HskExam | null>(null);
   const [examTime, setExamTime] = useState<string>('');
 
-  useEffect(() => {
-    const fetchExams = async () => {
-      try {
-        setIsLoading(true);
-        const res = await examsApi.getExams({ hskLevel, limit: 100 });
-        const mapped: HskExam[] = res.data.map(e => ({
-          id: e.id.toString(),
-          level: e.hskLevel,
-          name: e.title,
-          timeLimit: 30, // Default mock or parse from description if needed
-          listeningCount: Math.floor((e.totalQuestions || 0) / 2),
-          readingCount: Math.ceil((e.totalQuestions || 0) / 2),
-          questions: [],
-        }));
-        setFullList(mapped);
-      } catch (err) {
-        console.warn('Failed to fetch exams', err);
-      } finally {
+  const loadPage = useCallback(async (nextPage: number, requestGeneration: number) => {
+    requestInFlight.current = true;
+    try {
+      const response = await examsApi.getExams({ hskLevel, page: nextPage, limit: 10 });
+      const exams = await Promise.all(response.data.map(async exam =>
+        transformBackendExamToApp(await examsApi.getExamById(exam.id, exam))));
+      if (generation.current !== requestGeneration) return;
+      setFullList(previous => nextPage === 1 ? exams : [...previous, ...exams]);
+      setPage(nextPage);
+      setTotalPages(response.totalPages);
+    } catch (error) {
+      if (generation.current === requestGeneration) Alert.alert('Không thể tải đề thi', error instanceof ExamResponseMismatchError ? error.message : 'Vui lòng kiểm tra kết nối và thử lại.');
+    } finally {
+      if (generation.current === requestGeneration) {
+        requestInFlight.current = false;
         setIsLoading(false);
+        setIsLoadingMore(false);
       }
-    };
-    fetchExams();
+    }
   }, [hskLevel]);
+
+  useEffect(() => {
+    const requestGeneration = ++generation.current;
+    setFullList([]);
+    setPage(0);
+    setTotalPages(1);
+    setSelectedExam(null);
+    setIsLoading(true);
+    setIsLoadingMore(false);
+    void loadPage(1, requestGeneration);
+    return () => { generation.current += 1; };
+  }, [loadPage]);
 
   const handlePressExam = (item: HskExam) => {
     console.log('[HskExamListView] handlePressExam called:', item.id, item.name);
+    if (item.unsupportedSkills?.length) {
+      Alert.alert('Đề thi chưa được hỗ trợ', 'Đề này có kỹ năng Nói mà giao diện hiện tại chưa hỗ trợ.');
+      return;
+    }
+    if (!item.questions?.length) {
+      Alert.alert('Đề thi chưa có câu hỏi', 'Vui lòng chọn đề thi khác.');
+      return;
+    }
     setSelectedExam(item);
     setExamTime(item.timeLimit.toString());
     console.log('[HskExamListView] selectedExam set, Modal should open');
@@ -64,21 +84,13 @@ export const HskExamListView = ({ hskLevel, onBack, onSelectExam, examResults, o
   };
 
   const handleLoadMore = () => {
-    if (!isLoadingMore && displayedCount < fullList.length) {
+    if (!requestInFlight.current && page < totalPages) {
       setIsLoadingMore(true);
-      if (loadingTimeoutRef.current) clearTimeout(loadingTimeoutRef.current);
-
-      loadingTimeoutRef.current = setTimeout(() => {
-        setDisplayedCount((prev) => {
-          const remaining = fullList.length - prev;
-          return remaining <= 10 ? fullList.length : prev + 10;
-        });
-        setIsLoadingMore(false);
-      }, 700);
+      void loadPage(page + 1, generation.current);
     }
   };
 
-  const visibleExams = fullList.slice(0, displayedCount);
+  const visibleExams = fullList;
 
   if (isLoading) {
     return (
@@ -116,7 +128,7 @@ export const HskExamListView = ({ hskLevel, onBack, onSelectExam, examResults, o
         onEndReachedThreshold={0.5}
         ListFooterComponent={
           <View style={{ alignItems: 'center', marginTop: vs(12), marginBottom: vs(16) }}>
-            {displayedCount >= fullList.length && (
+            {page >= totalPages && (
               <Text style={{ color: '#9CA3AF', fontSize: ms(14), fontWeight: '500' }}>
                 Đã hiển thị toàn bộ {fullList.length} đề thi
               </Text>

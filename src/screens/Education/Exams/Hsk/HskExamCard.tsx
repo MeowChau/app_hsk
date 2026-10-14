@@ -79,6 +79,14 @@ export const HskExamCard = ({ item, onPress, result, onHistoryPress }: Props) =>
               {item.readingCount} câu đọc
             </Text>
           </View>
+          {!!item.writingCount && (
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Svg height="16" viewBox="0 0 24 24" width="16" style={{ marginRight: hs(8) }}>
+                <Path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z" fill="none" stroke="#EF4444" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+              </Svg>
+              <Text style={{ fontSize: ms(14), color: '#374151', fontWeight: '600' }}>{item.writingCount} câu viết</Text>
+            </View>
+          )}
         </View>
 
         {/* Watermark */}

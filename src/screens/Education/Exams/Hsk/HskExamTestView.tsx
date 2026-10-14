@@ -1,5 +1,7 @@
+import { useStudyTimer } from '@/hooks/useStudyTimer';
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { View, Text, SafeAreaView, FlatList, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, SafeAreaView, FlatList, TouchableOpacity, Alert, KeyboardAvoidingView, Platform, Keyboard } from 'react-native';
+import { hasExamAnswer, isExamAnswerCorrect } from '@/services/exams/answers';
 import Svg, { Rect } from 'react-native-svg';
 import { BackButton } from '@/components/atoms';
 import { HskExamQuestionCard } from './HskExamQuestionCard';
@@ -37,7 +39,7 @@ const ExamTimer = ({ durationMin }: { durationMin: number }) => {
 };
 
 import { ActivityIndicator } from 'react-native';
-import { examsApi } from '@/services/exams/api';
+import { examsApi, ExamResponseMismatchError } from '@/services/exams/api';
 import { transformBackendExamToApp } from '@/services/exams/transformers';
 import { HskExam } from '../../types';
 
@@ -48,21 +50,32 @@ export const HskExamTestView = ({ examId, durationMin, onBack, onSubmit, isRevie
   const examLevel = fullExam?.level || 1;
 
   useEffect(() => {
+    let cancelled = false;
     const fetchExam = async () => {
       try {
         setIsLoading(true);
         const res = await examsApi.getExamById(Number(examId));
         const examApp = transformBackendExamToApp(res);
+        if (cancelled) return;
+        if (examApp.unsupportedSkills?.length || !examApp.questions?.length) {
+          Alert.alert('Đề thi chưa được hỗ trợ', examApp.unsupportedSkills?.length ? 'Đề này có kỹ năng Nói mà giao diện hiện tại chưa hỗ trợ.' : 'Đề thi chưa có câu hỏi.', [{ text: 'OK', onPress: onBack }]);
+          setFullExam(null);
+          return;
+        }
         setFullExam(examApp);
+        setAnswers(reviewAnswers || {});
+        setBookmarks({});
       } catch (err) {
-        console.warn('Failed to fetch exam:', err);
+        if (!cancelled) { setFullExam(null); Alert.alert('Không thể tải đề thi', err instanceof ExamResponseMismatchError ? err.message : 'Vui lòng kiểm tra kết nối.', [{ text: 'OK', onPress: onBack }]); }
       } finally {
-        setIsLoading(false);
+        if (!cancelled) setIsLoading(false);
       }
     };
     fetchExam();
+    return () => { cancelled = true; };
   }, [examId]);
 
+  const studyTimer = useStudyTimer(!isLoading && !isReviewMode && (fullExam?.questions?.length ?? 0) > 0);
   const questions = fullExam?.questions || [];
 
   const [answers, setAnswers] = useState<Record<string, string>>(reviewAnswers || {});
@@ -92,17 +105,19 @@ export const HskExamTestView = ({ examId, durationMin, onBack, onSubmit, isRevie
 
   const handleConfirmSubmit = () => {
     setShowSubmitModal(false);
-    if (!onSubmit) return;
+    if (!onSubmit || !questions.length) return;
     
     let correct = 0;
     let listCorrect = 0;
     let readCorrect = 0;
+    let writeCorrect = 0;
 
     questions.forEach(q => {
-      if (answers[q.id] === q.correctOptionId) {
+      if (isExamAnswerCorrect(q, answers[q.id])) {
         correct++;
         if (q.type === 'LISTENING') listCorrect++;
-        else readCorrect++;
+        else if (q.type === 'READING') readCorrect++;
+        else writeCorrect++;
       }
     });
 
@@ -113,9 +128,11 @@ export const HskExamTestView = ({ examId, durationMin, onBack, onSubmit, isRevie
       totalCount: questions.length,
       listeningCorrect: listCorrect,
       readingCorrect: readCorrect,
+      writingCorrect: writeCorrect,
       date: new Date().toLocaleDateString('vi-VN'),
       answers,
       questions,
+      durationInSeconds: studyTimer.takeSeconds(),
     };
     
     onSubmit(result);
@@ -129,18 +146,18 @@ export const HskExamTestView = ({ examId, durationMin, onBack, onSubmit, isRevie
     }
   };
 
-  const answeredCount = Object.keys(answers).length;
+  const answeredCount = questions.filter(q => hasExamAnswer(answers[q.id])).length;
   const totalCount = questions.length;
   const remainingCount = totalCount - answeredCount;
 
   const gridSections = useMemo((): QuestionGridSection[] => {
     const mapQuestion = (q: typeof questions[0]) => {
-      const isAnswered = !!answers[q.id];
+      const isAnswered = hasExamAnswer(answers[q.id]);
       const isBookmarked = !!bookmarks[q.id];
       const isCurrent = q.id === currentQuestionId;
       let isCorrect: boolean | undefined = undefined;
       if (isReviewMode && isAnswered) {
-        isCorrect = answers[q.id] === q.correctOptionId;
+        isCorrect = isExamAnswerCorrect(q, answers[q.id]);
       }
       return {
         id: q.id,
@@ -163,7 +180,12 @@ export const HskExamTestView = ({ examId, durationMin, onBack, onSubmit, isRevie
         title: 'Đọc',
         items: questions.filter(q => q.type === 'READING').map(mapQuestion),
       },
-    ];
+      {
+        key: 'writing',
+        title: 'Viết',
+        items: questions.filter(q => q.type === 'WRITING').map(mapQuestion),
+      },
+    ].filter(section => section.items.length > 0);
   }, [questions, answers, bookmarks, currentQuestionId, isReviewMode]);
 
   const handleExitPress = () => {
@@ -202,6 +224,7 @@ export const HskExamTestView = ({ examId, durationMin, onBack, onSubmit, isRevie
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#E5E7EB' }}>
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       {/* Header */}
       <View style={{ backgroundColor: '#FFFFFF', paddingHorizontal: hs(16), paddingTop: vs(8), paddingBottom: vs(12), flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: 1, borderBottomColor: '#E5E7EB' }}>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -222,7 +245,7 @@ export const HskExamTestView = ({ examId, durationMin, onBack, onSubmit, isRevie
               <ExamTimer durationMin={durationMin} />
             </View>
           )}
-          <TouchableOpacity onPress={() => setShowGridModal(true)}>
+          <TouchableOpacity accessibilityLabel="Danh sách câu hỏi" onPress={() => { Keyboard.dismiss(); setShowGridModal(true); }}>
             <Svg height="24" viewBox="0 0 24 24" width="24">
               <Rect x="3" y="3" width="7" height="7" rx="1" fill="none" stroke="#4B5563" strokeWidth="2" />
               <Rect x="14" y="3" width="7" height="7" rx="1" fill="none" stroke="#4B5563" strokeWidth="2" />
@@ -249,10 +272,13 @@ export const HskExamTestView = ({ examId, durationMin, onBack, onSubmit, isRevie
         keyExtractor={(item) => item.id}
         contentContainerStyle={{ padding: ms(16) }}
         showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
         onViewableItemsChanged={onViewableItemsChanged}
         viewabilityConfig={viewabilityConfig}
         renderItem={renderItem}
         onScrollToIndexFailed={(info) => {
+          flatListRef.current?.scrollToOffset({ offset: info.averageItemLength * info.index, animated: false });
           const wait = new Promise(resolve => setTimeout(resolve, 500));
           wait.then(() => {
             flatListRef.current?.scrollToIndex({ index: info.index, animated: true });
@@ -263,10 +289,7 @@ export const HskExamTestView = ({ examId, durationMin, onBack, onSubmit, isRevie
             {isReviewMode ? (
               <>
                 <Text style={{ fontSize: ms(14), color: '#6B7280', fontWeight: '500', marginBottom: vs(16) }}>
-                  Đúng <Text style={{ fontWeight: '800', color: '#111827' }}>{Object.entries(answers).filter(([qId, optId]) => {
-                    const q = questions.find(qq => qq.id === qId);
-                    return q && optId === q.correctOptionId;
-                  }).length}</Text>/{totalCount} câu.
+                  Đúng <Text style={{ fontWeight: '800', color: '#111827' }}>{questions.filter(q => isExamAnswerCorrect(q, answers[q.id])).length}</Text>/{totalCount} câu.
                 </Text>
                 <TouchableOpacity onPress={onBack} style={{ backgroundColor: '#1E3A8A', borderRadius: ms(8), paddingVertical: vs(12), paddingHorizontal: hs(36) }}>
                   <Text style={{ color: '#FFFFFF', fontSize: ms(16), fontWeight: '700' }}>Về trang kết quả</Text>
@@ -303,6 +326,7 @@ export const HskExamTestView = ({ examId, durationMin, onBack, onSubmit, isRevie
         onConfirm={handleConfirmSubmit}
         remainingCount={remainingCount}
       />
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };

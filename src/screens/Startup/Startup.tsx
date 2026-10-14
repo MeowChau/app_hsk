@@ -6,31 +6,32 @@ import { View } from 'react-native';
 import { Paths } from '@/navigation/paths';
 import { useTheme } from '@/theme';
 import { SafeScreen } from '@/components/templates';
-import { hasCompletedSurvey, isAuthenticated } from '@/services/storage';
+import { getUser, hasCompletedSurvey, isAuthenticated } from '@/services/storage';
 
 function Startup({ navigation }: RootScreenProps<Paths.Startup>) {
   const { layout } = useTheme();
 
   useEffect(() => {
-    // 1. Nếu đã đăng nhập -> vào thẳng màn hình chính (MainTabs)
+    // Resume an unfinished survey for the signed-in account.
     if (isAuthenticated()) {
+      const user = getUser<{ id: number | string }>();
       navigation.reset({
         index: 0,
-        routes: [{ name: Paths.MainTabs }],
+        routes: [
+          {
+            name:
+              user?.id == null
+                ? Paths.Login
+                : hasCompletedSurvey(user.id)
+                  ? Paths.MainTabs
+                  : Paths.Survey,
+          },
+        ],
       });
       return;
     }
 
-    // 2. Nếu là lần đầu vào app (chưa hoàn thành survey) -> vào màn Survey
-    if (!hasCompletedSurvey()) {
-      navigation.reset({
-        index: 0,
-        routes: [{ name: Paths.Survey }],
-      });
-      return;
-    }
-
-    // 3. Nếu đã làm survey nhưng chưa đăng nhập -> vào màn Onboarding
+    // Guests register/login before seeing the account's survey.
     navigation.reset({
       index: 0,
       routes: [{ name: Paths.Onboarding }],

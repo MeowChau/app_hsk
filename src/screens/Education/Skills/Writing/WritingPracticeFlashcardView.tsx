@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, SafeAreaView, TouchableOpacity, StyleSheet, Dimensions } from 'react-native';
+import { View, Text, SafeAreaView, TouchableOpacity, StyleSheet, Dimensions, Alert } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { ScreenHeader } from '@/components/molecules';
 import { ms, hs, vs } from '@/theme';
@@ -26,24 +26,32 @@ export const WritingPracticeFlashcardView = ({ hskLevel, topic, onBack, onFinish
   const [isLoading, setIsLoading] = useState(true);
 
   React.useEffect(() => {
+    let cancelled = false;
     const fetchWords = async () => {
       try {
         setIsLoading(true);
-        const res = await vocabularyApi.getVocabularies({ hskLevel, topic, limit: 1000 });
-        const fetchedWords: WritingPracticeWord[] = res.data.map(v => ({
+        const vocabularies = await vocabularyApi.getAllForPractice({ hskLevel, topic });
+        if (cancelled) return;
+        const fetchedWords: WritingPracticeWord[] = vocabularies.map(v => ({
           id: v.id.toString(),
           character: v.hanzi,
           pinyin: v.pinyin,
           meaning: v.meaning,
         }));
         setWords(fetchedWords);
+        setCurrentIndex(0);
+        setShowMeaning(false);
       } catch (err) {
-        console.warn('Failed to fetch words for flashcard', err);
+        if (!cancelled) {
+          setWords([]);
+          Alert.alert('Không thể tải từ vựng', 'Vui lòng kiểm tra kết nối và mở lại bài luyện.');
+        }
       } finally {
-        setIsLoading(false);
+        if (!cancelled) setIsLoading(false);
       }
     };
     fetchWords();
+    return () => { cancelled = true; };
   }, [hskLevel, topic]);
 
   const [currentIndex, setCurrentIndex] = useState(0);

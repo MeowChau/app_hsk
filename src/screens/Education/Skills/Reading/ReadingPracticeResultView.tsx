@@ -2,17 +2,19 @@ import React, { useState } from 'react';
 import { View, Text, SafeAreaView, TouchableOpacity, ScrollView } from 'react-native';
 import { ms, hs, vs } from '@/theme';
 import { PracticeResultCard } from '../components';
+import type { ReadingPracticeQuestion } from '../../types';
 
 interface Props {
   score: number;
   correctCount: number;
   totalCount: number;
   answers: Record<string, string>;
+  questions: ReadingPracticeQuestion[];
   onBackToSetup: () => void;
   onRetake: () => void;
 }
 
-export const ReadingPracticeResultView = ({ score, correctCount, totalCount, answers, onBackToSetup, onRetake }: Props) => {
+export const ReadingPracticeResultView = ({ score, correctCount, totalCount, answers, questions, onBackToSetup, onRetake }: Props) => {
   const [filterMode, setFilterMode] = useState<'ALL' | 'WRONG'>('WRONG');
   const wrongCount = totalCount - correctCount;
 
@@ -52,9 +54,9 @@ export const ReadingPracticeResultView = ({ score, correctCount, totalCount, ans
           </View>
 
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: ms(8), marginBottom: vs(16) }}>
-            {Array.from({ length: totalCount }).map((_, i) => {
-              const isCorrect = i % 2 === 0;
-              const isAnswered = i !== totalCount - 1;
+            {questions.map((question, i) => {
+              const isAnswered = answers[question.id] !== undefined;
+              const isCorrect = isAnswered && answers[question.id] === question.correctOptionId;
 
               if (filterMode === 'WRONG' && isCorrect) return null;
 

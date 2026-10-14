@@ -11,24 +11,41 @@ import {
 import Svg, { Path } from 'react-native-svg';
 
 import { UserProfileCard } from './components/UserProfileCard';
+import { ChangePasswordModal } from './components/ChangePasswordModal';
 import { DisplaySettingsCard } from './components/DisplaySettingsCard';
 import { PrivacySettingsCard } from './components/PrivacySettingsCard';
 import { HskLevelSettingsCard } from './components/HskLevelSettingsCard';
 import { SafeScreen } from '@/components/templates';
 import { Paths } from '@/navigation/paths';
 import { useTheme, hs, vs, ms } from '@/theme';
+import { filesApi } from '@/services/files/api';
+import type { PickedAvatar } from '@/services/files/api';
+import type { ChangePasswordDto } from '@/services/auth/types';
+import { getAuthSessionVersion } from '@/services/storage';
 
-import { useLogout, useProfile, useUpdateProfile } from '@/services/auth/useAuth';
+import {
+  useLogout,
+  useProfile,
+  useUpdateProfile,
+  useUpdateStudyGoals,
+  useChangePassword,
+} from '@/services/auth/useAuth';
 
 export function ProfileContent({ onLogout }: { onLogout?: () => void }) {
   const { data: profile } = useProfile();
   const updateProfileMutation = useUpdateProfile();
+  const updateStudyGoalsMutation = useUpdateStudyGoals();
   const logoutMutation = useLogout();
+  const changePasswordMutation = useChangePassword();
+  const [showChangePassword, setShowChangePassword] = useState(false);
+  const [isUpdatingPhoto, setIsUpdatingPhoto] = useState(false);
+  const photoBusy = React.useRef(false);
+  const hskBusy = React.useRef(false);
   
   const [displayName, setDisplayName] = useState(
     profile?.fullName || profile?.username || 'Người dùng',
   );
-  const [email] = useState(profile?.email || 'email@example.com');
+  const email = profile?.email || '';
   const [currentHskLevel, setCurrentHskLevel] = useState(profile?.currentHskLevel || 1);
   const [showPinyin, setShowPinyin] = useState(true);
   const [anonymousActivity, setAnonymousActivity] = useState(true);
@@ -48,7 +65,7 @@ export function ProfileContent({ onLogout }: { onLogout?: () => void }) {
       return;
     }
     updateProfileMutation.mutate(
-      { fullName: trimmed, username: trimmed },
+      { fullName: trimmed },
       {
         onSuccess: () => {
           Alert.alert('Thành công', 'Đã cập nhật thông tin tài khoản!');
@@ -60,12 +77,66 @@ export function ProfileContent({ onLogout }: { onLogout?: () => void }) {
     );
   };
 
+  const handleChangeHskLevel = (newLevel: number) => {
+    if (hskBusy.current || newLevel === currentHskLevel) return;
+    hskBusy.current = true;
+    const previousLevel = currentHskLevel;
+    updateStudyGoalsMutation.mutate(
+      { currentHskLevel: newLevel },
+      {
+        onSuccess: (updated) => {
+          setCurrentHskLevel(updated.currentHskLevel ?? previousLevel);
+          Alert.alert('Thành công', `Đã cập nhật trình độ học sang HSK ${newLevel}!`);
+        },
+        onError: (error) => {
+          setCurrentHskLevel(previousLevel);
+          Alert.alert('Lỗi', error instanceof Error ? error.message : 'Không thể cập nhật trình độ HSK. Vui lòng thử lại sau.');
+        },
+        onSettled: () => { hskBusy.current = false; },
+      },
+    );
+  };
+
+  const handleChangePhoto = async () => {
+    if (photoBusy.current) return;
+    photoBusy.current = true;
+    setIsUpdatingPhoto(true);
+    const version = getAuthSessionVersion();
+    let image: PickedAvatar | null = null;
+    try {
+      image = await filesApi.pickAvatar();
+      if (!image || version !== getAuthSessionVersion()) return;
+      const uploaded = await filesApi.uploadAvatar(image);
+      if (version !== getAuthSessionVersion()) return;
+      await updateProfileMutation.mutateAsync({ photo: { id: uploaded.id } });
+    } catch (error) {
+      if (version === getAuthSessionVersion()) Alert.alert('Không thể đổi ảnh', error instanceof Error ? error.message : 'Vui lòng thử lại sau.');
+    } finally {
+      if (image) filesApi.releaseAvatar(image.uri);
+      photoBusy.current = false;
+      setIsUpdatingPhoto(false);
+    }
+  };
+
+  const handleDeletePhoto = () => {
+    if (isUpdatingPhoto || updateProfileMutation.isPending || !profile?.photo) return;
+    updateProfileMutation.mutate({ photo: null }, {
+      onError: () => Alert.alert('Không thể xóa ảnh', 'Vui lòng kiểm tra kết nối và thử lại.'),
+    });
+  };
+
   const handleLogout = () => {
     logoutMutation.mutate(undefined, {
       onSettled: () => {
         onLogout?.();
       },
     });
+  };
+
+  const handleChangePassword = async (dto: ChangePasswordDto) => {
+    await changePasswordMutation.mutateAsync(dto);
+    setShowChangePassword(false);
+    Alert.alert('Đổi mật khẩu thành công', 'Mật khẩu đã được cập nhật. Hãy dùng mật khẩu mới cho lần đăng nhập tiếp theo.');
   };
 
   return (
@@ -105,6 +176,11 @@ export function ProfileContent({ onLogout }: { onLogout?: () => void }) {
           displayName={displayName}
           email={email}
           isSaving={updateProfileMutation.isPending}
+          photoUrl={profile?.photo?.path}
+          isUpdatingPhoto={isUpdatingPhoto || updateProfileMutation.isPending}
+          onChangePhoto={handleChangePhoto}
+          onDeletePhoto={handleDeletePhoto}
+          onChangePassword={() => setShowChangePassword(true)}
           onSave={handleSaveProfile}
           setDisplayName={setDisplayName}
         />
@@ -114,7 +190,8 @@ export function ProfileContent({ onLogout }: { onLogout?: () => void }) {
       <View style={{ paddingHorizontal: hs(16), marginBottom: vs(16) }}>
         <HskLevelSettingsCard 
           currentLevel={currentHskLevel}
-          onLevelChange={setCurrentHskLevel}
+          isSaving={updateStudyGoalsMutation.isPending}
+          onLevelChange={handleChangeHskLevel}
         />
       </View>
 
@@ -167,6 +244,13 @@ export function ProfileContent({ onLogout }: { onLogout?: () => void }) {
           </Text>
         </TouchableOpacity>
       </View>
+      {showChangePassword && (
+        <ChangePasswordModal
+          isSaving={changePasswordMutation.isPending}
+          onClose={() => setShowChangePassword(false)}
+          onSubmit={handleChangePassword}
+        />
+      )}
     </ScrollView>
   );
 }

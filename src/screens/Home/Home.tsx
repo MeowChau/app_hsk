@@ -66,7 +66,7 @@ export function HomeContent({ onSwitchTab, onNavigateToProfile }: HomeContentPro
               paddingVertical: vs(3),
             }}
           >
-            <UserAvatar size={ms(22)} style={{ marginRight: hs(6) }} />
+            <UserAvatar photoUrl={profile?.photo?.path} size={ms(22)} style={{ marginRight: hs(6) }} />
             <Text style={{ color: '#212121', fontSize: ms(14), fontWeight: '600' }}>
               {profile?.fullName || profile?.username || 'Người dùng'}
             </Text>

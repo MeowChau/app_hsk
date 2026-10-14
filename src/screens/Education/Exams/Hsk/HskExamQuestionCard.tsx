@@ -1,5 +1,8 @@
+import { useAudioPlayback, audioTime } from '@/services/audio/AudioProvider';
+import { imageSource } from '@/services/media';
+import { hasExamAnswer, isExamAnswerCorrect } from '@/services/exams/answers';
 import React, { memo } from 'react';
-import { View, Text, TouchableOpacity, Image } from 'react-native';
+import { View, Text, TouchableOpacity, Image, TextInput } from 'react-native';
 import Svg, { Path, Circle } from 'react-native-svg';
 import { ExamQuestion } from '../../types';
 import { ms, hs, vs } from '@/theme';
@@ -14,6 +17,7 @@ interface Props {
 }
 
 export const HskExamQuestionCard = memo(({ question, selectedOptionId, onSelectOption, bookmarked, onToggleBookmark, isReviewMode }: Props) => {
+  const audio = useAudioPlayback(question.audioUrl);
   return (
     <View style={{
       backgroundColor: '#FFFFFF',
@@ -31,14 +35,14 @@ export const HskExamQuestionCard = memo(({ question, selectedOptionId, onSelectO
           </View>
           {isReviewMode && (
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              {selectedOptionId ? (
-                selectedOptionId === question.correctOptionId ? (
+              {hasExamAnswer(selectedOptionId) ? (
+                isExamAnswerCorrect(question, selectedOptionId) ? (
                   <>
                     <Svg height="16" viewBox="0 0 24 24" width="16" style={{ marginRight: hs(4) }}>
                       <Circle cx="12" cy="12" r="10" fill="none" stroke="#22C55E" strokeWidth="2" />
                       <Path d="M8 12l3 3 5-5" fill="none" stroke="#22C55E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                     </Svg>
-                    <Text style={{ fontSize: ms(14), color: '#22C55E', fontWeight: '700' }}>Đúng</Text>
+                    <Text style={{ fontSize: ms(14), color: '#22C55E', fontWeight: '700' }}>{question.type === 'WRITING' ? 'Khớp đáp án mẫu' : 'Đúng'}</Text>
                   </>
                 ) : (
                   <>
@@ -46,7 +50,7 @@ export const HskExamQuestionCard = memo(({ question, selectedOptionId, onSelectO
                       <Circle cx="12" cy="12" r="10" fill="none" stroke="#EF4444" strokeWidth="2" />
                       <Path d="M15 9l-6 6M9 9l6 6" stroke="#EF4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                     </Svg>
-                    <Text style={{ fontSize: ms(14), color: '#EF4444', fontWeight: '700' }}>Sai</Text>
+                    <Text style={{ fontSize: ms(14), color: '#EF4444', fontWeight: '700' }}>{question.type === 'WRITING' ? 'Chưa khớp đáp án mẫu' : 'Sai'}</Text>
                   </>
                 )
               ) : (
@@ -81,31 +85,79 @@ export const HskExamQuestionCard = memo(({ question, selectedOptionId, onSelectO
             <Svg height="16" viewBox="0 0 24 24" width="16">
               <Path d="M11 5L6 9H2v6h4l5 4V5zM15.54 8.46a5 5 0 0 1 0 7.07M19.07 4.93a10 10 0 0 1 0 14.14" fill="none" stroke="#1E3A8A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
             </Svg>
-            <TouchableOpacity style={{ borderWidth: 1, borderColor: '#E5E7EB', borderRadius: ms(12), paddingHorizontal: hs(8), paddingVertical: vs(2) }}>
+            <TouchableOpacity onPress={() => audio.seek(-5)} style={{ borderWidth: 1, borderColor: '#E5E7EB', borderRadius: ms(12), paddingHorizontal: hs(8), paddingVertical: vs(2) }}>
               <Text style={{ fontSize: ms(12), color: '#4B5563', fontWeight: '600' }}>-5s</Text>
             </TouchableOpacity>
-            <TouchableOpacity>
+            <TouchableOpacity onPress={audio.toggle}>
               <Svg height="24" viewBox="0 0 24 24" width="24">
                 <Circle cx="12" cy="12" r="12" fill="#1E3A8A" />
-                <Path d="M10 8l6 4-6 4V8z" fill="#FFFFFF" />
+                <Path d={audio.playing ? "M8 8h3v8H8zM13 8h3v8h-3z" : "M10 8l6 4-6 4V8z"} fill="#FFFFFF" />
               </Svg>
             </TouchableOpacity>
-            <TouchableOpacity style={{ borderWidth: 1, borderColor: '#E5E7EB', borderRadius: ms(12), paddingHorizontal: hs(8), paddingVertical: vs(2) }}>
+            <TouchableOpacity onPress={() => audio.seek(5)} style={{ borderWidth: 1, borderColor: '#E5E7EB', borderRadius: ms(12), paddingHorizontal: hs(8), paddingVertical: vs(2) }}>
               <Text style={{ fontSize: ms(12), color: '#4B5563', fontWeight: '600' }}>+5s</Text>
             </TouchableOpacity>
           </View>
-          <Text style={{ fontSize: ms(14), color: '#6B7280', fontWeight: '500' }}>0:00</Text>
+          <Text style={{ fontSize: ms(14), color: '#6B7280', fontWeight: '500' }}>{audioTime(audio.position)}</Text>
         </View>
       )}
 
       {/* Question Image */}
       {question.imageUrl && (
-        <Image source={question.imageUrl} style={{ width: hs(120), height: vs(120), borderRadius: ms(8), marginBottom: vs(16), alignSelf: question.type === 'LISTENING' ? 'flex-start' : 'center' }} resizeMode="cover" />
+        <Image source={imageSource(question.imageUrl)} style={{ width: hs(120), height: vs(120), borderRadius: ms(8), marginBottom: vs(16), alignSelf: question.type === 'LISTENING' ? 'flex-start' : 'center' }} resizeMode="cover" />
+      )}
+
+      {question.text ? <Text style={{ fontSize: ms(16), color: '#111827', marginBottom: vs(12) }}>{question.text}</Text> : null}
+
+      {question.type === 'WRITING' && (
+        <View style={{ gap: vs(12) }}>
+          <Text style={{ fontSize: ms(16), fontWeight: '700', color: '#1E3A8A' }}>{question.writing?.instruction || 'Viết câu trả lời bằng chữ Hán'}</Text>
+          {!!question.writing?.pinyin && <Text style={{ fontSize: ms(18), color: '#374151' }}>Phiên âm: {question.writing.pinyin}</Text>}
+          {!!question.writing?.hint && <Text style={{ fontSize: ms(18), color: '#374151' }}>Gợi ý: {question.writing.hint}</Text>}
+          {!!question.writing?.keyword && <Text style={{ fontSize: ms(18), color: '#374151' }}>Từ khóa: {question.writing.keyword}</Text>}
+          {!!question.writing?.words.length && (
+            <View style={{ gap: vs(8) }}>
+              <Text style={{ fontSize: ms(14), color: '#6B7280' }}>Từ gợi ý{isReviewMode ? '' : ' (chạm để thêm)'}</Text>
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: ms(8) }}>
+                {question.writing.words.map((word, index) => (
+                  <TouchableOpacity key={`${index}-${word}`} disabled={isReviewMode} onPress={() => onSelectOption(question.id, `${selectedOptionId?.trim() ? `${selectedOptionId.trim()} ` : ''}${word}`)}
+                    style={{ backgroundColor: '#EFF6FF', borderColor: '#BFDBFE', borderWidth: 1, paddingHorizontal: hs(12), paddingVertical: vs(8), borderRadius: ms(8) }}>
+                    <Text style={{ fontSize: ms(18), color: '#1E3A8A' }}>{word}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+          )}
+          <Text style={{ fontSize: ms(14), color: '#374151', fontWeight: '600' }}>Câu trả lời của bạn</Text>
+          {isReviewMode ? (
+            <Text selectable style={{ fontSize: ms(20), color: '#111827', padding: ms(12), backgroundColor: '#F3F4F6', borderRadius: ms(8) }}>{hasExamAnswer(selectedOptionId) ? selectedOptionId : 'Chưa trả lời'}</Text>
+          ) : (
+            <TextInput
+              accessibilityLabel={`Câu trả lời viết câu ${question.index}`}
+              value={selectedOptionId || ''}
+              onChangeText={text => onSelectOption(question.id, text)}
+              placeholder="Nhập chữ Hán hoặc câu trả lời…"
+              placeholderTextColor="#9CA3AF"
+              multiline
+              autoCorrect={false}
+              autoCapitalize="none"
+              textAlignVertical="top"
+              style={{ minHeight: vs(100), fontSize: ms(20), color: '#111827', borderWidth: 1.5, borderColor: hasExamAnswer(selectedOptionId) ? '#1E3A8A' : '#D1D5DB', borderRadius: ms(8), padding: ms(12) }}
+            />
+          )}
+          {isReviewMode && (
+            <View style={{ backgroundColor: '#F0FDF4', padding: ms(12), borderRadius: ms(8), gap: vs(6) }}>
+              <Text style={{ fontSize: ms(14), fontWeight: '700', color: '#15803D' }}>Đáp án mẫu</Text>
+              <Text selectable style={{ fontSize: ms(20), color: '#15803D' }}>{question.writing?.correctAnswers.join(' / ') || 'Chưa có đáp án mẫu'}</Text>
+              <Text style={{ fontSize: ms(12), color: '#4B5563' }}>Phần Viết được đối chiếu với đáp án mẫu, bỏ qua khoảng trắng và dấu câu cuối. Câu khác đáp án mẫu chưa được chấm theo ý nghĩa.</Text>
+            </View>
+          )}
+        </View>
       )}
 
       {/* Options */}
       <View style={{ gap: vs(8) }}>
-        {question.options.map((opt) => {
+        {(question.type === 'WRITING' ? [] : question.options).map((opt) => {
           const isSelected = selectedOptionId === opt.id;
           const isCorrectAnswer = opt.id === question.correctOptionId;
           
@@ -138,6 +190,7 @@ export const HskExamQuestionCard = memo(({ question, selectedOptionId, onSelectO
           return (
             <TouchableOpacity
               key={opt.id}
+              disabled={isReviewMode}
               onPress={() => onSelectOption(question.id, opt.id)}
               activeOpacity={isReviewMode ? 1 : 0.7}
               style={{
@@ -163,7 +216,7 @@ export const HskExamQuestionCard = memo(({ question, selectedOptionId, onSelectO
               )}
               {opt.text && <Text style={{ fontSize: ms(16), color: textColor, fontWeight: '600', flex: 1 }}>{opt.text}</Text>}
               
-              {opt.imageUrl && <Image source={opt.imageUrl} style={{ width: hs(80), height: vs(80), borderRadius: ms(8), marginLeft: hs(8) }} resizeMode="contain" />}
+              {opt.imageUrl && <Image source={imageSource(opt.imageUrl)} style={{ width: hs(80), height: vs(80), borderRadius: ms(8), marginLeft: hs(8) }} resizeMode="contain" />}
 
               {isReviewMode && isCorrectAnswer && (
                  <Text style={{ fontSize: ms(14), color: '#15803D', fontWeight: '700', marginLeft: 'auto', paddingLeft: hs(8) }}>Đáp án đúng</Text>
@@ -175,8 +228,10 @@ export const HskExamQuestionCard = memo(({ question, selectedOptionId, onSelectO
     </View>
   );
 }, (prev, next) => {
-  return prev.question.id === next.question.id &&
+  return prev.question === next.question &&
          prev.selectedOptionId === next.selectedOptionId &&
          prev.bookmarked === next.bookmarked &&
-         prev.isReviewMode === next.isReviewMode;
+         prev.isReviewMode === next.isReviewMode &&
+         prev.onSelectOption === next.onSelectOption &&
+         prev.onToggleBookmark === next.onToggleBookmark;
 });

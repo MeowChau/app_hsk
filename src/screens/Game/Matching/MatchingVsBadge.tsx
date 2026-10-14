@@ -1,13 +1,14 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
-import { hs, vs, ms } from '@/theme';
+import { hs, ms } from '@/theme';
 
-export const MatchingVsBadge = () => {
+export const MatchingVsBadge = ({ active = true }: { active?: boolean }) => {
   const pulseAnim = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
-    Animated.loop(
+    if (!active) { pulseAnim.setValue(1); return; }
+    const animation = Animated.loop(
       Animated.sequence([
         Animated.timing(pulseAnim, {
           toValue: 1.08,
@@ -20,30 +21,26 @@ export const MatchingVsBadge = () => {
           useNativeDriver: true,
         }),
       ])
-    ).start();
-  }, [pulseAnim]);
+    );
+    animation.start();
+    return () => animation.stop();
+  }, [pulseAnim, active]);
 
   return (
     <Animated.View
       style={{
-        width: hs(48),
-        height: vs(48),
+        width: ms(48),
+        height: ms(48),
         borderRadius: ms(24),
-        backgroundColor: '#8B5CF6',
+        backgroundColor: '#1F4086',
         alignItems: 'center',
         justifyContent: 'center',
-        marginHorizontal: hs(-8),
-        zIndex: 10,
-        elevation: 5,
-        shadowColor: '#8B5CF6',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.35,
-        shadowRadius: 6,
+        marginHorizontal: hs(8),
         transform: [{ scale: pulseAnim }],
       }}
     >
       {/* Icon 2 thanh kiếm bắt chéo chuẩn Lucide swords như trong Figma */}
-      <Svg height="26" viewBox="0 0 24 24" width="26" fill="none">
+      <Svg height={ms(24)} viewBox="0 0 24 24" width={ms(24)} fill="none">
         <Path
           d="m13 19 6-6"
           stroke="#FFFFFF"
