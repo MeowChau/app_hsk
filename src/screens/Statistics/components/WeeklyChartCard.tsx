@@ -10,6 +10,7 @@ export interface WeeklyChartCardProps {
   averagePerDay?: number;
   totalDaysStudied?: number;
   longestStreak?: number;
+  chart7Dates?: string[];
 }
 
 export function WeeklyChartCard({
@@ -18,6 +19,7 @@ export function WeeklyChartCard({
   averagePerDay = 0,
   totalDaysStudied = 0,
   longestStreak = 0,
+  chart7Dates,
 }: WeeklyChartCardProps) {
   const { layout } = useTheme();
 
@@ -28,7 +30,7 @@ export function WeeklyChartCard({
 
   const days = safeChart.map((hours, i) => {
     const d = new Date(Date.now() - (6 - i) * 24 * 60 * 60 * 1000);
-    const label = dayNames[d.getDay()];
+    const label = dayNames[chart7Dates?.[i] ? new Date(chart7Dates[i] + 'T00:00:00Z').getUTCDay() : d.getDay()];
     const isToday = i === 6;
     const heightRatio = maxVal > 0 ? hours / maxVal : 0;
     const barHeight = hours > 0 ? Math.max(vs(10), heightRatio * vs(50)) : vs(4);

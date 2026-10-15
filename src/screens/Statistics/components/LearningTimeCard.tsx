@@ -8,11 +8,20 @@ export interface LearningTimeCardProps {
   timeToday?: number;
   time7Days?: number;
   timeTotal?: number;
+  timeTodaySeconds?: number;
+  time7DaysSeconds?: number;
+  timeTotalSeconds?: number;
+  pendingCount?: number;
 }
 
 export function formatHours(hours: number = 0): string {
-  if (!hours || hours <= 0) return '0 phút';
-  const totalMinutes = Math.round(hours * 60);
+  return formatStudySeconds(hours * 3600);
+}
+
+export function formatStudySeconds(seconds: number = 0): string {
+  if (!Number.isFinite(seconds) || seconds <= 0) return '0 phút';
+  if (seconds < 60) return '<1 phút';
+  const totalMinutes = Math.floor(seconds / 60);
   if (totalMinutes < 60) return `${totalMinutes} phút`;
   const h = Math.floor(totalMinutes / 60);
   const m = totalMinutes % 60;
@@ -24,6 +33,10 @@ export function LearningTimeCard({
   timeToday = 0,
   time7Days = 0,
   timeTotal = 0,
+  timeTodaySeconds,
+  time7DaysSeconds,
+  timeTotalSeconds,
+  pendingCount = 0,
 }: LearningTimeCardProps) {
   const { layout } = useTheme();
 
@@ -79,7 +92,7 @@ export function LearningTimeCard({
               }}
             >
               <Text style={{ color: '#000000', fontSize: ms(14), fontWeight: '700' }}>
-                {dataStatus ?? formatHours(timeToday)}
+                {dataStatus ?? formatStudySeconds(timeTodaySeconds ?? timeToday * 3600)}
               </Text>
               <Text style={{ color: '#000000', fontSize: ms(16), marginTop: vs(2), fontWeight: '800' }}>
                 Hôm nay
@@ -95,7 +108,7 @@ export function LearningTimeCard({
               }}
             >
               <Text style={{ color: '#000000', fontSize: ms(14), fontWeight: '700' }}>
-                {dataStatus ?? formatHours(time7Days)}
+                {dataStatus ?? formatStudySeconds(time7DaysSeconds ?? time7Days * 3600)}
               </Text>
               <Text style={{ color: '#000000', fontSize: ms(16), marginTop: vs(2), fontWeight: '800' }}>
                 7 ngày qua
@@ -113,7 +126,7 @@ export function LearningTimeCard({
             }}
           >
             <Text style={{ color: '#000000', fontSize: ms(14), fontWeight: '700' }}>
-              {dataStatus ?? formatHours(timeTotal)}
+              {dataStatus ?? formatStudySeconds(timeTotalSeconds ?? timeTotal * 3600)}
             </Text>
             <Text style={{ color: '#000000', fontSize: ms(16), marginTop: vs(2), fontWeight: '800' }}>
               Tổng cộng
@@ -148,7 +161,8 @@ export function LearningTimeCard({
               lineHeight: ms(16),
             }}
           >
-            Chỉ tính lúc bạn thực sự đang học: ôn tập, bài học, chép chính tả và luyện gõ. Tab ẩn hoặc ngồi không quá 1 phút thì đồng hồ tự dừng.
+            Tính thời gian ôn từ vựng, luyện kỹ năng, thi thử HSK và đấu PK. Đồng hồ dừng khi rời màn, app xuống nền hoặc không thao tác trong 1 phút.
+            {pendingCount > 0 ? ' Còn ' + pendingCount + ' lượt học đang chờ đồng bộ.' : ''}
           </Text>
         </View>
       </View>

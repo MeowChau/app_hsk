@@ -7,6 +7,13 @@ import {
   BackendQuestionSkill,
 } from './types';
 
+const getLessonNumber = (topic: BackendTopicSummary): number => {
+  const match =
+    topic.topicKey.match(/-L(\d+)$/i) ??
+    topic.titleVi.match(/^\s*Bài\s*(\d+)/i);
+  return match ? Number(match[1]) : Number.MAX_SAFE_INTEGER;
+};
+
 export const educationApi = {
   getPracticeSets: async (
     params?: PracticeSetQueryParams,
@@ -32,11 +39,18 @@ export const educationApi = {
 
   getTopics: async (hskLevel?: number): Promise<BackendTopicSummary[]> => {
     const searchParams = hskLevel ? { hskLevel } : undefined;
-    return instance
+    const topics = await instance
       .get('practice-sets/topics', {
         searchParams,
       })
       .json<BackendTopicSummary[]>();
+
+    return topics.sort(
+      (left, right) =>
+        left.hskLevel - right.hskLevel ||
+        getLessonNumber(left) - getLessonNumber(right) ||
+        left.titleVi.localeCompare(right.titleVi, 'vi'),
+    );
   },
 
   getSummary: async (

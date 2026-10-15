@@ -52,21 +52,25 @@ export const vocabularyApi = {
     hskLevel: number,
   ): Promise<Array<{ id: string; title: string; wordCount: number }>> => {
     const [metadata, words] = await Promise.all([
-      educationApi.getTopics(),
+      educationApi.getTopics(hskLevel),
       vocabularyApi.getAllForPractice({ hskLevel }),
     ]);
     const counts = new Map<string, number>();
     words.forEach((word) => {
       if (word.topic) counts.set(word.topic, (counts.get(word.topic) ?? 0) + 1);
     });
-    const titles = new Map(
-      metadata.map((topic) => [topic.topicKey, topic.titleVi]),
-    );
-    return Array.from(counts, ([id, wordCount]) => ({
-      id,
-      wordCount,
-      title: titles.get(id) || id,
-    }));
+    return metadata
+      .filter(
+        (topic) =>
+          /^HSK\d+-L\d+$/i.test(topic.topicKey) ||
+          /^\s*Bài\s*\d+/i.test(topic.titleVi),
+      )
+      .flatMap((topic) => {
+        const wordCount = counts.get(topic.topicKey) ?? 0;
+        return wordCount > 0
+          ? [{ id: topic.topicKey, title: topic.titleVi, wordCount }]
+          : [];
+      });
   },
 
   getById: async (id: number): Promise<Vocabulary> => {

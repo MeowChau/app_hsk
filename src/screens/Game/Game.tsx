@@ -11,7 +11,6 @@ import { GameBattleView, type MatchResultData } from './Battle';
 import { useProfile } from '@/services/auth/useAuth';
 import { useStreakLeaderboard } from '@/services/leaderboard';
 import { usePkGame } from '@/services/game/usePkGame';
-import { useCheckIn } from '@/services/analytics';
 
 interface MatchHistoryItem {
   id: string;
@@ -27,7 +26,6 @@ interface MatchHistoryItem {
 
 export function GameContent({ navigation, route, targetView: propTargetView }: any) {
   const { height: screenHeight } = useWindowDimensions();
-  const checkInMutation = useCheckIn();
   const isFocused = useIsFocused();
   const [matchAttempt, setMatchAttempt] = useState(0);
 
@@ -71,13 +69,7 @@ export function GameContent({ navigation, route, targetView: propTargetView }: a
   }, [isFocused, viewState]);
   const handleSearch = () => { setMatchAttempt(value => value + 1); setViewState('matching'); };
 
-  const handleBattleComplete = async (result: MatchResultData, durationInSeconds: number) => {
-    const outcomes = await Promise.allSettled([
-      ...(durationInSeconds > 0 ? [checkInMutation.mutateAsync({ durationInSeconds, module: 'game_battle' })] : []),
-    ]);
-    if (outcomes.some(outcome => outcome.status === 'rejected')) {
-      Alert.alert('Chưa lưu thời gian học', 'Vui lòng kiểm tra kết nối và thử lại sau.');
-    }
+  const handleBattleComplete = async (result: MatchResultData, _durationInSeconds: number) => {
     setMatchHistory(previous => [{ id: pk.state.match?.roomId || Date.now().toString(), matchIndex: previous.length + 1, opponentName: result.opponentName, correctCount: result.correctCount, totalQuestions: result.totalQuestions, score: result.myScore, isWin: result.isWin, isDraw: result.isDraw, xpEarned: 0 }, ...previous]);
   };
 

@@ -4,7 +4,7 @@ import Svg, { Path } from 'react-native-svg';
 import { SectionCard } from '@/components/molecules';
 import { useTheme, hs, vs, ms } from '@/theme';
 
-import { useTopicCounts } from '@/services/vocabulary';
+import { useDashboardStats } from '@/services/analytics/useAnalytics';
 
 interface VocabularyStatsCardProps {
   onPressDetail?: () => void;
@@ -22,16 +22,14 @@ export function VocabularyStatsCard({
   reviewCount,
 }: VocabularyStatsCardProps) {
   const { layout } = useTheme();
-  const { data: topicCounts } = useTopicCounts();
-  const totalWordsInTopic = React.useMemo(() => {
-    if (!topicCounts) return 0;
-    return Object.values(topicCounts).reduce((acc, count) => acc + count, 0);
-  }, [topicCounts]);
-
-  const displayLearned = learnedCount !== undefined ? `${learnedCount} từ` : '0 từ';
-  const displayMastered = masteredCount !== undefined ? `${masteredCount} từ` : '0 từ';
-  const displayLearning = learningCount !== undefined ? `${learningCount} từ` : (totalWordsInTopic > 0 ? `${totalWordsInTopic} từ` : '0 từ');
-  const displayReview = reviewCount !== undefined ? `${reviewCount} từ` : '0 từ';
+  const { data, isError } = useDashboardStats();
+  const stats = data?.vocabularyStats;
+  const missing = isError ? 'Không tải được' : !data ? 'Đang tải…' : 'Chưa có dữ liệu';
+  const formatCount = (count?: number) => count === undefined ? missing : count + ' từ';
+  const displayLearned = formatCount(learnedCount ?? stats?.learnedCount);
+  const displayMastered = formatCount(masteredCount ?? stats?.masteredCount);
+  const displayLearning = formatCount(learningCount ?? stats?.learningCount);
+  const displayReview = formatCount(reviewCount ?? stats?.reviewCount);
 
   return (
     <SectionCard

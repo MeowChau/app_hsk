@@ -238,7 +238,7 @@ export const ReadingPracticeView = ({ hskLevel, topic, onBack, onSubmit }: Props
     return () => { cancelled = true; };
   }, [hskLevel, topic]);
 
-  const studyTimer = useStudyTimer(!isLoading && questions.length > 0);
+  const studyTimer = useStudyTimer(!isLoading && questions.length > 0, 'practice_reading');
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [bookmarks, setBookmarks] = useState<Record<string, boolean>>({});
   const [showSubmitModal, setShowSubmitModal] = useState(false);
@@ -312,7 +312,7 @@ export const ReadingPracticeView = ({ hskLevel, topic, onBack, onSubmit }: Props
 
   if (isLoading) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: '#E5E7EB', justifyContent: 'center', alignItems: 'center' }}>
+      <SafeAreaView onTouchStart={studyTimer.markActivity} onTouchMove={studyTimer.markActivity} style={{ flex: 1, backgroundColor: '#E5E7EB', justifyContent: 'center', alignItems: 'center' }}>
         <Text style={{ fontSize: ms(16), color: '#4B5563' }}>Đang tải dữ liệu...</Text>
       </SafeAreaView>
     );
@@ -320,7 +320,7 @@ export const ReadingPracticeView = ({ hskLevel, topic, onBack, onSubmit }: Props
 
   if (questions.length === 0) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: '#E5E7EB', justifyContent: 'center', alignItems: 'center' }}>
+      <SafeAreaView onTouchStart={studyTimer.markActivity} onTouchMove={studyTimer.markActivity} style={{ flex: 1, backgroundColor: '#E5E7EB', justifyContent: 'center', alignItems: 'center' }}>
         <Text style={{ fontSize: ms(16), color: '#4B5563', marginBottom: vs(16) }}>Không có câu hỏi nào.</Text>
         <TouchableOpacity onPress={onBack} style={{ padding: ms(12), backgroundColor: '#1E3A8A', borderRadius: ms(8) }}>
           <Text style={{ color: '#FFFFFF', fontWeight: 'bold' }}>Quay lại</Text>
@@ -330,7 +330,7 @@ export const ReadingPracticeView = ({ hskLevel, topic, onBack, onSubmit }: Props
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#E5E7EB' }}>
+    <SafeAreaView onTouchStart={studyTimer.markActivity} onTouchMove={studyTimer.markActivity} style={{ flex: 1, backgroundColor: '#E5E7EB' }}>
       {/* Sticky Header */}
       <View style={{ backgroundColor: '#FFFFFF', paddingHorizontal: hs(16), paddingTop: vs(8), paddingBottom: vs(12), flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: 1, borderBottomColor: '#E5E7EB' }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>

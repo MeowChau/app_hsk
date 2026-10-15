@@ -3,6 +3,16 @@ import { analyticsApi } from './api';
 import { PingSessionDto } from './types';
 import { isAuthenticated } from '../storage';
 import { AUTH_QUERY_KEYS } from '../auth/useAuth';
+import { useEffect } from 'react';
+import type { QueryClient } from '@tanstack/react-query';
+import { subscribeStudyEvents } from './recording';
+
+export const useSyncStudyEvents = (queryClient: QueryClient) => {
+  useEffect(() => subscribeStudyEvents(() => {
+    void queryClient.invalidateQueries({ queryKey: ANALYTICS_QUERY_KEYS.dashboard });
+    void queryClient.invalidateQueries({ queryKey: ['leaderboard'] });
+  }), [queryClient]);
+};
 
 export const ANALYTICS_QUERY_KEYS = {
   dashboard: ['analytics', 'dashboard'] as const,

@@ -7,6 +7,7 @@ import { createMMKV } from 'react-native-mmkv';
 import ApplicationNavigator from '@/navigation/Application';
 import { ThemeProvider } from '@/theme';
 import '@/translations';
+import { useSyncStudyEvents } from '@/services/analytics/useAnalytics';
 
 export const queryClient = new QueryClient({
   defaultOptions: {
@@ -22,6 +23,7 @@ export const queryClient = new QueryClient({
 export const storage = createMMKV();
 
 function App() {
+  useSyncStudyEvents(queryClient);
   return (
     <GestureHandlerRootView>
       <QueryClientProvider client={queryClient}>

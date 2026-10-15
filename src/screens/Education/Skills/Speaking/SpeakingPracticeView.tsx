@@ -6,6 +6,7 @@ import { transformQuestionToSpeaking } from '@/services/education/transformers';
 import { SpeakingPracticeQuestion } from '../../types';
 import { ms, hs, vs } from '@/theme';
 import { SubmitConfirmModal, QuestionGridModal } from '@/screens/Education/components';
+import { useStudyTimer } from '@/hooks/useStudyTimer';
 
 interface Props {
   topic: string;
@@ -29,6 +30,7 @@ export const SpeakingPracticeView = ({ topic, onBack, onSubmit }: Props) => {
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   const [isLoading, setIsLoading] = useState(true);
+  const studyTimer = useStudyTimer(!isLoading && questions.length > 0, 'practice_speaking');
 
   useEffect(() => {
     const fetchQuestions = async () => {
@@ -144,7 +146,7 @@ export const SpeakingPracticeView = ({ topic, onBack, onSubmit }: Props) => {
   const handleConfirmSubmit = () => {
     setShowSubmitModal(false);
     const passedCount = Object.values(results).filter(s => s >= 75).length;
-    onSubmit({ score: averageScore, passedCount, totalCount });
+    onSubmit({ score: averageScore, passedCount, totalCount, durationInSeconds: studyTimer.takeSeconds() });
   };
 
   const handleRetry = () => {
@@ -161,7 +163,7 @@ export const SpeakingPracticeView = ({ topic, onBack, onSubmit }: Props) => {
 
   if (isLoading) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: '#E5E7EB', justifyContent: 'center', alignItems: 'center' }}>
+      <SafeAreaView onTouchStart={studyTimer.markActivity} onTouchMove={studyTimer.markActivity} style={{ flex: 1, backgroundColor: '#E5E7EB', justifyContent: 'center', alignItems: 'center' }}>
         <Text style={{ fontSize: ms(16), color: '#4B5563' }}>Đang tải dữ liệu...</Text>
       </SafeAreaView>
     );
@@ -169,7 +171,7 @@ export const SpeakingPracticeView = ({ topic, onBack, onSubmit }: Props) => {
 
   if (questions.length === 0 || !currentQ) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: '#E5E7EB', justifyContent: 'center', alignItems: 'center' }}>
+      <SafeAreaView onTouchStart={studyTimer.markActivity} onTouchMove={studyTimer.markActivity} style={{ flex: 1, backgroundColor: '#E5E7EB', justifyContent: 'center', alignItems: 'center' }}>
         <Text style={{ fontSize: ms(16), color: '#4B5563', marginBottom: vs(16) }}>Không có câu hỏi nào.</Text>
         <TouchableOpacity onPress={onBack} style={{ padding: ms(12), backgroundColor: '#1E3A8A', borderRadius: ms(8) }}>
           <Text style={{ color: '#FFFFFF', fontWeight: 'bold' }}>Quay lại</Text>
@@ -179,7 +181,7 @@ export const SpeakingPracticeView = ({ topic, onBack, onSubmit }: Props) => {
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#E5E7EB' }}>
+    <SafeAreaView onTouchStart={studyTimer.markActivity} onTouchMove={studyTimer.markActivity} style={{ flex: 1, backgroundColor: '#E5E7EB' }}>
       {/* Sticky Header (Giống màn Luyện Nghe) */}
       <View style={{ backgroundColor: '#FFFFFF', paddingHorizontal: hs(16), paddingTop: vs(8), paddingBottom: vs(12), flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: 1, borderBottomColor: '#E5E7EB' }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>

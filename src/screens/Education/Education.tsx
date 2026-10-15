@@ -22,10 +22,8 @@ import { WritingPracticeView } from './Skills/Writing/WritingPracticeView';
 import { WritingPracticeResultView } from './Skills/Writing/WritingPracticeResultView';
 // import { generateWritingWords } from './Skills/Writing/writingMockData';
 import type { SkillType, EducationViewMode, ExamResult } from './types';
-import { useCheckIn } from '@/services/analytics';
 
 export function EducationContent({ navigation }: any) {
-  const checkInMutation = useCheckIn();
   const [viewMode, setViewMode] = useState<EducationViewMode>('main');
   const [activeTab, setActiveTab] = useState<number>(1);
   const [selectedSkill, setSelectedSkill] = useState<SkillType>('NGHE');
@@ -36,6 +34,7 @@ export function EducationContent({ navigation }: any) {
 
   const [practiceHsk, setPracticeHsk] = useState<number>(1);
   const [practiceTopic, setPracticeTopic] = useState<string>('');
+  const [writingWordOrder, setWritingWordOrder] = useState<string[]>([]);
 
   const handleSelectHskLevel = (level: number) => {
     setSelectedHsk(level);
@@ -57,16 +56,8 @@ export function EducationContent({ navigation }: any) {
     setViewMode('examList');
   };
 
-  const recordStudy = (durationInSeconds: number, module: string) => {
-    if (durationInSeconds <= 0) return;
-    checkInMutation.mutate({ durationInSeconds, module }, {
-      onError: () => Alert.alert('Chưa lưu được thời gian học', 'Kết quả bài làm vẫn được hiển thị. Vui lòng kiểm tra kết nối.'),
-    });
-  };
-
   const handleSubmitExam = (result: ExamResult) => {
     setExamResults(prev => ({ ...prev, [result.examId]: result }));
-    recordStudy(result.durationInSeconds ?? 0, 'hsk_exam');
     setViewMode('examResult');
   };
 
@@ -145,6 +136,7 @@ export function EducationContent({ navigation }: any) {
           onStart={(topic) => {
             setPracticeHsk(selectedHsk);
             setPracticeTopic(topic);
+            setWritingWordOrder([]);
             setViewMode('skillFlashcard');
           }}
         />
@@ -169,7 +161,10 @@ export function EducationContent({ navigation }: any) {
         hskLevel={practiceHsk}
         topic={practiceTopic}
         onBack={() => setViewMode('skillSetup')}
-        onFinishFlashcards={() => setViewMode('skillPractice')}
+        onFinishFlashcards={(wordOrder) => {
+          setWritingWordOrder(wordOrder);
+          setViewMode('skillPractice');
+        }}
       />
     );
   }
@@ -182,7 +177,6 @@ export function EducationContent({ navigation }: any) {
           onBack={() => setViewMode('skillSetup')}
           onSubmit={(result) => {
             setExamResults(prev => ({ ...prev, 'speaking_practice': result }));
-            checkInMutation.mutate({ durationInSeconds: 180, module: 'practice_speaking' });
             setViewMode('skillPracticeResult');
           }}
         />
@@ -197,7 +191,6 @@ export function EducationContent({ navigation }: any) {
           onBack={() => setViewMode('skillSetup')}
           onSubmit={(result) => {
             setExamResults(prev => ({ ...prev, 'reading_practice': result as any }));
-            recordStudy(result.durationInSeconds, 'practice_reading');
             setViewMode('skillPracticeResult');
           }}
         />
@@ -209,10 +202,10 @@ export function EducationContent({ navigation }: any) {
         <WritingPracticeView
           hskLevel={practiceHsk}
           topic={practiceTopic}
+          wordOrder={writingWordOrder}
           onBack={() => setViewMode('skillSetup')}
           onSubmit={(result) => {
             setExamResults(prev => ({ ...prev, 'writing_practice': result as any }));
-            recordStudy(result.durationInSeconds, 'practice_writing');
             setViewMode('skillPracticeResult');
           }}
         />
@@ -226,7 +219,6 @@ export function EducationContent({ navigation }: any) {
         onBack={() => setViewMode('skillSetup')}
         onSubmit={(result) => {
           setExamResults(prev => ({ ...prev, 'listening_practice': result as any }));
-          recordStudy(result.durationInSeconds, 'practice_listening');
           setViewMode('skillPracticeResult');
         }}
       />
