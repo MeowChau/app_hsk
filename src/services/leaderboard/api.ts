@@ -12,6 +12,7 @@ export const leaderboardApi = {
     if (params?.hskLevel) searchParams.hskLevel = params.hskLevel;
     if (params?.timeframe) searchParams.timeframe = params.timeframe;
     if (params?.limit) searchParams.limit = params.limit;
+    if (params?.metric) searchParams.metric = params.metric;
 
     return instance
       .get('leaderboard/streak', {

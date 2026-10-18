@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { gameApi } from './api';
 import { isAuthenticated } from '../storage';
+import { AUTH_QUERY_KEYS } from '../auth/useAuth';
 
 export const GAME_QUERY_KEYS = {
   words: (hskLevel: number, limit?: number) =>
@@ -31,8 +32,12 @@ export const useSubmitOfflineScore = () => {
 
   return useMutation({
     mutationFn: (score: number) => gameApi.submitOfflineScore(score),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: GAME_QUERY_KEYS.topScores });
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: GAME_QUERY_KEYS.topScores }),
+        queryClient.invalidateQueries({ queryKey: AUTH_QUERY_KEYS.profile }),
+        queryClient.invalidateQueries({ queryKey: ['leaderboard'] }),
+      ]);
     },
   });
 };

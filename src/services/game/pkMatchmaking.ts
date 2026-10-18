@@ -1,6 +1,9 @@
 import { io } from 'socket.io-client';
 import { API_ORIGIN } from '../config';
-import { getToken, getAuthSessionVersion, subscribeAuthSession } from '../storage';
+import {
+  getToken, getAuthSessionVersion, subscribeAuthSession,
+  getPendingPkRoomId, savePendingPkRoomId, clearPendingPkRoomId,
+} from '../storage';
 
 export interface PkPlayer { id: number; name: string; photoUrl: string | null; hskLevel: number }
 export interface PkQuestion { id: number; hanzi: string; pinyin: string; prompt: string; options: { id: string; text: string }[] }
@@ -8,11 +11,12 @@ export interface PkScore { userId: number; score: number; correctCount: number; 
 export interface PkRoomState {
   roomId: string; users: [number, number]; players: PkPlayer[]; readyUserIds: number[];
   index: number; stage: 'waiting' | 'playing' | 'reveal' | 'finished'; turnUserId: number;
-  deadline: number; scores: PkScore[]; serverNow: number;
+  deadline: number; scores: PkScore[]; serverNow: number; revision?: number;
 }
 export interface PkMatch extends PkRoomState { questions: PkQuestion[] }
 export interface PkAnswer extends PkRoomState { userId: number; questionId: number; optionId: string | null; correct: boolean; correctOptionId: string }
-export interface PkResult extends PkRoomState { winnerId: number | null; reason: 'completed' | 'forfeit'; durationInSeconds: number }
+export interface PkReward { userId: number; expAwarded: number; level: number; currentExp: number; totalExp: number }
+export interface PkResult extends PkRoomState { winnerId: number | null; reason: 'completed' | 'forfeit'; durationInSeconds: number; rewards?: PkReward[] }
 export interface PkMatchingState {
   phase: 'connecting' | 'searching' | 'matched' | 'playing' | 'finished' | 'error';
   hskLevel?: number; onlineCount?: number; match?: PkMatch; room?: PkRoomState;
@@ -45,12 +49,27 @@ export const startPkMatchmaking = (userId: number, hskLevel: number, onState: (s
   let active = true;
   let requested = false;
   let state: PkMatchingState = { phase: 'connecting', hskLevel };
-  const socket = io(API_ORIGIN + '/game', { transports: ['websocket'], extraHeaders: { Authorization: 'Bearer ' + token }, query: { hskLevel }, autoConnect: false, forceNew: true, reconnection: false, timeout: 10000 });
+  const cancelledRooms = new Map<string, string>();
+  const pendingRoomId = getPendingPkRoomId(userId);
+  const socket = io(API_ORIGIN + '/game', { transports: ['websocket'], extraHeaders: { Authorization: 'Bearer ' + token }, query: { hskLevel, ...(pendingRoomId ? { roomId: pendingRoomId } : {}) }, autoConnect: false, forceNew: true, reconnection: false, timeout: 10000 });
   const publish = (next: Partial<PkMatchingState>) => {
     if (!active || version !== getAuthSessionVersion()) return;
     state = { ...state, ...next }; onState(state);
   };
   const fail = (message: string) => { publish({ phase: 'error', message }); socket.disconnect(); };
+  const acceptsRoom = (room: PkRoomState) => {
+    if (!active || version !== getAuthSessionVersion() || state.phase === 'error' || !room) return false;
+    if (room.revision !== undefined && (!Number.isSafeInteger(room.revision) || room.revision < 0)) return false;
+    if (state.match && state.match.roomId !== room.roomId) return false;
+    const current = state.room;
+    if (!current) return true;
+    // Separate Redis deliveries can arrive out of commit order. Equal revisions
+    // are valid: ready/game_started and resumed answer events share a revision.
+    if (current.revision !== undefined && (room.revision === undefined || room.revision < current.revision)) return false;
+    if (room.index < current.index) return false;
+    const stages = { waiting: 0, playing: 1, reveal: 2, finished: 3 };
+    return room.index !== current.index || stages[room.stage] >= stages[current.stage];
+  };
   const unsubscribe = subscribeAuthSession(() => {
     if (version !== getAuthSessionVersion()) {
       onState({ phase: 'error', message: 'Phiên đăng nhập đã thay đổi. Vui lòng quay lại sảnh.' });
@@ -67,30 +86,48 @@ export const startPkMatchmaking = (userId: number, hskLevel: number, onState: (s
     if (Number(data?.hskLevel) === (state.hskLevel ?? hskLevel) && typeof data.count === 'number' && data.count >= 0) publish({ onlineCount: data.count });
   });
   socket.on('match_found', (payload: unknown) => {
-    if (state.phase === 'error') return;
-    try { const match = validatePkMatch(payload, userId); publish({ phase: 'matched', match, room: match, clockOffsetMs: match.serverNow - Date.now() }); }
+    if (!active || version !== getAuthSessionVersion() || state.phase === 'error') return;
+    try {
+      const match = validatePkMatch(payload, userId);
+      if (state.match && state.match.roomId !== match.roomId) return;
+      if (state.phase === 'finished') return;
+      const cancellation = cancelledRooms.get(match.roomId);
+      if (cancellation) { clearPendingPkRoomId(userId); fail(cancellation); return; }
+      if (!acceptsRoom(match)) return;
+      savePendingPkRoomId(userId, match.roomId);
+      const phase = match.stage === 'playing' || match.stage === 'reveal' ? 'playing' : 'matched';
+      publish({ phase, match, room: match, clockOffsetMs: match.serverNow - Date.now() });
+    }
     catch (error) { fail(error instanceof Error ? error.message : 'Không thể nhận trận đấu.'); }
   });
   const updateRoom = (room: PkRoomState) => {
-    if (room.roomId !== state.match?.roomId || state.phase === 'error') return;
+    if (room.roomId !== state.match?.roomId || state.phase === 'finished' || !acceptsRoom(room)) return;
     publish({ room, clockOffsetMs: room.serverNow - Date.now() });
   };
   socket.on('player_ready_update', updateRoom);
   socket.on('game_started', (room: PkMatch) => {
-    if (room.roomId !== state.match?.roomId || state.phase === 'error') return;
+    if (room.roomId !== state.match?.roomId || state.phase === 'finished' || !acceptsRoom(room)) return;
     publish({ phase: 'playing', room, match: { ...state.match, ...room }, clockOffsetMs: room.serverNow - Date.now() });
   });
   socket.on('turn_changed', updateRoom);
   socket.on('answer_result', (answer: PkAnswer) => {
-    if (answer.roomId !== state.match?.roomId || state.phase === 'error') return;
+    if (answer.roomId !== state.match?.roomId || state.phase === 'finished' || !acceptsRoom(answer)) return;
     publish({ room: answer, lastAnswer: answer, clockOffsetMs: answer.serverNow - Date.now() });
   });
   socket.on('game_finished', (result: PkResult) => {
-    if (result.roomId !== state.match?.roomId || state.phase === 'error') return;
+    if (result.roomId !== state.match?.roomId || !acceptsRoom(result)) return;
+    clearPendingPkRoomId(userId);
     publish({ phase: 'finished', room: result, result, clockOffsetMs: result.serverNow - Date.now() });
   });
   socket.on('match_cancelled', (data: { roomId?: string; message?: string }) => {
-    if (!data.roomId || data.roomId === state.match?.roomId) fail(data.message || 'Đối thủ đã rời trận. Vui lòng tìm lại.');
+    if (!active || version !== getAuthSessionVersion()) return;
+    const message = data.message || 'Trận đấu đã bị hủy. Vui lòng tìm lại.';
+    if (data.roomId) cancelledRooms.set(data.roomId, message);
+    if (state.phase === 'finished') return;
+    if (!data.roomId || data.roomId === state.match?.roomId || (!state.match && data.roomId === pendingRoomId)) {
+      clearPendingPkRoomId(userId);
+      fail(message);
+    }
   });
   socket.on('exception', (data: { message?: string }) => fail(typeof data?.message === 'string' ? data.message : 'Máy chủ đang gặp lỗi PK. Vui lòng thử lại sau.'));
   socket.on('connect_error', () => fail('Không thể kết nối máy chủ PK. Vui lòng kiểm tra kết nối và thử lại.'));
@@ -109,6 +146,9 @@ export const startPkMatchmaking = (userId: number, hskLevel: number, onState: (s
   return {
     ready: () => send('player_ready', { roomId: state.match?.roomId }),
     answer: (questionId, optionId) => send('submit_answer', { roomId: state.match?.roomId, questionId, optionId }),
-    close: () => { active = false; unsubscribe(); socket.removeAllListeners(); socket.disconnect(); },
+    close: () => {
+      if (active && version === getAuthSessionVersion() && state.phase !== 'error') clearPendingPkRoomId(userId);
+      active = false; unsubscribe(); socket.removeAllListeners(); socket.disconnect();
+    },
   };
 };

@@ -1,10 +1,45 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { View, Text, TouchableOpacity, ActivityIndicator, Alert, AppState } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { useTheme, hs, vs, ms } from '@/theme';
 import { useProfile } from '@/services/auth';
 import { useStreakLeaderboard } from '@/services/leaderboard';
 import { useDashboardStats, useCheckIn } from '@/services/analytics';
+import { getLastCheckInDate } from '@/services/storage';
+import { useIsFocused } from '@react-navigation/native';
+
+const studyDateFormatter = new Intl.DateTimeFormat('en-CA', {
+  timeZone: 'Asia/Ho_Chi_Minh',
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+});
+
+const studyDateKey = (date = new Date()) => studyDateFormatter.format(date);
+
+const getCheckInError = async (error: unknown): Promise<string> => {
+  const response = (error as { response?: Response } | null)?.response;
+  if (response?.status === 401) {
+    return 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.';
+  }
+  if (response) {
+    try {
+      const data = await response.clone().json();
+      if (data.errors?.durationInSeconds || data.errors?.module) {
+        return 'Dữ liệu điểm danh chưa hợp lệ. Vui lòng cập nhật ứng dụng và thử lại.';
+      }
+      if (typeof data.message === 'string' && data.message) return data.message;
+      if (Array.isArray(data.message)) {
+        const messages = data.message.filter((value: unknown) => typeof value === 'string');
+        if (messages.length) return messages.join('\n');
+      }
+    } catch {
+      // A non-JSON error response still needs a readable message.
+    }
+  }
+  if (error instanceof Error && error.message.startsWith('Phiên đăng nhập')) return error.message;
+  return 'Không thể điểm danh. Vui lòng kiểm tra kết nối và thử lại.';
+};
 
 interface StreakCardProps {
   days?: Array<{ label: string; active: boolean }>;
@@ -20,12 +55,28 @@ export const StreakCard = ({
   onCheckIn: propOnCheckIn,
 }: StreakCardProps) => {
   const { layout } = useTheme();
+  const isFocused = useIsFocused();
   const { data: profile } = useProfile();
-  const { data: leaderboardData, isError: leaderboardError } = useStreakLeaderboard();
-  const { data: dashboardData, isError: dashboardError } = useDashboardStats();
-  const [checkedInDate, setCheckedInDate] = useState<string | null>(null);
-  const todayKey = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(new Date());
+  const { data: leaderboardData } = useStreakLeaderboard();
+  const { data: dashboardData, dataUpdatedAt: dashboardUpdatedAt, refetch: refetchDashboard } = useDashboardStats();
+  const busy = useRef(false);
+  const [localDate, setLocalDate] = useState(() => studyDateKey());
+  const snapshotIsCurrent = studyDateKey(new Date(dashboardUpdatedAt)) === localDate;
+  const todayKey = snapshotIsCurrent && dashboardData?.studyDate ? dashboardData.studyDate : localDate;
   const checkInMutation = useCheckIn();
+
+  useEffect(() => {
+    const timer = setInterval(() => setLocalDate(studyDateKey()), 30000);
+    const subscription = AppState.addEventListener('change', state => {
+      if (state === 'active') {
+        setLocalDate(studyDateKey());
+        void refetchDashboard();
+      }
+    });
+    return () => { clearInterval(timer); subscription.remove(); };
+  }, [refetchDashboard]);
+
+  useEffect(() => { if (isFocused) void refetchDashboard(); }, [localDate, isFocused, refetchDashboard]);
 
   // Tìm thông tin của user hiện tại từ leaderboard và dashboard
   const currentUserItem = leaderboardData?.leaderboard?.find(
@@ -42,14 +93,16 @@ export const StreakCard = ({
       ? propRecordCount
       : currentUserItem?.longestStreak ?? dashboardData?.longestStreak ?? 0;
 
-  // Kiểm tra xem hôm nay đã điểm danh / học chưa
-  const isTodayStudied =
-    checkedInDate === todayKey || (dashboardData?.timeToday ?? 0) > 0 ||
-    currentUserItem?.streakStatus === 'active';
+  // Learning maintains the streak; only the server check-in flag confirms the bonus.
+  const hasCurrentCheckInStatus = snapshotIsCurrent && typeof dashboardData?.checkedInToday === 'boolean';
+  const isCheckedInToday = hasCurrentCheckInStatus
+    ? dashboardData.checkedInToday
+    : !!profile?.id && getLastCheckInDate(profile.id) === localDate;
+  const isTodayStudied = isCheckedInToday || currentUserItem?.lastStudyDate === todayKey ||
+    (snapshotIsCurrent && (dashboardData?.timeTodaySeconds ?? (dashboardData?.timeToday ?? 0) * 3600) > 0);
 
   // Tính toán 7 ngày trong tuần hiện tại (T2 -> CN)
-  const today = new Date();
-  const currentDayOfWeek = today.getDay(); // 0: CN, 1: T2, ..., 6: T7
+  const currentDayOfWeek = new Date(`${todayKey}T00:00:00Z`).getUTCDay(); // 0: CN, 1: T2, ..., 6: T7
   const currentWeekDayIndex = currentDayOfWeek === 0 ? 6 : currentDayOfWeek - 1; // 0: T2, ..., 6: CN
 
   const weekDayLabels = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
@@ -59,7 +112,7 @@ export const StreakCard = ({
       active = isTodayStudied;
     } else if (idx < currentWeekDayIndex) {
       const daysAgo = currentWeekDayIndex - idx;
-      if (daysAgo < currentStreak) {
+      if (daysAgo < currentStreak + (isTodayStudied ? 0 : 1)) {
         active = true;
       }
       if (!active && dashboardData?.chart7Days) {
@@ -78,46 +131,24 @@ export const StreakCard = ({
       return;
     }
 
-    if (checkInMutation.isPending) return;
-    if (!dashboardData || !leaderboardData || dashboardError || leaderboardError) {
-      Alert.alert('Chưa tải được thống kê', 'Vui lòng thử lại sau khi dữ liệu học tập được tải xong.');
-      return;
-    }
-    if (isTodayStudied) {
-      Alert.alert(
-        'Đã điểm danh',
-        'Bạn đã điểm danh và học tập hôm nay rồi! Hãy quay lại vào ngày mai nhé.',
-      );
-      return;
-    }
-
+    if (busy.current || checkInMutation.isPending) return;
+    // The server decides eligibility, including a new day while this screen was cached.
+    busy.current = true;
     checkInMutation.mutate(
-      { durationInSeconds: 0, module: 'daily_checkin' },
+      undefined,
       {
-        onSuccess: () => {
-          setCheckedInDate(todayKey);
+        onSuccess: (response) => {
           Alert.alert(
-            'Điểm danh thành công! 🎉',
-            'Đã ghi nhận điểm danh hôm nay.',
+            response.alreadyCheckedIn ? 'Đã điểm danh' : 'Điểm danh thành công! 🎉',
+            response.alreadyCheckedIn
+              ? 'Hôm nay đã được ghi nhận. Hãy quay lại vào ngày mai nhé.'
+              : `Đã ghi nhận điểm danh hôm nay. Bạn nhận +${(response.expAwarded ?? 0).toLocaleString('vi-VN')} EXP.`,
           );
         },
-        onError: async (err: any) => {
-          let message = 'Không thể điểm danh lúc này, vui lòng thử lại sau.';
-          if (err?.response) {
-            try {
-              const data = await err.response.json();
-              if (data?.message) {
-                message = data.message;
-              }
-            } catch (_) {}
-          } else if (err?.message) {
-            message = err.message;
-          }
-          if (message === 'Unauthorized' || err?.response?.status === 401) {
-            message = 'Phiên đăng nhập đã hết hạn. Vui lòng đăng xuất và đăng nhập lại.';
-          }
-          Alert.alert('Lỗi', message);
+        onError: async (error: unknown) => {
+          Alert.alert('Lỗi', await getCheckInError(error));
         },
+        onSettled: () => { busy.current = false; },
       },
     );
   };
@@ -237,12 +268,12 @@ export const StreakCard = ({
         {/* Daily Check-in Button */}
         <TouchableOpacity
           activeOpacity={0.8}
-          disabled={checkInMutation.isPending || !dashboardData || !leaderboardData}
+          disabled={checkInMutation.isPending}
           onPress={handleCheckIn}
           style={{
             alignItems: 'center',
-            backgroundColor: isTodayStudied ? '#F0FDF4' : '#FFF5F5',
-            borderColor: isTodayStudied ? '#BBF7D0' : '#FFCDD2',
+            backgroundColor: isCheckedInToday ? '#F0FDF4' : '#FFF5F5',
+            borderColor: isCheckedInToday ? '#BBF7D0' : '#FFCDD2',
             borderRadius: ms(12),
             borderWidth: 1,
             flexDirection: 'row',
@@ -256,38 +287,38 @@ export const StreakCard = ({
             <Svg height="20" style={{ marginRight: hs(10) }} viewBox="0 0 24 24" width="20">
               <Path
                 d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20a2 2 0 002 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11z"
-                fill={isTodayStudied ? '#16A34A' : '#E53935'}
+                fill={isCheckedInToday ? '#16A34A' : '#E53935'}
               />
             </Svg>
             <View>
               <Text
                 style={{
-                  color: isTodayStudied ? '#16A34A' : '#E53935',
+                  color: isCheckedInToday ? '#16A34A' : '#E53935',
                   fontSize: ms(15),
                   fontWeight: '700',
                 }}
               >
-                {isTodayStudied ? 'Đã điểm danh hôm nay' : 'Điểm danh hôm nay'}
+                {isCheckedInToday ? 'Đã điểm danh hôm nay' : 'Điểm danh hôm nay'}
               </Text>
               <Text
                 style={{
-                  color: isTodayStudied ? '#15803D' : '#757575',
+                  color: isCheckedInToday ? '#15803D' : '#757575',
                   fontSize: ms(12),
                   marginTop: vs(1),
                 }}
               >
-                {isTodayStudied ? 'Chuỗi ngày học đã duy trì' : 'Điểm danh hôm nay'}
+                {isCheckedInToday ? 'Chuỗi ngày học đã duy trì' : 'Điểm danh hôm nay'}
               </Text>
             </View>
           </View>
           {checkInMutation.isPending ? (
-            <ActivityIndicator color={isTodayStudied ? '#16A34A' : '#E53935'} size="small" />
+            <ActivityIndicator color={isCheckedInToday ? '#16A34A' : '#E53935'} size="small" />
           ) : (
             <Svg height="14" viewBox="0 0 24 24" width="14">
               <Path
-                d={isTodayStudied ? 'M5 13l4 4L19 7' : 'M9 5l7 7-7 7'}
+                d={isCheckedInToday ? 'M5 13l4 4L19 7' : 'M9 5l7 7-7 7'}
                 fill="none"
-                stroke={isTodayStudied ? '#16A34A' : '#E53935'}
+                stroke={isCheckedInToday ? '#16A34A' : '#E53935'}
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth="2.5"

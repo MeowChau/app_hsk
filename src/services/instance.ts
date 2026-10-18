@@ -9,7 +9,7 @@ import {
 } from './storage';
 
 const prefixUrl = API_CONFIG.baseUrl + '/';
-const requestVersions = new WeakMap<Request, number>();
+const AUTH_SESSION_CONTEXT_KEY = 'hsk.authSessionVersion';
 let refreshOperation: {
   version: number;
   promise: Promise<string | null>;
@@ -73,8 +73,12 @@ export const instance = ky.extend({
   headers: { Accept: 'application/json' },
   hooks: {
     beforeRequest: [
-      (request) => {
-        requestVersions.set(request, getAuthSessionVersion());
+      (request, options) => {
+        // Ky clones Request before afterResponse; context survives that clone.
+        options.context[AUTH_SESSION_CONTEXT_KEY] ??= getAuthSessionVersion();
+        if (options.context[AUTH_SESSION_CONTEXT_KEY] !== getAuthSessionVersion()) {
+          throw new Error('Phiên đăng nhập đã thay đổi. Vui lòng thử lại.');
+        }
         const token = getToken();
         if (
           token &&
@@ -86,14 +90,14 @@ export const instance = ky.extend({
       },
     ],
     afterResponse: [
-      async (request, _options, response) => {
+      async (request, options, response) => {
         if (response.status !== 401 || isPublicAuth(request.url))
           return response;
         const token = getToken();
-        const version = requestVersions.get(request);
+        const version = options.context[AUTH_SESSION_CONTEXT_KEY];
         if (
           !token ||
-          version === undefined ||
+          typeof version !== 'number' ||
           version !== getAuthSessionVersion()
         )
           return response;

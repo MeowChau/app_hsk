@@ -3,47 +3,27 @@ import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { UserAvatar } from '@/components/atoms';
 import { useTheme, hs, vs, ms } from '@/theme';
 import { useProfile } from '@/services/auth';
-import { useStreakLeaderboard } from '@/services/leaderboard';
+import { getTotalExperience, useExperienceLeaderboard } from '@/services/leaderboard';
 
 interface HomeLeaderboardCardProps {
   onSeeAll: () => void;
-  userXp?: number;
-  userLevel?: number;
-  userRank?: number;
 }
 
 const RANK_COLORS = ['#F5A623', '#7E57C2', '#FF7043'];
 
-export const HomeLeaderboardCard = ({
-  onSeeAll,
-  userXp: propUserXp,
-  userLevel: propUserLevel,
-  userRank: propUserRank,
-}: HomeLeaderboardCardProps) => {
+export const HomeLeaderboardCard = ({ onSeeAll }: HomeLeaderboardCardProps) => {
   const { layout } = useTheme();
   const { data: profile } = useProfile();
-  const { data, isLoading } = useStreakLeaderboard();
+  const { data, isLoading, isError, refetch } = useExperienceLeaderboard();
 
   const leaderboardList = data?.leaderboard || [];
   const top3 = leaderboardList.slice(0, 3);
 
-  // Tìm vị trí của người dùng hiện tại trong bảng xếp hạng
-  const userIndex = leaderboardList.findIndex((item) => item.id === profile?.id);
-  const userRank =
-    propUserRank ??
-    (userIndex !== -1
-      ? userIndex + 1
-      : leaderboardList.length > 0
-        ? leaderboardList.length + 1
-        : 1);
-
-  const currentUserItem = userIndex !== -1 ? leaderboardList[userIndex] : null;
-  const currentUserStreak = currentUserItem?.currentStreak ?? 0;
+  const currentUserItem = leaderboardList.find((item) => item.id === profile?.id);
+  const userRank = currentUserItem?.rank ?? data?.myRank;
   const currentUserLevel =
-    propUserLevel ??
-    (profile?.currentHskLevel || currentUserItem?.currentHskLevel || profile?.level || 1);
-  const currentUserXp =
-    propUserXp ?? (profile?.currentExp ?? currentUserItem?.currentExp ?? 0);
+    profile?.currentHskLevel || currentUserItem?.currentHskLevel || '—';
+  const currentUserExp = Math.max(currentUserItem?.totalExp ?? data?.myTotalExp ?? 0, getTotalExperience(profile));
 
   return (
     <View style={{ paddingHorizontal: hs(16), marginBottom: vs(24) }}>
@@ -66,7 +46,7 @@ export const HomeLeaderboardCard = ({
           <TouchableOpacity
             activeOpacity={0.7}
             onPress={onSeeAll}
-            style={[layout.row, layout.itemsCenter]}
+            style={[layout.row, layout.itemsCenter, { flex: 1, marginRight: hs(8) }]}
           >
             <View
               style={{
@@ -80,8 +60,8 @@ export const HomeLeaderboardCard = ({
             >
               <Text style={{ fontSize: ms(22) }}>🏆</Text>
             </View>
-            <Text style={{ color: '#111827', fontSize: ms(16), fontWeight: '700', marginLeft: hs(12) }}>
-              Bảng xếp hạng
+            <Text numberOfLines={2} style={{ color: '#111827', fontSize: ms(16), fontWeight: '700', marginLeft: hs(12), flexShrink: 1 }}>
+              {data && !data.hasAuthoritativeRanks && !data.isComplete ? 'EXP trong danh sách đã tải' : 'Bảng xếp hạng EXP'}
             </Text>
           </TouchableOpacity>
           <TouchableOpacity activeOpacity={0.7} onPress={onSeeAll}>
@@ -98,12 +78,12 @@ export const HomeLeaderboardCard = ({
           ) : top3.length > 0 ? (
             top3.map((r, index) => (
               <View key={r.id || index} style={[layout.row, layout.itemsCenter, layout.justifyBetween]}>
-                <View style={[layout.row, layout.itemsCenter]}>
+                <View style={[layout.row, layout.itemsCenter, { flex: 1 }]}>
                   {/* Badge hạng */}
                   <View
                     style={{
                       alignItems: 'center',
-                      backgroundColor: RANK_COLORS[index] || '#BDBDBD',
+                      backgroundColor: r.rank != null ? RANK_COLORS[index] || '#BDBDBD' : '#BDBDBD',
                       borderRadius: ms(12),
                       height: vs(24),
                       justifyContent: 'center',
@@ -111,7 +91,7 @@ export const HomeLeaderboardCard = ({
                     }}
                   >
                     <Text style={{ color: '#FFFFFF', fontSize: ms(11), fontWeight: '800' }}>
-                      {index + 1}
+                      {r.rank ?? '—'}
                     </Text>
                   </View>
 
@@ -131,25 +111,28 @@ export const HomeLeaderboardCard = ({
                   </View>
 
                   {/* Tên & Level */}
-                  <View>
-                    <Text style={{ color: '#111827', fontSize: ms(15), fontWeight: '700' }}>
+                  <View style={{ flex: 1 }}>
+                    <Text numberOfLines={1} style={{ color: '#111827', fontSize: ms(15), fontWeight: '700' }}>
                       {r.fullName || r.email || `Học viên #${r.id}`}
                     </Text>
                     <Text style={{ color: '#9E9E9E', fontSize: ms(12), marginTop: vs(1) }}>
-                      HSK {r.currentHskLevel || r.level || 1}
+                      HSK {r.currentHskLevel || '—'}
                     </Text>
                   </View>
                 </View>
 
-                {/* Số ngày streak */}
-                <Text style={{ color: '#4B5563', fontSize: ms(14), fontWeight: '700' }}>
-                  {r.currentStreak ?? 0} ngày
+                {/* EXP tích lũy do server xác nhận */}
+                <Text style={{ color: '#4B5563', fontSize: ms(14), fontWeight: '700', marginLeft: hs(8) }}>
+                  {r.totalExp.toLocaleString('vi-VN')} EXP
                 </Text>
               </View>
             ))
           ) : (
-            <Text style={{ color: '#9E9E9E', fontSize: ms(14), textAlign: 'center', marginVertical: vs(12) }}>
-              Chưa có dữ liệu bảng xếp hạng
+            <Text
+              onPress={isError ? () => { void refetch(); } : undefined}
+              style={{ color: '#9E9E9E', fontSize: ms(14), textAlign: 'center', marginVertical: vs(12) }}
+            >
+              {isError ? 'Không thể tải bảng xếp hạng. Chạm để thử lại.' : 'Chưa có dữ liệu bảng xếp hạng'}
             </Text>
           )}
 
@@ -168,11 +151,11 @@ export const HomeLeaderboardCard = ({
               paddingVertical: vs(8),
             }}
           >
-            <View style={[layout.row, layout.itemsCenter]}>
+            <View style={[layout.row, layout.itemsCenter, { flex: 1 }]}>
               <View
                 style={{
                   alignItems: 'center',
-                  backgroundColor: '#E53935',
+                  backgroundColor: userRank != null ? '#E53935' : '#BDBDBD',
                   borderRadius: ms(12),
                   height: vs(24),
                   justifyContent: 'center',
@@ -181,23 +164,23 @@ export const HomeLeaderboardCard = ({
                 }}
               >
                 <Text style={{ color: '#FFFFFF', fontSize: ms(11), fontWeight: '800' }}>
-                  {userRank}
+                  {userRank ?? '—'}
                 </Text>
               </View>
 
               <UserAvatar photoUrl={profile?.photo?.path} size={ms(32)} style={{ marginRight: hs(10) }} />
-              <View>
-                <Text style={{ color: '#111827', fontSize: ms(15), fontWeight: '700' }}>
+              <View style={{ flex: 1 }}>
+                <Text numberOfLines={1} style={{ color: '#111827', fontSize: ms(15), fontWeight: '700' }}>
                   {profile?.fullName || profile?.username || 'Bạn'} <Text style={{ color: '#E53935' }}>(Bạn)</Text>
                 </Text>
                 <Text style={{ color: '#9E9E9E', fontSize: ms(12), marginTop: vs(1) }}>
-                  HSK {currentUserLevel} • {currentUserXp.toLocaleString('vi-VN')} XP
+                  HSK {currentUserLevel}
                 </Text>
               </View>
             </View>
 
-            <Text style={{ color: '#E53935', fontSize: ms(14), fontWeight: '700' }}>
-              {currentUserStreak} ngày
+            <Text style={{ color: '#E53935', fontSize: ms(14), fontWeight: '700', marginLeft: hs(8) }}>
+              {currentUserExp.toLocaleString('vi-VN')} EXP
             </Text>
           </View>
         </View>

@@ -89,7 +89,27 @@ export const APP_STORAGE_KEYS = {
   HAS_COMPLETED_SURVEY: 'app.has_completed_survey',
   SURVEY_DATA: 'app.survey_data',
   SURVEY_PENDING: 'app.survey_pending',
+  LAST_CHECK_IN_DATE: 'app.last_check_in_date',
+  PENDING_PK_ROOM: 'app.pending_pk_room',
 } as const;
+
+export const getLastCheckInDate = (userId: number | string): string | null =>
+  authStorage.getString(`${APP_STORAGE_KEYS.LAST_CHECK_IN_DATE}.${userId}`) ?? null;
+
+export const saveLastCheckInDate = (userId: number | string, date: string): void => {
+  authStorage.set(`${APP_STORAGE_KEYS.LAST_CHECK_IN_DATE}.${userId}`, date);
+};
+
+export const getPendingPkRoomId = (userId: number): string | null =>
+  authStorage.getString(`${APP_STORAGE_KEYS.PENDING_PK_ROOM}.${userId}`) ?? null;
+
+export const savePendingPkRoomId = (userId: number, roomId: string): void => {
+  authStorage.set(`${APP_STORAGE_KEYS.PENDING_PK_ROOM}.${userId}`, roomId);
+};
+
+export const clearPendingPkRoomId = (userId: number): void => {
+  authStorage.remove(`${APP_STORAGE_KEYS.PENDING_PK_ROOM}.${userId}`);
+};
 
 export interface SurveyData {
   currentLevel: string;

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useIsFocused } from '@react-navigation/native';
+import { useQueryClient } from '@tanstack/react-query';
 import { Alert, View, Text, TouchableOpacity, ScrollView, SafeAreaView, useWindowDimensions } from 'react-native';
 import Svg, { Path, Circle } from 'react-native-svg';
 import { UserAvatar } from '@/components/atoms';
@@ -8,8 +9,8 @@ import { LeaderboardRow } from './components/LeaderboardRow';
 import { GameMatchCard } from './components/GameMatchCard';
 import { GameMatchingView } from './Matching';
 import { GameBattleView, type MatchResultData } from './Battle';
-import { useProfile } from '@/services/auth/useAuth';
-import { useStreakLeaderboard } from '@/services/leaderboard';
+import { AUTH_QUERY_KEYS, useProfile } from '@/services/auth/useAuth';
+import { getTotalExperience, useExperienceLeaderboard } from '@/services/leaderboard';
 import { usePkGame } from '@/services/game/usePkGame';
 
 interface MatchHistoryItem {
@@ -27,6 +28,7 @@ interface MatchHistoryItem {
 export function GameContent({ navigation, route, targetView: propTargetView }: any) {
   const { height: screenHeight } = useWindowDimensions();
   const isFocused = useIsFocused();
+  const queryClient = useQueryClient();
   const [matchAttempt, setMatchAttempt] = useState(0);
 
   // Lấy targetView và timestamp từ route params hoặc props
@@ -44,9 +46,16 @@ export function GameContent({ navigation, route, targetView: propTargetView }: a
 
   // Đồng bộ viewState ngay lập tức trong render cycle khi params thay đổi (không bị delay/flicker sang màn main)
   const { data: profile } = useProfile();
-  const userTotalXp = profile?.currentExp || 0;
-  const { data: leaderboardData } = useStreakLeaderboard();
+  const {
+    data: leaderboardData,
+    isPending: leaderboardPending,
+    isError: leaderboardError,
+    refetch: refetchLeaderboard,
+  } = useExperienceLeaderboard();
   const gameLeaderboardList = leaderboardData?.leaderboard || [];
+  const currentUserItem = gameLeaderboardList.find(item => item.id === profile?.id);
+  const userTotalXp = Math.max(currentUserItem?.totalExp ?? leaderboardData?.myTotalExp ?? 0, getTotalExperience(profile));
+  const userLevel = Math.max(currentUserItem?.level ?? 1, profile?.level ?? 1);
   let viewState = internalViewState;
   if (currentKey && currentKey !== lastHandledKey) {
     setLastHandledKey(currentKey);
@@ -70,7 +79,11 @@ export function GameContent({ navigation, route, targetView: propTargetView }: a
   const handleSearch = () => { setMatchAttempt(value => value + 1); setViewState('matching'); };
 
   const handleBattleComplete = async (result: MatchResultData, _durationInSeconds: number) => {
-    setMatchHistory(previous => [{ id: pk.state.match?.roomId || Date.now().toString(), matchIndex: previous.length + 1, opponentName: result.opponentName, correctCount: result.correctCount, totalQuestions: result.totalQuestions, score: result.myScore, isWin: result.isWin, isDraw: result.isDraw, xpEarned: 0 }, ...previous]);
+    setMatchHistory(previous => [{ id: pk.state.match?.roomId || Date.now().toString(), matchIndex: previous.length + 1, opponentName: result.opponentName, correctCount: result.correctCount, totalQuestions: result.totalQuestions, score: result.myScore, isWin: result.isWin, isDraw: result.isDraw, xpEarned: result.xpEarned }, ...previous]);
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: AUTH_QUERY_KEYS.profile }),
+      queryClient.invalidateQueries({ queryKey: ['leaderboard'] }),
+    ]);
   };
 
   // Cập nhật Lịch sử thi đấu và BXH khi hoàn thành trận PK trở về sảnh
@@ -176,7 +189,7 @@ export function GameContent({ navigation, route, targetView: propTargetView }: a
                 </View>
                 <Text style={{ fontSize: ms(16), fontWeight: '700', color: '#111827' }}>Kết quả từ máy chủ</Text>
               </View>
-              <Text style={{ fontSize: ms(14), color: '#4B5563', lineHeight: ms(20) }}>Điểm và kết quả thắng, hòa hoặc thua được máy chủ xác nhận sau trận.</Text>
+              <Text style={{ fontSize: ms(14), color: '#4B5563', lineHeight: ms(20) }}>Trận hoàn tất: thắng +30 EXP, hòa +15 EXP, thua +5 EXP khi có trả lời hợp lệ. Trận bỏ dở không có EXP.</Text>
             </View>
           </View>
 
@@ -188,8 +201,8 @@ export function GameContent({ navigation, route, targetView: propTargetView }: a
               </Svg>
               <Text style={{ fontSize: ms(16), fontWeight: '800', color: '#111827', flex: 1 }}>Đấu trường PK tiếng Trung hoạt động thế nào?</Text>
             </View>
-            <Text style={{ fontSize: ms(14), color: '#4B5563', lineHeight: ms(24), marginBottom: vs(12) }}>Đấu trường PK là chế độ thi đấu trực tiếp của Hanbeego: hai người vào cùng một trận và trả lời LUÂN PHIÊN từng câu — bạn một câu, đối thủ một câu, mỗi người mười lăm câu trong bộ ba mươi câu từ vựng HSK...</Text>
-            <Text style={{ fontSize: ms(14), color: '#4B5563', lineHeight: ms(24) }}>Bạn có ba cách vào trận: ghép nhanh với một người bất kỳ đang chờ ở cùng cấp HSK, mở phòng riêng để lấy mã sáu ký tự mời bạn bè...</Text>
+            <Text style={{ fontSize: ms(14), color: '#4B5563', lineHeight: ms(24), marginBottom: vs(12) }}>Hai người cùng trình độ HSK được ghép trực tiếp và luân phiên trả lời 10 câu từ máy chủ, mỗi người 5 câu. Mỗi lượt có 10 giây; điểm và kết quả được máy chủ xác nhận.</Text>
+            <Text style={{ fontSize: ms(14), color: '#4B5563', lineHeight: ms(24) }}>Mỗi trận hoàn tất đủ điều kiện đều được cộng EXP, không giới hạn số trận có thưởng trong ngày. Hãy trả lời hợp lệ ít nhất một câu và chơi đến hết trận để nhận EXP.</Text>
           </View>
         </ScrollView>
       </SafeAreaView>
@@ -219,7 +232,9 @@ export function GameContent({ navigation, route, targetView: propTargetView }: a
             <Text style={{ fontSize: ms(28), fontWeight: '900', color: '#111827' }}>Game PK (1 vs 1)</Text>
           </View>
 
-          <Text style={{ fontSize: ms(20), fontWeight: '800', color: '#111827', textAlign: 'center', marginBottom: vs(16) }}>BẢNG XẾP HẠNG NGƯỜI CHƠI</Text>
+          <Text style={{ fontSize: ms(20), fontWeight: '800', color: '#111827', textAlign: 'center', marginBottom: vs(16) }}>
+            {leaderboardData && !leaderboardData.hasAuthoritativeRanks && !leaderboardData.isComplete ? 'DANH SÁCH EXP ĐÃ TẢI' : 'BẢNG XẾP HẠNG NGƯỜI CHƠI'}
+          </Text>
 
           {/* Bảng xếp hạng (Box) */}
           <View style={{ backgroundColor: '#FAFAFA', borderRadius: ms(12), borderWidth: 1, borderColor: '#F0F2F5', overflow: 'hidden', flex: 1 }}>
@@ -228,16 +243,25 @@ export function GameContent({ navigation, route, targetView: propTargetView }: a
                 gameLeaderboardList.map((item, idx) => (
                   <LeaderboardRow
                     key={item.id || idx}
-                    rank={idx + 1}
+                    rank={item.rank}
                     name={item.fullName || item.email || `Học viên #${item.id}`}
-                    level={item.currentHskLevel || item.level || 1}
-                    xp={item.currentStreak > 0 ? `${item.currentStreak} ngày` : `${(item.currentExp || 0).toLocaleString('vi-VN')}`}
-                    bg={idx === 0 ? '#F5A623' : idx === 1 ? '#D6B4E6' : idx === 2 ? '#FF7043' : '#F0F2F5'}
-                    color={idx < 3 ? '#FFFFFF' : '#4B5563'}
+                    level={item.level || 1}
+                    totalExp={item.totalExp}
+                    bg={item.rank === 1 ? '#F5A623' : item.rank === 2 ? '#D6B4E6' : item.rank === 3 ? '#FF7043' : '#F0F2F5'}
+                    color={item.rank !== null && item.rank <= 3 ? '#FFFFFF' : '#4B5563'}
                   />
                 ))
               ) : (
-                <Text style={{ textAlign: 'center', color: '#9E9E9E', marginTop: vs(20) }}>Chưa có dữ liệu bảng xếp hạng</Text>
+                <Text
+                  onPress={leaderboardError ? () => { void refetchLeaderboard(); } : undefined}
+                  style={{ textAlign: 'center', color: '#9E9E9E', marginTop: vs(20) }}
+                >
+                  {leaderboardPending
+                    ? 'Đang tải bảng xếp hạng...'
+                    : leaderboardError
+                      ? 'Không thể tải bảng xếp hạng. Chạm để thử lại.'
+                      : 'Chưa có dữ liệu bảng xếp hạng'}
+                </Text>
               )}
             </ScrollView>
           </View>
@@ -248,11 +272,11 @@ export function GameContent({ navigation, route, targetView: propTargetView }: a
               <UserAvatar photoUrl={profile?.photo?.path} size={ms(32)} backgroundColor="#3730A3" style={{ marginRight: hs(10) }} />
               <View>
                 <Text style={{ color: '#111827', fontSize: ms(16), fontWeight: '800' }}>{profile?.fullName || profile?.username || 'Người chơi'} <Text style={{ color: '#E53935' }}>(Bạn)</Text></Text>
-                <Text style={{ color: '#9E9E9E', fontSize: ms(14), marginTop: vs(1), fontWeight: '500' }}>Level {profile?.currentHskLevel || 1 + Math.floor(userTotalXp / 200)}</Text>
+                <Text style={{ color: '#9E9E9E', fontSize: ms(14), marginTop: vs(1), fontWeight: '500' }}>Level {userLevel}</Text>
               </View>
             </View>
             <View style={{ alignItems: 'flex-end' }}>
-              <Text style={{ color: '#4B5563', fontSize: ms(14), fontWeight: '700' }}>{userTotalXp} XP</Text>
+              <Text style={{ color: '#4B5563', fontSize: ms(14), fontWeight: '700' }}>{userTotalXp.toLocaleString('vi-VN')} EXP</Text>
             </View>
           </View>
         </View>
@@ -419,12 +443,12 @@ export function GameContent({ navigation, route, targetView: propTargetView }: a
                 {profile?.fullName || profile?.username || 'Người chơi'} <Text style={{ color: '#E53935' }}>(Bạn)</Text>
               </Text>
               <Text style={{ color: '#9E9E9E', fontSize: ms(13), marginTop: vs(1), fontWeight: '500' }}>
-                Level {1 + Math.floor(userTotalXp / 200)}
+                Level {userLevel}
               </Text>
             </View>
           </View>
           <Text style={{ color: '#111827', fontSize: ms(16), fontWeight: '800' }}>
-            {userTotalXp} XP
+            {userTotalXp.toLocaleString('vi-VN')} EXP
           </Text>
         </View>
       </ScrollView>

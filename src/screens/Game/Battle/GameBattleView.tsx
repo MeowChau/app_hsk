@@ -29,6 +29,8 @@ export const GameBattleView = ({ state, onAnswer, onExit, onPlayAgain, onComplet
   const match = state.match;
   const question = match?.questions[room?.index || 0];
   const myId = profile?.id;
+  const ownReward = state.result?.rewards?.find(reward => reward.userId === myId);
+  const xpEarned = ownReward?.expAwarded ?? 0;
   const myScore = room?.scores.find(score => score.userId === myId);
   const opponent = match?.players.find(player => player.id !== myId);
   const peerScore = room?.scores.find(score => score.userId !== myId);
@@ -44,9 +46,9 @@ export const GameBattleView = ({ state, onAnswer, onExit, onPlayAgain, onComplet
     if (state.phase !== 'finished' || !state.result || !myScore || !peerScore || completedRoom.current === state.result.roomId) return;
     completedRoom.current = state.result.roomId;
     setIsSaving(true);
-    const result: MatchResultData = { myScore: myScore.score, opponentScore: peerScore.score, correctCount: myScore.correctCount, totalQuestions: myScore.totalQuestions, xpEarned: 0, opponentName, isWin: state.result.winnerId === myId, isDraw: state.result.winnerId === null };
+    const result: MatchResultData = { myScore: myScore.score, opponentScore: peerScore.score, correctCount: myScore.correctCount, totalQuestions: myScore.totalQuestions, xpEarned, opponentName, isWin: state.result.winnerId === myId, isDraw: state.result.winnerId === null };
     void onComplete(result, takeSeconds()).finally(() => setIsSaving(false));
-  }, [state.phase, state.result, myScore, peerScore, myId, opponentName, onComplete, takeSeconds]);
+  }, [state.phase, state.result, myScore, peerScore, myId, opponentName, onComplete, takeSeconds, xpEarned]);
 
   const handleSelect = async (index: number) => {
     if (!question || !isMyTurn || room?.stage !== 'playing' || pendingRef.current) return;
@@ -62,7 +64,7 @@ export const GameBattleView = ({ state, onAnswer, onExit, onPlayAgain, onComplet
 
   if (state.phase === 'finished' && state.result && myScore && peerScore) {
     return <BattleResultView photoUrl={profile?.photo?.path} isSaving={isSaving} myScore={myScore.score} opponentScore={peerScore.score}
-      opponentName={opponentName} correctCount={myScore.correctCount} totalUserQuestions={myScore.totalQuestions} coinReward={0}
+      opponentName={opponentName} correctCount={myScore.correctCount} totalUserQuestions={myScore.totalQuestions} xpReward={xpEarned}
       outcome={state.result.winnerId === null ? 'draw' : state.result.winnerId === myId ? 'win' : 'loss'} onPlayAgain={onPlayAgain} onExit={onExit} />;
   }
   if (!question || !room || !myScore || !peerScore) {

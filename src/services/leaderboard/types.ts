@@ -15,6 +15,8 @@ export interface StreakLeaderboardItem {
   totalHours?: number;
   lastStudyDate?: string | null;
   streakStatus?: string;
+  totalExp?: number;
+  rank?: number | null;
 }
 
 export interface StreakRankingStudent {
@@ -29,6 +31,9 @@ export interface StreakRankingStudent {
 }
 
 export interface StreakLeaderboardResponse {
+  metric?: 'exp' | 'streak';
+  myRank?: number | null;
+  myTotalExp?: number | null;
   summary: {
     topStreak?: number;
     topStreakUser?: string | null;
@@ -42,7 +47,22 @@ export interface StreakLeaderboardResponse {
 }
 
 export interface StreakLeaderboardParams {
+  metric?: 'exp' | 'streak';
   hskLevel?: number;
   timeframe?: 'all' | 'month' | 'week';
   limit?: number;
+}
+
+export interface ExperienceLeaderboardItem extends StreakLeaderboardItem {
+  totalExp: number;
+  rank: number | null;
+}
+
+export interface ExperienceLeaderboardResponse {
+  leaderboard: ExperienceLeaderboardItem[];
+  isComplete: boolean;
+  hasAuthoritativeRanks: boolean;
+  totalStudents?: number;
+  myRank?: number | null;
+  myTotalExp?: number | null;
 }

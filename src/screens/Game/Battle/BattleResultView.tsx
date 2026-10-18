@@ -21,7 +21,7 @@ interface BattleResultViewProps {
   opponentName?: string;
   correctCount?: number;
   totalUserQuestions?: number;
-  coinReward?: number;
+  xpReward?: number;
   onPlayAgain: () => void;
   onExit: (result?: MatchResultData) => void;
   photoUrl?: string | null;
@@ -35,7 +35,7 @@ export const BattleResultView = ({
   opponentName = 'Đối thủ',
   correctCount = 1,
   totalUserQuestions = 4,
-  coinReward = 10,
+  xpReward = 0,
   onPlayAgain,
   onExit,
   photoUrl,
@@ -309,7 +309,7 @@ export const BattleResultView = ({
                 </Text>
               </View>
 
-              {/* Khối 2: XU NHẬN ĐƯỢC */}
+              {/* Khối 2: EXP NHẬN ĐƯỢC */}
               <View
                 style={{
                   flex: 1,
@@ -341,7 +341,7 @@ export const BattleResultView = ({
                       letterSpacing: 0.5,
                     }}
                   >
-                    XU NHẬN ĐƯỢC
+                    EXP NHẬN ĐƯỢC
                   </Text>
                 </View>
                 <Text
@@ -351,7 +351,7 @@ export const BattleResultView = ({
                     fontWeight: '900',
                   }}
                 >
-                  +{coinReward} xu
+                  +{xpReward} EXP
                 </Text>
               </View>
             </View>
@@ -395,15 +395,15 @@ export const BattleResultView = ({
             activeOpacity={0.7}
             disabled={isSaving}
               onPress={() => {
-              const xp = isWinner ? 100 : isDraw ? 50 : 30;
               onExit({
                 myScore,
                 opponentScore,
                 correctCount,
                 totalQuestions: totalUserQuestions,
-                xpEarned: xp,
+                xpEarned: xpReward,
                 opponentName,
                 isWin: isWinner,
+                isDraw,
               });
             }}
             style={{

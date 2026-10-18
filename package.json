@@ -26,7 +26,7 @@
     "hanzi-writer": "^3.7.3",
     "i18next": "^25.3.2",
     "intl-pluralrules": "^2.0.1",
-    "ky": "^1.8.2",
+    "ky": "^1.14.3",
     "react": "19.2.3",
     "react-error-boundary": "^6.1.1",
     "react-i18next": "^16.5.4",

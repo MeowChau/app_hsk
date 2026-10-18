@@ -1,4 +1,6 @@
 export interface DashboardStatsResponse {
+  studyDate: string;
+  checkedInToday: boolean;
   timeZone?: string;
   timeTodaySeconds?: number;
   time7DaysSeconds?: number;
@@ -25,5 +27,16 @@ export interface PingSessionDto {
 }
 
 export interface PingSessionResponse {
-  id?: number;
+  id: number;
+  studyDate: string;
+  durationInSeconds: number;
+  module: string;
+}
+
+export interface CheckInResponse extends PingSessionResponse {
+  expAwarded: number;
+  alreadyCheckedIn: boolean;
+  level: number;
+  currentExp: number;
+  totalExp: number;
 }
