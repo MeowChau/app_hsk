@@ -21,7 +21,7 @@ import { WritingPracticeFlashcardView } from './Skills/Writing/WritingPracticeFl
 import { WritingPracticeView } from './Skills/Writing/WritingPracticeView';
 import { WritingPracticeResultView } from './Skills/Writing/WritingPracticeResultView';
 // import { generateWritingWords } from './Skills/Writing/writingMockData';
-import type { SkillType, EducationViewMode, ExamResult } from './types';
+import type { SkillType, EducationViewMode, ExamResult, SpeakingPracticeResult } from './types';
 
 export function EducationContent({ navigation }: any) {
   const [viewMode, setViewMode] = useState<EducationViewMode>('main');
@@ -31,9 +31,11 @@ export function EducationContent({ navigation }: any) {
   const [activeExamId, setActiveExamId] = useState<string | null>(null);
   const [examDuration, setExamDuration] = useState<number>(30);
   const [examResults, setExamResults] = useState<Record<string, ExamResult>>({});
+  const [speakingResult, setSpeakingResult] = useState<SpeakingPracticeResult | null>(null);
 
   const [practiceHsk, setPracticeHsk] = useState<number>(1);
   const [practiceTopic, setPracticeTopic] = useState<string>('');
+  const [readingPracticeSetId, setReadingPracticeSetId] = useState<number>(0);
   const [writingWordOrder, setWritingWordOrder] = useState<string[]>([]);
 
   const handleSelectHskLevel = (level: number) => {
@@ -106,8 +108,11 @@ export function EducationContent({ navigation }: any) {
     if (selectedSkill === 'NOI') {
       return (
         <SpeakingPracticeSetupView
+          hskLevel={practiceHsk}
+          onSelectHsk={setPracticeHsk}
           onBack={() => setViewMode('main')}
-          onStartPractice={(topic) => {
+          onStartPractice={(hskLevel, topic) => {
+            setPracticeHsk(hskLevel);
             setPracticeTopic(topic);
             setViewMode('skillPractice'); 
           }}
@@ -119,9 +124,9 @@ export function EducationContent({ navigation }: any) {
       return (
         <ReadingPracticeSetupView
           onBack={() => setViewMode('main')}
-          onStartPractice={(hskLevel, topic) => {
+          onStartPractice={(hskLevel, practiceSetId) => {
             setPracticeHsk(hskLevel);
-            setPracticeTopic(topic);
+            setReadingPracticeSetId(practiceSetId);
             setViewMode('skillPractice');
           }}
         />
@@ -131,10 +136,11 @@ export function EducationContent({ navigation }: any) {
     if (selectedSkill === 'VIET') {
       return (
         <WritingPracticeSetupView
-          hskLevel={selectedHsk}
+          hskLevel={practiceHsk}
+          onSelectHsk={setPracticeHsk}
           onBack={() => setViewMode('main')}
-          onStart={(topic) => {
-            setPracticeHsk(selectedHsk);
+          onStart={(hskLevel, topic) => {
+            setPracticeHsk(hskLevel);
             setPracticeTopic(topic);
             setWritingWordOrder([]);
             setViewMode('skillFlashcard');
@@ -173,10 +179,12 @@ export function EducationContent({ navigation }: any) {
     if (selectedSkill === 'NOI') {
       return (
         <SpeakingPracticeView
+          key={`${practiceHsk}:${practiceTopic}`}
+          hskLevel={practiceHsk}
           topic={practiceTopic}
           onBack={() => setViewMode('skillSetup')}
           onSubmit={(result) => {
-            setExamResults(prev => ({ ...prev, 'speaking_practice': result }));
+            setSpeakingResult(result);
             setViewMode('skillPracticeResult');
           }}
         />
@@ -187,7 +195,7 @@ export function EducationContent({ navigation }: any) {
       return (
         <ReadingPracticeView
           hskLevel={practiceHsk}
-          topic={practiceTopic}
+          practiceSetId={readingPracticeSetId}
           onBack={() => setViewMode('skillSetup')}
           onSubmit={(result) => {
             setExamResults(prev => ({ ...prev, 'reading_practice': result as any }));
@@ -227,10 +235,9 @@ export function EducationContent({ navigation }: any) {
 
   if (viewMode === 'skillPracticeResult') {
     if (selectedSkill === 'NOI') {
-      const result = examResults['speaking_practice'];
       return (
         <SpeakingPracticeResultView
-          result={(result as any) || { score: 0, passedCount: 0, totalCount: 0 }}
+          result={speakingResult || { score: null, recordedCount: 0, gradedCount: 0, totalCount: 0, assessmentStatus: 'ungraded' }}
           onBackToSetup={() => setViewMode('skillSetup')}
           onRetake={() => setViewMode('skillPractice')}
         />

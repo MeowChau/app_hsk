@@ -18,14 +18,18 @@ export const SpeakingPracticeResultView = ({ result, onBackToSetup, onRetake }: 
           Luyện tập kỹ năng nói
         </Text>
         <Text style={{ fontSize: ms(14), color: '#4B5563', lineHeight: vs(22) }}>
-          Chọn một bài học, đọc to từng từ hoặc từng câu, hệ thống sẽ nghe và chấm phát âm của bạn theo từng chữ kèm nhận xét
+          {result.gradedCount > 0
+            ? 'Điểm trung bình được tính từ các câu đã chấm phát âm. Câu chưa ghi âm hoặc chấm lỗi chưa được tính điểm.'
+            : 'Chưa có câu nào được chấm thành công. Bạn có thể luyện lại để nhận điểm phát âm.'}
         </Text>
       </View>
 
       <View style={{ paddingHorizontal: hs(16), alignItems: 'center', marginTop: vs(16) }}>
         <PracticeResultCard
-          score={result.score}
-          subtitle={`Điểm phát âm trung bình · ${result.passedCount}/${result.totalCount} mục đạt từ 75 điểm`}
+          score={result.score ?? '—'}
+          scoreSuffix={result.score !== null ? '/100' : ''}
+          scoreColor={result.score !== null ? '#1E3A8A' : '#4B5563'}
+          subtitle={`${result.recordedCount ?? 0}/${result.totalCount} câu đã ghi âm · ${result.gradedCount ?? 0}/${result.totalCount} câu đã chấm`}
           onBackToSetup={onBackToSetup}
           onRetake={onRetake}
         />

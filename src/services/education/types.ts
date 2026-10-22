@@ -58,6 +58,24 @@ export interface BackendTopicSummary {
   writingCount: number;
 }
 
+export interface SkillTopicSummary extends BackendTopicSummary {
+  questionCount: number;
+  sourceKind: 'textbook' | 'vocabulary' | 'other';
+  groupedExerciseCount: number;
+}
+
+export interface SkillPracticeSetSummary extends BackendPracticeSet {
+  questionCount: number;
+  sourceKind: SkillTopicSummary['sourceKind'];
+  groupedExerciseCount: number;
+}
+
+export interface PracticeQuestionEntry {
+  question: BackendQuestion;
+  topic: string;
+  fallbackAudioUrl?: string | null;
+}
+
 export interface PracticeSetQueryParams {
   page?: number;
   limit?: number;

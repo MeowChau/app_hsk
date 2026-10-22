@@ -7,33 +7,49 @@ import { ms, hs, vs } from '@/theme';
 import { HskLevelSelector, TopicPickerModal } from '../components';
 
 import { educationApi } from '@/services/education/api';
+import type { SkillPracticeSetSummary } from '@/services/education/types';
+
+const describeReadingSet = (set: SkillPracticeSetSummary): string => {
+  const individualCount = set.questionCount - set.groupedExerciseCount;
+  if (!set.groupedExerciseCount) return `${set.questionCount} câu luyện tập`;
+  const grouped = `${set.groupedExerciseCount} bài luyện tổng hợp`;
+  return individualCount > 0
+    ? `${individualCount} câu luyện tập · ${grouped}`
+    : `${grouped} · Gồm nhiều mục trong hình`;
+};
+
+const readingSetGroup = (set: SkillPracticeSetSummary): string => {
+  const labels = { textbook: 'Sách bài tập', vocabulary: 'Ôn từ vựng (biên soạn)', other: 'Bài luyện khác' };
+  return `HSK ${set.hskLevel} · ${labels[set.sourceKind]}`;
+};
 
 interface Props {
   onBack: () => void;
-  onStartPractice: (hskLevel: number, topic: string) => void;
+  onStartPractice: (hskLevel: number, practiceSetId: number) => void;
 }
 
 export const ReadingPracticeSetupView = ({ onBack, onStartPractice }: Props) => {
   const [selectedHsk, setSelectedHsk] = useState<number>(1);
-  const [topics, setTopics] = useState<any[]>([]);
-  const [selectedTopic, setSelectedTopic] = useState<string>('');
+  const [practiceSets, setPracticeSets] = useState<SkillPracticeSetSummary[]>([]);
+  const [selectedSetId, setSelectedSetId] = useState<number | null>(null);
+  const selectedSet = practiceSets.find(set => set.id === selectedSetId);
 
   React.useEffect(() => {
+    let cancelled = false;
+    setPracticeSets([]);
+    setSelectedSetId(null);
     const fetchTopics = async () => {
       try {
-        const res = await educationApi.getTopics(selectedHsk);
-        const topicList = res.filter((t: any) => t.readingCount > 0);
-        setTopics(topicList);
-        if (topicList.length > 0) {
-          setSelectedTopic(topicList[0].topicKey);
-        } else {
-          setSelectedTopic('');
-        }
+        const sets = await educationApi.getPracticeSetSummaries('READING', selectedHsk);
+        if (cancelled) return;
+        setPracticeSets(sets);
+        setSelectedSetId(sets[0]?.id ?? null);
       } catch (err) {
         console.warn('Failed to fetch topics', err);
       }
     };
     fetchTopics();
+    return () => { cancelled = true; };
   }, [selectedHsk]);
 
   return (
@@ -54,18 +70,27 @@ export const ReadingPracticeSetupView = ({ onBack, onStartPractice }: Props) => 
 
         {/* Topic Selection */}
         <TopicPickerModal
-          selectedLabel={topics.find(t => t.topicKey === selectedTopic)?.titleVi || selectedTopic || 'Chọn chủ đề'}
-          topics={topics}
-          getTopicLabel={t => `${t.titleVi} (${t.readingCount} từ)`}
-          isSelected={t => t.topicKey === selectedTopic}
-          onSelectTopic={t => setSelectedTopic(t.topicKey)}
+          title="Chọn bài luyện đọc"
+          modalTitle="Chọn bài luyện đọc"
+          description="Chọn một bộ bài luyện và làm các câu hỏi trong bộ đó."
+          selectedLabel={selectedSet?.title || 'Chọn bài luyện đọc'}
+          selectedDescription={selectedSet ? describeReadingSet(selectedSet) : undefined}
+          topics={practiceSets}
+          getTopicLabel={set => set.title}
+          getTopicDescription={describeReadingSet}
+          getTopicGroup={readingSetGroup}
+          getTopicKey={set => set.id}
+          isSelected={set => set.id === selectedSetId}
+          onSelectTopic={set => setSelectedSetId(set.id)}
+          emptyMessage="Chưa có bộ luyện đọc cho cấp HSK này."
         />
       </ScrollView>
 
       {/* Footer Button */}
       <View style={{ position: 'absolute', bottom: vs(32), left: hs(16), right: hs(16) }}>
         <TouchableOpacity
-          onPress={() => onStartPractice(selectedHsk, selectedTopic)}
+          disabled={!selectedSet?.questionCount}
+          onPress={() => selectedSet && onStartPractice(selectedSet.hskLevel, selectedSet.id)}
           style={{
             backgroundColor: '#1E3A8A',
             borderRadius: ms(8),

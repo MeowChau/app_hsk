@@ -4,24 +4,30 @@ import Svg, { Path } from 'react-native-svg';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ScreenHeader } from '@/components/molecules';
 import { ms, hs, vs } from '@/theme';
-import { TopicPickerModal } from '../components';
+import { HskLevelSelector, PracticeTopicPicker } from '../components';
 
 import { educationApi } from '@/services/education/api';
+import type { SkillTopicSummary } from '@/services/education/types';
 
 interface Props {
+  hskLevel: number;
+  onSelectHsk: (hskLevel: number) => void;
   onBack: () => void;
-  onStartPractice: (topic: string) => void;
+  onStartPractice: (hskLevel: number, topic: string) => void;
 }
 
-export const SpeakingPracticeSetupView = ({ onBack, onStartPractice }: Props) => {
-  const [topics, setTopics] = useState<any[]>([]);
+export const SpeakingPracticeSetupView = ({ hskLevel, onSelectHsk, onBack, onStartPractice }: Props) => {
+  const [topics, setTopics] = useState<SkillTopicSummary[]>([]);
   const [selectedTopic, setSelectedTopic] = useState<string>('');
 
   React.useEffect(() => {
+    let cancelled = false;
+    setTopics([]);
+    setSelectedTopic('');
     const fetchTopics = async () => {
       try {
-        const res = await educationApi.getTopics();
-        const topicList = res.filter((t: any) => t.speakingCount > 0);
+        const topicList = await educationApi.getTopicsForSkill('SPEAKING', hskLevel);
+        if (cancelled) return;
         setTopics(topicList);
         if (topicList.length > 0) {
           setSelectedTopic(topicList[0].topicKey);
@@ -33,7 +39,16 @@ export const SpeakingPracticeSetupView = ({ onBack, onStartPractice }: Props) =>
       }
     };
     fetchTopics();
-  }, []);
+    return () => { cancelled = true; };
+  }, [hskLevel]);
+
+  const handleHskChange = (level: number) => {
+    if (level === hskLevel) return;
+    setTopics([]);
+    setSelectedTopic('');
+    onSelectHsk(level);
+  };
+  const canStart = topics.some(topic => topic.topicKey === selectedTopic && topic.hskLevel === hskLevel);
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
@@ -42,25 +57,26 @@ export const SpeakingPracticeSetupView = ({ onBack, onStartPractice }: Props) =>
 
       <ScrollView contentContainerStyle={{ paddingHorizontal: hs(16), paddingTop: vs(16), paddingBottom: vs(100) }} showsVerticalScrollIndicator={false}>
         <Text style={{ fontSize: ms(14), color: '#374151', lineHeight: vs(24), marginBottom: vs(32) }}>
-          Chọn một bài học, đọc to từng từ hoặc từng câu, hệ thống sẽ nghe và chấm phát âm của bạn theo từng chữ kèm nhận xét
+          Chọn một bài học, nghe audio mẫu rồi ghi âm để nhận điểm phát âm, độ trôi chảy và mức độ đọc đủ câu. Bạn có thể nghe lại giọng của mình sau mỗi lần đọc.
         </Text>
 
+        <HskLevelSelector selectedHsk={hskLevel} onSelectHsk={handleHskChange} />
+
         {/* Topic Selection */}
-        <TopicPickerModal
-          selectedLabel={topics.find(t => t.topicKey === selectedTopic)?.titleVi || selectedTopic || 'Chọn chủ đề'}
+        <PracticeTopicPicker
+          selectedTopic={selectedTopic}
           topics={topics}
-          getTopicLabel={t => `${t.titleVi} (${t.speakingCount} từ)`}
-          isSelected={t => t.topicKey === selectedTopic}
-          onSelectTopic={t => setSelectedTopic(t.topicKey)}
+          onSelectTopic={setSelectedTopic}
         />
       </ScrollView>
 
       {/* Start Button */}
       <View style={{ position: 'absolute', bottom: vs(32), left: hs(16), right: hs(16) }}>
         <TouchableOpacity
-          onPress={() => onStartPractice(selectedTopic)}
+          disabled={!canStart}
+          onPress={() => canStart && onStartPractice(hskLevel, selectedTopic)}
           style={{
-            backgroundColor: '#1E3A8A',
+            backgroundColor: canStart ? '#1E3A8A' : '#9CA3AF',
             borderRadius: ms(8),
             paddingVertical: vs(14),
             flexDirection: 'row',

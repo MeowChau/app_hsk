@@ -218,16 +218,10 @@ export const ListeningPracticeView = ({ hskLevel, topic, onBack, onSubmit }: Pro
     const fetchQuestions = async () => {
       try {
         setIsLoading(true);
-        const setsRes = await educationApi.getPracticeSets({ hskLevel, topic, skill: 'LISTENING', limit: 1 });
-        if (setsRes.data.length > 0) {
-          const setId = setsRes.data[0].id;
-          const setDetails = await educationApi.getPracticeSetById(setId);
-          const mappedQuestions = (setDetails.practiceSetQuestions || [])
-            .map((psq, idx) => transformQuestionToListening(psq.question, idx + 1, setDetails.audioUrl));
-          if (!cancelled) { setQuestions(mappedQuestions); setAnswers({}); setBookmarks({}); }
-        } else {
-          if (!cancelled) setQuestions([]);
-        }
+        const entries = await educationApi.getPracticeQuestions({ hskLevel, topic, skill: 'LISTENING' });
+        const mappedQuestions = entries.map(({ question, fallbackAudioUrl }, idx) =>
+          transformQuestionToListening(question, idx + 1, fallbackAudioUrl));
+        if (!cancelled) { setQuestions(mappedQuestions); setAnswers({}); setBookmarks({}); }
       } catch (err) {
         if (!cancelled) { setQuestions([]); Alert.alert('Không thể tải bài luyện', 'Vui lòng kiểm tra kết nối và mở lại bài luyện.'); }
       } finally {

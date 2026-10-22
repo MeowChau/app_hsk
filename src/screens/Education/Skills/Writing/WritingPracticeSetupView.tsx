@@ -4,7 +4,7 @@ import Svg, { Path } from 'react-native-svg';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ScreenHeader } from '@/components/molecules';
 import { ms, hs, vs } from '@/theme';
-import { TopicPickerModal } from '../components';
+import { HskLevelSelector, TopicPickerModal } from '../components';
 import { vocabularyApi } from '@/services/vocabulary/api';
 
 interface WritingPracticeTopic {
@@ -15,11 +15,12 @@ interface WritingPracticeTopic {
 
 interface Props {
   hskLevel: number;
+  onSelectHsk: (hskLevel: number) => void;
   onBack: () => void;
-  onStart: (topicId: string) => void;
+  onStart: (hskLevel: number, topicId: string) => void;
 }
 
-export const WritingPracticeSetupView = ({ hskLevel, onBack, onStart }: Props) => {
+export const WritingPracticeSetupView = ({ hskLevel, onSelectHsk, onBack, onStart }: Props) => {
   const [topics, setTopics] = useState<WritingPracticeTopic[]>([]);
   const [selectedTopic, setSelectedTopic] = useState<WritingPracticeTopic | null>(null);
 
@@ -44,6 +45,13 @@ export const WritingPracticeSetupView = ({ hskLevel, onBack, onStart }: Props) =
     return () => { cancelled = true; };
   }, [hskLevel]);
 
+  const handleHskChange = (level: number) => {
+    if (level === hskLevel) return;
+    setTopics([]);
+    setSelectedTopic(null);
+    onSelectHsk(level);
+  };
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
       {/* Header */}
@@ -53,6 +61,8 @@ export const WritingPracticeSetupView = ({ hskLevel, onBack, onStart }: Props) =
         <Text style={{ fontSize: ms(14), color: '#4B5563', lineHeight: vs(24), marginBottom: vs(32) }}>
           Chọn một bài học, tập viết từ vựng theo chủ đề
         </Text>
+
+        <HskLevelSelector selectedHsk={hskLevel} onSelectHsk={handleHskChange} />
 
         {/* Topic Selection */}
         <TopicPickerModal
@@ -68,7 +78,7 @@ export const WritingPracticeSetupView = ({ hskLevel, onBack, onStart }: Props) =
       {/* Start Button */}
       <View style={{ position: 'absolute', bottom: vs(32), left: hs(16), right: hs(16) }}>
         <TouchableOpacity
-          onPress={() => selectedTopic && onStart(selectedTopic.id)}
+          onPress={() => selectedTopic && onStart(hskLevel, selectedTopic.id)}
           disabled={!selectedTopic}
           style={{
             backgroundColor: selectedTopic ? '#1E3A8A' : '#9CA3AF',

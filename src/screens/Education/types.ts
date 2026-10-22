@@ -95,17 +95,19 @@ export interface SpeakingPracticeQuestion {
   character: string;
   pinyin: string;
   meaning: string;
+  audioUrl?: string;
 }
 
 // =========================================================
 // Reading Practice
 // =========================================================
-export type ReadingQuestionType = 'TRUE_FALSE' | 'GROUP_IMAGE' | 'GROUP_VOCAB' | 'MULTIPLE_CHOICE' | 'FILL_BLANK' | 'MATCH_IMAGE';
+export type ReadingQuestionType = 'TRUE_FALSE' | 'GROUP_IMAGE' | 'GROUP_VOCAB' | 'MULTIPLE_CHOICE' | 'FILL_BLANK' | 'MATCH_IMAGE' | 'GUIDED_PRACTICE';
 
 export interface ReadingPracticeOption {
   id: string;
   label: string; // A, B, C, D
   text?: string;
+  pinyin?: string;
   imageUrl?: any;
 }
 
@@ -114,21 +116,29 @@ export interface ReadingPracticeQuestion {
   index: number;
   type: ReadingQuestionType;
   sentence?: string;    // Câu hỏi hoặc đoạn văn
+  instruction?: string;
   pinyin?: string;      // Pinyin (đối với True/False hoặc câu lẻ)
   character?: string;   // Chữ Hán to (đối với True/False)
   imageUrl?: any;       // Hình ảnh (đối với True/False)
+  imageAspectRatio?: number;
+  contextImageUrl?: string;
+  requiresManualReview?: boolean;
   options: ReadingPracticeOption[];
   correctOptionId: string;
   groupImages?: ReadingPracticeOption[]; // Danh sách hình A-F cho GROUP_IMAGE
   groupVocabs?: ReadingPracticeOption[]; // Danh sách từ vựng A-F cho GROUP_VOCAB
   example?: {
     sentence: string; // "例如 Wǒ hěn xǐhuan zhè běn shū.\n我很喜欢这本书。"
+    pinyin?: string;
     answer: string;   // "E"
   };
 }
 
 export interface SpeakingPracticeResult {
-  score: number;        // Average score
-  passedCount: number;  // Items >= 75 points
+  score: number | null;
+  recordedCount: number;
+  gradedCount: number;
   totalCount: number;
+  assessmentStatus: 'ungraded' | 'partial' | 'graded';
+  durationInSeconds?: number;
 }

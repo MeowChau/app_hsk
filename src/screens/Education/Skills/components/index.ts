@@ -3,3 +3,4 @@ export * from './SkillPracticeView';
 export * from './PracticeResultCard';
 export * from './HskLevelSelector';
 export * from './TopicPickerModal';
+export * from './PracticeTopicPicker';

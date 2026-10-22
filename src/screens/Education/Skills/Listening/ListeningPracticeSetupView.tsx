@@ -4,9 +4,10 @@ import Svg, { Path } from 'react-native-svg';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ScreenHeader } from '@/components/molecules';
 import { ms, hs, vs } from '@/theme';
-import { HskLevelSelector, TopicPickerModal } from '../components';
+import { HskLevelSelector, PracticeTopicPicker } from '../components';
 
 import { educationApi } from '@/services/education/api';
+import type { SkillTopicSummary } from '@/services/education/types';
 
 interface Props {
   onBack: () => void;
@@ -15,14 +16,17 @@ interface Props {
 
 export const ListeningPracticeSetupView = ({ onBack, onStartPractice }: Props) => {
   const [selectedHsk, setSelectedHsk] = useState<number>(1);
-  const [topics, setTopics] = useState<any[]>([]);
+  const [topics, setTopics] = useState<SkillTopicSummary[]>([]);
   const [selectedTopic, setSelectedTopic] = useState<string>('');
 
   React.useEffect(() => {
+    let cancelled = false;
+    setTopics([]);
+    setSelectedTopic('');
     const fetchTopics = async () => {
       try {
-        const res = await educationApi.getTopics(selectedHsk);
-        const topicList = res.filter((t: any) => t.listeningCount > 0);
+        const topicList = await educationApi.getTopicsForSkill('LISTENING', selectedHsk);
+        if (cancelled) return;
         setTopics(topicList);
         if (topicList.length > 0) {
           setSelectedTopic(topicList[0].topicKey);
@@ -34,6 +38,7 @@ export const ListeningPracticeSetupView = ({ onBack, onStartPractice }: Props) =
       }
     };
     fetchTopics();
+    return () => { cancelled = true; };
   }, [selectedHsk]);
 
   return (
@@ -53,18 +58,17 @@ export const ListeningPracticeSetupView = ({ onBack, onStartPractice }: Props) =
         />
 
         {/* Topic Selection */}
-        <TopicPickerModal
-          selectedLabel={topics.find(t => t.topicKey === selectedTopic)?.titleVi || selectedTopic || 'Chọn chủ đề'}
+        <PracticeTopicPicker
+          selectedTopic={selectedTopic}
           topics={topics}
-          getTopicLabel={t => `${t.titleVi} (${t.listeningCount} từ)`}
-          isSelected={t => t.topicKey === selectedTopic}
-          onSelectTopic={t => setSelectedTopic(t.topicKey)}
+          onSelectTopic={setSelectedTopic}
         />
       </ScrollView>
 
       {/* Start Button */}
       <View style={{ position: 'absolute', bottom: vs(32), left: hs(16), right: hs(16) }}>
         <TouchableOpacity
+          disabled={!selectedTopic}
           onPress={() => onStartPractice(selectedHsk, selectedTopic)}
           style={{
             backgroundColor: '#1E3A8A',

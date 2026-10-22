@@ -192,6 +192,9 @@ export const useAudioPlayback = (value?: string | null) => {
     position,
     duration,
     progress: duration ? Math.min(100, (position / duration) * 100) : 0,
+    stop: () => {
+      if (url) stopIfUrl(url);
+    },
     toggle: () => {
       if (!url) {
         Alert.alert('Chưa có audio', 'Bài học này chưa có tệp audio.');
