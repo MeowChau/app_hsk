@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+// @refresh reset
+import React, { useEffect, useRef, useState } from 'react';
+import type { LearnScreenParams } from '@/navigation/types';
 import { Alert, SafeAreaView, ScrollView } from 'react-native';
 import { EducationHeader } from './components/EducationHeader';
 import { EducationSegment } from './components/EducationSegment';
@@ -23,7 +25,7 @@ import { WritingPracticeResultView } from './Skills/Writing/WritingPracticeResul
 // import { generateWritingWords } from './Skills/Writing/writingMockData';
 import type { SkillType, EducationViewMode, ExamResult, SpeakingPracticeResult } from './types';
 
-export function EducationContent({ navigation }: any) {
+export function EducationContent({ navigation, route }: any) {
   const [viewMode, setViewMode] = useState<EducationViewMode>('main');
   const [activeTab, setActiveTab] = useState<number>(1);
   const [selectedSkill, setSelectedSkill] = useState<SkillType>('NGHE');
@@ -36,7 +38,44 @@ export function EducationContent({ navigation }: any) {
   const [practiceHsk, setPracticeHsk] = useState<number>(1);
   const [practiceTopic, setPracticeTopic] = useState<string>('');
   const [readingPracticeSetId, setReadingPracticeSetId] = useState<number>(0);
+  const [listeningPracticeSetId, setListeningPracticeSetId] = useState<number>(0);
   const [writingWordOrder, setWritingWordOrder] = useState<string[]>([]);
+
+  const recommendation = route?.params as LearnScreenParams | undefined;
+  const handledRecommendation = useRef<LearnScreenParams | undefined>(undefined);
+  useEffect(() => {
+    if (!recommendation || handledRecommendation.current === recommendation) return;
+    if (recommendation.targetView !== 'skills' && !recommendation.recommendedLesson) return;
+    handledRecommendation.current = recommendation;
+    setActiveTab(0);
+    const lesson = recommendation.recommendedLesson;
+    if (!lesson) {
+      setViewMode('main');
+      return;
+    }
+    const skills: Record<string, SkillType> = {
+      LISTENING: 'NGHE', SPEAKING: 'NOI', READING: 'DOC', WRITING: 'VIET',
+    };
+    if (
+      !skills[lesson.skill] || !Number.isInteger(lesson.hskLevel) ||
+      lesson.hskLevel < 1 || lesson.hskLevel > 9
+    ) return;
+    setSelectedSkill(skills[lesson.skill]);
+    setPracticeHsk(lesson.hskLevel);
+    setPracticeTopic(lesson.topic);
+    if (lesson.skill === 'WRITING' && lesson.topic) {
+      setWritingWordOrder([]);
+      setViewMode('skillFlashcard');
+    } else if (lesson.skill === 'SPEAKING' && lesson.topic) {
+      setViewMode('skillPractice');
+    } else if (lesson.practiceSetId && lesson.practiceSetId > 0) {
+      setReadingPracticeSetId(lesson.practiceSetId);
+      setListeningPracticeSetId(lesson.practiceSetId);
+      setViewMode('skillPractice');
+    } else {
+      setViewMode('skillSetup');
+    }
+  }, [recommendation]);
 
   const handleSelectHskLevel = (level: number) => {
     setSelectedHsk(level);
@@ -152,9 +191,9 @@ export function EducationContent({ navigation }: any) {
     return (
       <ListeningPracticeSetupView 
         onBack={() => setViewMode('main')} 
-        onStartPractice={(hskLevel, topic) => {
+        onStartPractice={(hskLevel, practiceSetId) => {
           setPracticeHsk(hskLevel);
-          setPracticeTopic(topic);
+          setListeningPracticeSetId(practiceSetId);
           setViewMode('skillPractice');
         }} 
       />
@@ -222,8 +261,9 @@ export function EducationContent({ navigation }: any) {
 
     return (
       <ListeningPracticeView 
+        key={`${practiceHsk}:${listeningPracticeSetId}`}
         hskLevel={practiceHsk} 
-        topic={practiceTopic} 
+        practiceSetId={listeningPracticeSetId}
         onBack={() => setViewMode('skillSetup')}
         onSubmit={(result) => {
           setExamResults(prev => ({ ...prev, 'listening_practice': result as any }));
@@ -278,9 +318,14 @@ export function EducationContent({ navigation }: any) {
     const lisResult = examResults['listening_practice'];
     return (
       <ListeningPracticeResultView
-        score={lisResult?.score || 0}
+        score={lisResult?.score ?? null}
         correctCount={lisResult?.correctCount || 0}
         totalCount={lisResult?.totalCount || 0}
+        gradedCount={(lisResult as any)?.gradedCount}
+        manualCount={(lisResult as any)?.manualCount}
+        completedCount={(lisResult as any)?.completedCount}
+        questions={(lisResult as any)?.questions}
+        answers={lisResult?.answers}
         onBackToSetup={() => setViewMode('skillSetup')}
         onRetake={() => setViewMode('skillPractice')}
       />

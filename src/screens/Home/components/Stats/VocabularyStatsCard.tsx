@@ -75,6 +75,9 @@ export function VocabularyStatsCard({
           </Svg>
         </TouchableOpacity>
       )}
+      <Text style={{ color: '#6B7280', fontSize: ms(12), lineHeight: ms(18), marginTop: vs(12) }}>
+        Đã học: các từ đã ôn hoặc tập viết có ghi nhận. Đã thuộc theo lựa chọn “Đã nhớ”; Cần ôn là các từ chọn “Chưa nhớ”, nằm trong nhóm Đang học.
+      </Text>
     </SectionCard>
   );
 }

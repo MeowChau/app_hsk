@@ -1,11 +1,14 @@
 import { Alert } from 'react-native';
 import { analyticsApi } from './api';
 import { getAuthSessionVersion, getUser, isAuthenticated } from '../storage';
+import type { VocabularyProgressDto } from './types';
 
 const listeners = new Set<() => void>();
 const activeRequests = new Map<number, number>();
 const remainingMilliseconds = new Map<string, number>();
 const errorShown = new Set<number>();
+const vocabularyRequests = new Map<string, Promise<void>>();
+const vocabularyErrorShown = new Set<number>();
 const notify = () => listeners.forEach(listener => listener());
 
 export const subscribeStudyEvents = (listener: () => void) => {
@@ -39,5 +42,32 @@ export const recordStudyInterval = (userId: number, module: string, startedAt: n
   }).finally(() => {
     activeRequests.set(userId, Math.max(0, (activeRequests.get(userId) ?? 1) - 1));
     notify();
+  });
+};
+
+export const recordVocabularyProgress = (vocabularyId: number, action: VocabularyProgressDto['action']) => {
+  const userId = getUser<{ id: number }>()?.id;
+  if (!userId || !isAuthenticated() || !Number.isSafeInteger(vocabularyId) || vocabularyId < 1) return;
+  const version = getAuthSessionVersion();
+  const key = `${version}:${userId}:${vocabularyId}`;
+  // Keep rapid unknown/remembered ratings of the same word in tap order.
+  const previous = vocabularyRequests.get(key) ?? Promise.resolve();
+  const request = previous.then(async () => {
+    if (version !== getAuthSessionVersion() || userId !== getUser<{ id: number }>()?.id || !isAuthenticated()) return;
+    try {
+      await analyticsApi.recordVocabularyProgress({ vocabularyId, action });
+      vocabularyErrorShown.delete(userId);
+    } catch {
+      if (version === getAuthSessionVersion() && !vocabularyErrorShown.has(userId)) {
+        vocabularyErrorShown.add(userId);
+        Alert.alert('Chưa lưu được tiến độ từ vựng', 'Lựa chọn vừa rồi chưa được xác nhận lưu. Vui lòng kiểm tra kết nối và ôn lại từ đó.');
+      }
+    } finally {
+      notify();
+    }
+  });
+  vocabularyRequests.set(key, request);
+  void request.finally(() => {
+    if (vocabularyRequests.get(key) === request) vocabularyRequests.delete(key);
   });
 };

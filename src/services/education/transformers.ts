@@ -67,8 +67,15 @@ export const transformQuestionToListening = (
   const options: ListeningPracticeOption[] = practiceOptions(payload);
 
   let mappedType: ListeningQuestionType = 'IMAGE_SELECT';
-  if (payload.type) {
+  if (payload.templateId === 'listen-repeat') {
+    mappedType = 'LISTEN_REPEAT';
+  } else if (payload.templateId === 'listen-dictation'
+    || (['SHORT_ANSWER', 'FILL_IN_BLANK'].includes(backendQ.type) && options.length === 0)) {
+    mappedType = 'DICTATION';
+  } else if (payload.type) {
     mappedType = payload.type;
+  } else if (payload.templateId === 'listen-image-matching') {
+    mappedType = 'GROUP_SELECT';
   } else if (backendQ.type === 'TRUE_FALSE') {
     mappedType = 'TRUE_FALSE';
   } else if (backendQ.type === 'MATCHING') {
@@ -83,7 +90,7 @@ export const transformQuestionToListening = (
 
   return {
     id: String(backendQ.id),
-    index: payload.index ?? fallbackIndex,
+    index: payload.index ?? (Number.isInteger(payload.source?.item) ? payload.source.item : fallbackIndex),
     type: mappedType,
     starred: payload.starred ?? false,
     sentence: payload.sentence || payload.text,
@@ -92,6 +99,15 @@ export const transformQuestionToListening = (
     groupImages: mediaOptions(payload.groupImages),
     options,
     correctOptionId,
+    instruction: payload.instruction || payload.text,
+    imageUrl: payload.presentation === 'options' ? undefined
+      : resolveMediaUrl(payload.contextImageUrl || payload.imageUrl || payload.source?.scanUrl),
+    sharedAudio: payload.audioScope === 'source-track',
+    requiresManualReview: Boolean(payload.manualGrading || !correctOptionId
+      || mappedType === 'LISTEN_REPEAT' || mappedType === 'DICTATION'),
+    inputHint: payload.inputHint,
+    referenceAnswer: mappedType === 'DICTATION' && typeof correctAnswer.answer === 'string'
+      ? correctAnswer.answer : undefined,
   };
 };
 

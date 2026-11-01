@@ -1,10 +1,11 @@
 import { useAudioPlayback, audioTime } from '@/services/audio/AudioProvider';
 import { imageSource } from '@/services/media';
 import React, { memo } from 'react';
-import { View, Text, TouchableOpacity, Image } from 'react-native';
+import { View, Text, TouchableOpacity, Image, TextInput } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { ListeningPracticeQuestion, ListeningPracticeOption } from '../../types';
 import { ms, hs, vs } from '@/theme';
+import { ReadingPracticeImage } from '../Reading/ReadingPracticeImage';
 
 interface Props {
   question: ListeningPracticeQuestion;
@@ -293,6 +294,49 @@ export const ListeningQuestionCard = memo(({ question, selectedOptionId, onSelec
 
       {/* Audio Row: [index] [🔊 ▶ 0:00/0:00 ——] [🔉] [⋮] [🚩] */}
       <AudioRow question={question} bookmarked={bookmarked} onToggleBookmark={onToggleBookmark} />
+
+      {question.instruction && question.type !== 'TRUE_FALSE' ? (
+        <Text style={{ fontSize: ms(14), color: '#111827', fontWeight: '600', lineHeight: vs(22), marginBottom: vs(8) }}>
+          {question.instruction}
+        </Text>
+      ) : null}
+      {question.sharedAudio ? (
+        <Text style={{ fontSize: ms(12), color: '#6B7280', lineHeight: vs(18) }}>Audio dùng chung cho các mục trong phần bài tập.</Text>
+      ) : null}
+      {question.imageUrl ? <ReadingPracticeImage key={question.imageUrl} uri={question.imageUrl} /> : null}
+
+      {question.type === 'LISTEN_REPEAT' ? (
+        <View style={{ gap: vs(12) }}>
+          <Text style={{ fontSize: ms(14), color: '#4B5563', lineHeight: vs(22) }}>Nghe audio, đọc lại theo hình rồi đánh dấu khi đã luyện xong.</Text>
+          <TouchableOpacity
+            accessibilityRole="checkbox"
+            accessibilityLabel={`Đã luyện xong mục ${question.index}`}
+            accessibilityState={{ checked: Boolean(selectedOptionId) }}
+            onPress={() => onSelectOption(question.id, selectedOptionId ? '' : 'completed')}
+            style={{ minHeight: vs(44), borderWidth: 1, borderColor: selectedOptionId ? '#1E3A8A' : '#D1D5DB', borderRadius: ms(12), padding: ms(12), backgroundColor: selectedOptionId ? '#EFF6FF' : '#FFFFFF' }}
+          >
+            <Text style={{ fontSize: ms(14), color: selectedOptionId ? '#1E3A8A' : '#374151', fontWeight: '600' }}>{selectedOptionId ? '✓ Đã luyện xong' : 'Đánh dấu đã luyện xong'}</Text>
+          </TouchableOpacity>
+        </View>
+      ) : null}
+      {question.type === 'DICTATION' ? (
+        <View style={{ gap: vs(8) }}>
+          <Text style={{ fontSize: ms(14), color: '#374151', fontWeight: '600' }}>Câu trả lời của bạn</Text>
+          {question.inputHint ? <Text style={{ fontSize: ms(12), color: '#6B7280', lineHeight: vs(18) }}>{question.inputHint}</Text> : null}
+          <TextInput
+            accessibilityLabel={`Câu trả lời bài nghe ${question.index}`}
+            multiline
+            textAlignVertical="top"
+            value={selectedOptionId || ''}
+            onChangeText={value => onSelectOption(question.id, value)}
+            placeholder="Ghi câu trả lời theo thứ tự các mục trong hình…"
+            placeholderTextColor="#6B7280"
+            autoCorrect={false}
+            autoCapitalize="none"
+            style={{ minHeight: vs(100), borderWidth: 1, borderColor: '#D1D5DB', borderRadius: ms(12), padding: ms(12), color: '#111827', fontSize: ms(15), lineHeight: vs(22), backgroundColor: '#FFFFFF' }}
+          />
+        </View>
+      ) : null}
 
       {/* True/False sentence - hiển thị sau audio row */}
       {question.type === 'TRUE_FALSE' && question.sentence && (

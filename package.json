@@ -3,10 +3,10 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "android": "node scripts/connect-local-backend.cjs && react-native run-android && node scripts/connect-local-backend.cjs",
+    "android": "node scripts/android-local.cjs android",
     "ios": "react-native run-ios",
-    "start": "node scripts/connect-local-backend.cjs && react-native start",
-    "connect:backend": "node scripts/connect-local-backend.cjs",
+    "start": "node scripts/android-local.cjs start",
+    "adb:reverse": "node scripts/android-local.cjs reverse",
     "pk:client": "node scripts/pk-client.cjs",
     "test": "jest",
     "lint:rules": "eslint .",

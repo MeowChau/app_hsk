@@ -117,7 +117,10 @@ export function HomeContent({ onSwitchTab, onNavigateToProfile }: HomeContentPro
       </View>
 
       {/* Card 4: Bài học đề xuất */}
-      <RecommendedLessonsCard onSeeAll={() => onSwitchTab('learn')} />
+      <RecommendedLessonsCard
+        onSeeAll={() => onSwitchTab('learn', { targetView: 'skills', recommendedLesson: undefined, timestamp: Date.now() })}
+        onOpenLesson={(lesson) => onSwitchTab('learn', { recommendedLesson: lesson, timestamp: Date.now() })}
+      />
 
       {/* Card 5: Streak & Điểm danh */}
       <StreakCard />

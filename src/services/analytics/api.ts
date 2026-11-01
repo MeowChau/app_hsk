@@ -1,5 +1,5 @@
 import { instance } from '../instance';
-import { CheckInResponse, DashboardStatsResponse, PingSessionDto, PingSessionResponse } from './types';
+import { CheckInResponse, DashboardStatsResponse, PingSessionDto, PingSessionResponse, VocabularyProgressDto, VocabularyProgressResponse } from './types';
 
 const pingSession = async <T extends PingSessionResponse = PingSessionResponse>(dto: PingSessionDto): Promise<T> => {
   return instance
@@ -15,6 +15,9 @@ export const analyticsApi = {
   },
 
   pingSession,
+
+  recordVocabularyProgress: (dto: VocabularyProgressDto): Promise<VocabularyProgressResponse> =>
+    instance.post('analytics/vocabulary-progress', { json: dto }).json<VocabularyProgressResponse>(),
 
   // The existing endpoint records attendance as a session and requires >= 1 second.
   checkIn: (): Promise<CheckInResponse> =>

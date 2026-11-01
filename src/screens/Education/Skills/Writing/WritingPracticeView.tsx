@@ -6,6 +6,7 @@ import { WebView } from 'react-native-webview';
 import { ms, hs, vs } from '@/theme';
 import { SubmitConfirmModal, QuestionGridModal } from '@/screens/Education/components';
 import { vocabularyApi } from '@/services/vocabulary';
+import { recordVocabularyProgress } from '@/services/analytics/recording';
 
 interface WritingPracticeWord {
   id: string;
@@ -127,6 +128,7 @@ export const WritingPracticeView = ({ hskLevel, topic, wordOrder, onBack, onSubm
         const characterCount = getWritingCharacters(word.character).length;
         if (!characterCount || message.characterCount !== characterCount || completedWord.current === word.id) return;
         completedWord.current = word.id;
+        recordVocabularyProgress(Number(word.id), 'studied');
         studyTimer.markActivity();
         setStatuses(previous => ({ ...previous, [word.id]: 'done' }));
         advanceTimer.current = setTimeout(() => {

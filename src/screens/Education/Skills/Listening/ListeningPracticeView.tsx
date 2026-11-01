@@ -1,3 +1,4 @@
+// @refresh reset
 import { useAudioPlayback, audioTime } from '@/services/audio/AudioProvider';
 import { imageSource } from '@/services/media';
 import { useStudyTimer } from '@/hooks/useStudyTimer';
@@ -5,13 +6,14 @@ import React, { useState, useCallback, useMemo, memo, useRef, useEffect } from '
 import { View, Text, SafeAreaView, FlatList, TouchableOpacity, Image, Alert } from 'react-native';
 import Svg, { Path, Rect } from 'react-native-svg';
 import { ListeningQuestionCard } from './ListeningQuestionCard';
+import { ReadingPracticeImage } from '../Reading/ReadingPracticeImage';
 import { ListeningPracticeQuestion, ListeningPracticeOption } from '../../types';
 import { ms, hs, vs } from '@/theme';
 import { SubmitConfirmModal, QuestionGridModal } from '@/screens/Education/components';
 
 interface Props {
   hskLevel: number;
-  topic: string;
+  practiceSetId: number;
   onBack: () => void;
   onSubmit?: (result: any) => void;
 }
@@ -146,6 +148,8 @@ const GroupQuestionCard = memo(({ question, selectedOptionId, onSelectOption, bo
       </View>
 
       {/* A-F buttons */}
+      {question.instruction ? <Text style={{ fontSize: ms(14), color: '#111827', lineHeight: vs(22), marginBottom: vs(8) }}>{question.instruction}</Text> : null}
+      {question.imageUrl ? <ReadingPracticeImage key={question.imageUrl} uri={question.imageUrl} /> : null}
       <View style={{ flexDirection: 'row', gap: hs(8) }}>
         {allLetters.map(letter => {
           const opt = question.options.find(o => o.label === letter);
@@ -188,12 +192,10 @@ function buildFlatData(questions: ListeningPracticeQuestion[]): FlatItem[] {
       if (!groupHeaderInserted) {
         // First GROUP_SELECT question carries the groupImages
         const firstGroup = questions.find(x => x.type === 'GROUP_SELECT' && x.groupImages);
-        items.push({
+        if (firstGroup?.groupImages?.length) items.push({
           kind: 'group_header',
           id: 'group_header',
           images: firstGroup?.groupImages || [],
-          exampleDialogue: '男：喂，请问张经理在吗？\n女：他正在开会，您半个小时以后再打，好吗？',
-          exampleAnswer: 'D',
         });
         groupHeaderInserted = true;
       }
@@ -209,7 +211,7 @@ function buildFlatData(questions: ListeningPracticeQuestion[]): FlatItem[] {
 import { educationApi } from '@/services/education/api';
 import { transformQuestionToListening } from '@/services/education/transformers';
 
-export const ListeningPracticeView = ({ hskLevel, topic, onBack, onSubmit }: Props) => {
+export const ListeningPracticeView = ({ hskLevel, practiceSetId, onBack, onSubmit }: Props) => {
   const [questions, setQuestions] = useState<ListeningPracticeQuestion[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -218,9 +220,16 @@ export const ListeningPracticeView = ({ hskLevel, topic, onBack, onSubmit }: Pro
     const fetchQuestions = async () => {
       try {
         setIsLoading(true);
-        const entries = await educationApi.getPracticeQuestions({ hskLevel, topic, skill: 'LISTENING' });
-        const mappedQuestions = entries.map(({ question, fallbackAudioUrl }, idx) =>
-          transformQuestionToListening(question, idx + 1, fallbackAudioUrl));
+        const set = await educationApi.getPracticeSetById(practiceSetId);
+        if (set.id !== practiceSetId || set.skill !== 'LISTENING' || set.hskLevel !== hskLevel) {
+          throw new Error('The selected set is not a listening set for this HSK level.');
+        }
+        const links = [...(set.practiceSetQuestions ?? [])].sort((left, right) => left.order - right.order);
+        if (links.some(link => !link.question || link.question.skill !== 'LISTENING' || link.question.hskLevel !== hskLevel)) {
+          throw new Error('The selected listening set contains missing or mismatched questions.');
+        }
+        const mappedQuestions = links.map(({ question }, idx) =>
+          transformQuestionToListening(question, idx + 1, set.audioUrl));
         if (!cancelled) { setQuestions(mappedQuestions); setAnswers({}); setBookmarks({}); }
       } catch (err) {
         if (!cancelled) { setQuestions([]); Alert.alert('Không thể tải bài luyện', 'Vui lòng kiểm tra kết nối và mở lại bài luyện.'); }
@@ -230,7 +239,7 @@ export const ListeningPracticeView = ({ hskLevel, topic, onBack, onSubmit }: Pro
     };
     fetchQuestions();
     return () => { cancelled = true; };
-  }, [hskLevel, topic]);
+  }, [hskLevel, practiceSetId]);
 
   const studyTimer = useStudyTimer(!isLoading && questions.length > 0, 'practice_listening');
   const flatData = useMemo(() => buildFlatData(questions), [questions]);
@@ -253,7 +262,12 @@ export const ListeningPracticeView = ({ hskLevel, topic, onBack, onSubmit }: Pro
   const viewabilityConfig = useRef({ itemVisiblePercentThreshold: 50 }).current;
 
   const handleSelectOption = useCallback((questionId: string, optionId: string) => {
-    setAnswers(prev => ({ ...prev, [questionId]: optionId }));
+    setAnswers(prev => {
+      const next = { ...prev };
+      if (optionId.trim()) next[questionId] = optionId;
+      else delete next[questionId];
+      return next;
+    });
   }, []);
 
   const handleToggleBookmark = useCallback((questionId: string) => {
@@ -263,11 +277,12 @@ export const ListeningPracticeView = ({ hskLevel, topic, onBack, onSubmit }: Pro
   const handleConfirmSubmit = () => {
     setShowSubmitModal(false);
     let correct = 0;
-    questions.forEach(q => {
+    const gradableQuestions = questions.filter(question => !question.requiresManualReview);
+    gradableQuestions.forEach(q => {
       if (answers[q.id] === q.correctOptionId) correct++;
     });
     if (onSubmit) {
-      onSubmit({ score: Math.round((correct / questions.length) * 100), correctCount: correct, totalCount: questions.length, answers, questions, durationInSeconds: studyTimer.takeSeconds() });
+      onSubmit({ score: gradableQuestions.length ? Math.round((correct / gradableQuestions.length) * 100) : null, correctCount: correct, totalCount: questions.length, gradedCount: gradableQuestions.length, manualCount: questions.length - gradableQuestions.length, completedCount: Object.keys(answers).length, answers, questions, durationInSeconds: studyTimer.takeSeconds() });
     } else {
       onBack();
     }
@@ -295,6 +310,9 @@ export const ListeningPracticeView = ({ hskLevel, topic, onBack, onSubmit }: Pro
   const answeredCount = Object.keys(answers).length;
   const totalCount = questions.length;
   const remainingCount = totalCount - answeredCount;
+  const manualCount = questions.filter(question => question.requiresManualReview).length;
+  const isManualOnly = totalCount > 0 && manualCount === totalCount;
+  const submitLabel = isManualOnly ? 'Hoàn thành' : 'Nộp bài';
 
   const gridItems = useMemo(() => questions.map(q => ({
     id: q.id,
@@ -365,7 +383,7 @@ export const ListeningPracticeView = ({ hskLevel, topic, onBack, onSubmit }: Pro
               Luyện tập kỹ năng nghe
             </Text>
             <Text style={{ fontSize: ms(14), color: '#4B5563', fontWeight: '500' }}>
-              {answeredCount}/{totalCount} số lượng câu
+              {answeredCount}/{totalCount} {isManualOnly ? 'mục đã làm' : 'câu đã trả lời'}
             </Text>
           </View>
         </View>
@@ -380,12 +398,13 @@ export const ListeningPracticeView = ({ hskLevel, topic, onBack, onSubmit }: Pro
             </Svg>
           </TouchableOpacity>
           <TouchableOpacity onPress={() => setShowSubmitModal(true)} style={{ backgroundColor: '#1E3A8A', borderRadius: ms(6), paddingHorizontal: hs(14), paddingVertical: vs(7) }}>
-            <Text style={{ color: '#FFFFFF', fontSize: ms(14), fontWeight: '700' }}>Nộp bài</Text>
+            <Text style={{ color: '#FFFFFF', fontSize: ms(14), fontWeight: '700' }}>{submitLabel}</Text>
           </TouchableOpacity>
         </View>
       </View>
 
       <FlatList
+        keyboardShouldPersistTaps="handled"
         ref={flatListRef}
         data={flatData}
         keyExtractor={(item) => (item.kind === 'group_header' ? item.id : item.question.id)}
@@ -403,17 +422,17 @@ export const ListeningPracticeView = ({ hskLevel, topic, onBack, onSubmit }: Pro
         ListHeaderComponent={
           <View style={{ marginBottom: vs(20) }}>
             <Text style={{ fontSize: ms(14), color: '#4B5563', lineHeight: vs(22) }}>
-              Luyện nghe theo 3 chế độ: Nghe chọn ảnh, nghe chọn từ vựng và nghe chọn True/False
+              Nghe audio và làm theo yêu cầu của từng mục. {manualCount ? 'Phần nghe–viết có đáp án đối chiếu sau khi hoàn thành. Phần nghe–đọc lại tự luyện không chấm tự động.' : 'Chọn đáp án phù hợp cho mỗi câu.'}
             </Text>
           </View>
         }
         ListFooterComponent={
           <View style={{ backgroundColor: '#FAF9F6', borderRadius: ms(12), padding: ms(24), alignItems: 'center', marginTop: vs(8), marginBottom: vs(24) }}>
             <Text style={{ fontSize: ms(14), color: '#6B7280', marginBottom: vs(16), fontWeight: '500' }}>
-              Đã trả lời <Text style={{ fontWeight: '800', color: '#111827' }}>{answeredCount}</Text>/{totalCount} câu. Còn {remainingCount} chưa trả lời
+              Đã làm <Text style={{ fontWeight: '800', color: '#111827' }}>{answeredCount}</Text>/{totalCount} {isManualOnly ? 'mục' : 'câu'}. Còn {remainingCount} chưa làm
             </Text>
             <TouchableOpacity onPress={() => setShowSubmitModal(true)} style={{ backgroundColor: '#1E3A8A', borderRadius: ms(8), paddingHorizontal: hs(36), paddingVertical: vs(12) }}>
-              <Text style={{ color: '#FFFFFF', fontSize: ms(16), fontWeight: '700' }}>Nộp bài</Text>
+              <Text style={{ color: '#FFFFFF', fontSize: ms(16), fontWeight: '700' }}>{submitLabel}</Text>
             </TouchableOpacity>
           </View>
         }
@@ -425,6 +444,9 @@ export const ListeningPracticeView = ({ hskLevel, topic, onBack, onSubmit }: Pro
         onClose={() => setShowSubmitModal(false)}
         onConfirm={handleConfirmSubmit}
         remainingCount={remainingCount}
+        title={isManualOnly ? 'Hoàn thành bài tự luyện?' : undefined}
+        confirmButtonText={submitLabel}
+        remainingWarningText={manualCount ? `Bạn còn ${remainingCount} mục chưa làm. Phần nghe–viết và đọc lại không tính vào điểm trắc nghiệm.` : undefined}
       />
 
       {/* Grid Modal */}

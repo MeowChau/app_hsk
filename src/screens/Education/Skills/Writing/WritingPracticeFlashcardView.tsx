@@ -5,6 +5,7 @@ import { ScreenHeader } from '@/components/molecules';
 import { ms, hs, vs } from '@/theme';
 import { vocabularyApi } from '@/services/vocabulary';
 import { useStudyTimer } from '@/hooks/useStudyTimer';
+import { recordVocabularyProgress } from '@/services/analytics/recording';
 import {
   createFlashcardSession,
   flashcardSessionReducer,
@@ -35,6 +36,7 @@ export const WritingPracticeFlashcardView = ({ hskLevel, topic, onBack, onFinish
   const [session, dispatch] = useReducer(flashcardSessionReducer, [], createFlashcardSession);
   const [showMeaning, setShowMeaning] = useState(false);
   const finished = useRef(false);
+  const lastRating = useRef<string | null>(null);
 
   React.useEffect(() => {
     let cancelled = false;
@@ -52,6 +54,7 @@ export const WritingPracticeFlashcardView = ({ hskLevel, topic, onBack, onFinish
         setWords(fetchedWords);
         dispatch({ type: 'reset', wordIds: fetchedWords.map(word => word.id) });
         finished.current = false;
+        lastRating.current = null;
         setShowMeaning(false);
       } catch (err) {
         if (!cancelled) {
@@ -78,6 +81,10 @@ export const WritingPracticeFlashcardView = ({ hskLevel, topic, onBack, onFinish
   };
   const rateWord = (rating: FlashcardRating) => {
     if (!word || !showMeaning) return;
+    const marker = `${session.phase}:${word.id}`;
+    if (lastRating.current === marker) return;
+    lastRating.current = marker;
+    recordVocabularyProgress(Number(word.id), rating);
     dispatch({ type: 'rate', wordId: word.id, phase: session.phase, rating });
     setShowMeaning(false);
   };
@@ -179,6 +186,7 @@ export const WritingPracticeFlashcardView = ({ hskLevel, topic, onBack, onFinish
         <View style={{ flexDirection: 'row', gap: hs(16), marginBottom: vs(32) }}>
           {isComplete ? (
             <TouchableOpacity style={[styles.actionBtn, { backgroundColor: '#3B82F6' }]} onPress={() => {
+              lastRating.current = null;
               dispatch({ type: 'reset', wordIds: session.wordIds });
               setShowMeaning(false);
             }}>

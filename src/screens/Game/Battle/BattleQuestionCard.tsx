@@ -1,5 +1,11 @@
-import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import React, { useRef, useState } from 'react';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  useWindowDimensions,
+} from 'react-native';
+import Svg, { Path } from 'react-native-svg';
 import { hs, vs, ms } from '@/theme';
 export interface BattleQuestion {
   id: number;
@@ -29,6 +35,22 @@ export const BattleQuestionCard = ({
   questionNumber,
   totalQuestions,
 }: BattleQuestionCardProps) => {
+  const { width, fontScale } = useWindowDimensions();
+  const measurementKey = JSON.stringify([
+    question.id,
+    question.options,
+    width,
+    fontScale,
+  ]);
+  const activeMeasurementKey = useRef(measurementKey);
+  activeMeasurementKey.current = measurementKey;
+  const [measurement, setMeasurement] = useState({ key: '', height: 0 });
+  const optionHeight = Math.max(
+    ms(64),
+    measurement.key === measurementKey ? measurement.height + vs(24) + 4 : 0,
+  );
+  const answersLocked = !isMyTurn || selectedOption !== null || showResult;
+
   return (
     <View
       style={{
@@ -51,7 +73,10 @@ export const BattleQuestionCard = ({
         }}
       >
         — {question.prompt}{' '}
-        {questionNumber && totalQuestions ? `(${questionNumber}/${totalQuestions})` : ''} —
+        {questionNumber && totalQuestions
+          ? `(${questionNumber}/${totalQuestions})`
+          : ''}{' '}
+        —
       </Text>
 
       {/* Chinese Characters (Hanzi) */}
@@ -88,7 +113,7 @@ export const BattleQuestionCard = ({
           const isCorrect = index === question.correctIndex;
 
           let bgColor = '#181439';
-          let borderColor = '#2B255E';
+          let borderColor = '#48406E';
           let textColor = '#E0E7FF';
           let numBg = '#262054';
           let numText = '#A5B4FC';
@@ -115,10 +140,34 @@ export const BattleQuestionCard = ({
             numText = '#FFFFFF';
           }
 
+          const resultIcon =
+            showResult && isCorrect
+              ? 'correct'
+              : showResult && isSelected
+                ? 'incorrect'
+                : isSelected
+                  ? 'selected'
+                  : null;
+          const label = String.fromCharCode(65 + index);
+          const resultLabel =
+            resultIcon === 'correct'
+              ? ', đáp án đúng'
+              : resultIcon === 'incorrect'
+                ? ', trả lời sai'
+                : isSelected
+                  ? ', đã chọn'
+                  : '';
+
           return (
             <TouchableOpacity
               key={index}
-              disabled={!isMyTurn || selectedOption !== null}
+              accessibilityLabel={`${label}. ${optionText}${resultLabel}`}
+              accessibilityRole="radio"
+              accessibilityState={{
+                checked: isSelected,
+                disabled: answersLocked,
+              }}
+              disabled={answersLocked}
               activeOpacity={0.75}
               onPress={() => onSelectOption(index)}
               style={{
@@ -126,46 +175,93 @@ export const BattleQuestionCard = ({
                 alignItems: 'center',
                 backgroundColor: bgColor,
                 borderColor: borderColor,
-                borderWidth: 1.5,
-                borderRadius: ms(999),
+                borderWidth: 2,
+                borderRadius: ms(12),
+                minHeight: optionHeight,
+                width: '100%',
                 paddingHorizontal: hs(16),
                 paddingVertical: vs(12),
               }}
             >
-              {/* Number Circle badge */}
+              {/* The same square badge and card shape are used in every state. */}
               <View
                 style={{
-                  width: hs(24),
-                  height: vs(24),
-                  borderRadius: ms(12),
+                  width: ms(32),
+                  height: ms(32),
+                  borderRadius: ms(8),
                   backgroundColor: numBg,
                   alignItems: 'center',
                   justifyContent: 'center',
                   marginRight: hs(12),
+                  flexShrink: 0,
                 }}
               >
                 <Text
                   style={{
                     color: numText,
-                    fontSize: ms(12),
-                    fontWeight: '800',
+                    fontSize: ms(14),
+                    fontWeight: '700',
                   }}
                 >
-                  {index + 1}
+                  {label}
                 </Text>
               </View>
 
               {/* Option Text */}
               <Text
+                onTextLayout={(event) => {
+                  if (activeMeasurementKey.current !== measurementKey) return;
+                  const height = Math.ceil(
+                    event.nativeEvent.lines.reduce(
+                      (total, line) => total + line.height,
+                      0,
+                    ),
+                  );
+                  setMeasurement((previous) =>
+                    previous.key === measurementKey && previous.height >= height
+                      ? previous
+                      : { key: measurementKey, height },
+                  );
+                }}
                 style={{
                   color: textColor,
-                  fontSize: ms(14),
-                  fontWeight: '600',
+                  fontSize: ms(16),
+                  lineHeight: ms(22),
+                  fontWeight: '500',
                   flex: 1,
                 }}
               >
                 {optionText}
               </Text>
+              <View
+                style={{
+                  width: ms(20),
+                  height: ms(20),
+                  marginLeft: hs(12),
+                  flexShrink: 0,
+                }}
+              >
+                {resultIcon ? (
+                  <Svg
+                    width="100%"
+                    height="100%"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                  >
+                    <Path
+                      d={
+                        resultIcon === 'incorrect'
+                          ? 'M6 6l12 12M18 6L6 18'
+                          : 'M5 12l4 4L19 6'
+                      }
+                      stroke={textColor}
+                      strokeWidth={2.5}
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </Svg>
+                ) : null}
+              </View>
             </TouchableOpacity>
           );
         })}

@@ -5,9 +5,9 @@ export type EducationViewMode = 'main' | 'examList' | 'examTest' | 'examResult' 
 export type QuestionType = 'LISTENING' | 'READING' | 'WRITING';
 
 // =========================================================
-// Listening Practice - 4 loại câu hỏi
+// Listening Practice
 // =========================================================
-export type ListeningQuestionType = 'IMAGE_SELECT' | 'VOCAB_SELECT' | 'TRUE_FALSE' | 'GROUP_SELECT';
+export type ListeningQuestionType = 'IMAGE_SELECT' | 'VOCAB_SELECT' | 'TRUE_FALSE' | 'GROUP_SELECT' | 'LISTEN_REPEAT' | 'DICTATION';
 
 export interface ListeningPracticeOption {
   id: string;
@@ -28,6 +28,12 @@ export interface ListeningPracticeQuestion {
   options: ListeningPracticeOption[];
   correctOptionId: string;
   audioUrl?: string;
+  instruction?: string;
+  imageUrl?: string;
+  sharedAudio?: boolean;
+  requiresManualReview?: boolean;
+  inputHint?: string;
+  referenceAnswer?: string;
 }
 
 // =========================================================

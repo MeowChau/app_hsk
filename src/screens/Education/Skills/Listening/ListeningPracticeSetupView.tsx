@@ -1,43 +1,50 @@
+// @refresh reset
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ScreenHeader } from '@/components/molecules';
 import { ms, hs, vs } from '@/theme';
-import { HskLevelSelector, PracticeTopicPicker } from '../components';
+import { HskLevelSelector, TopicPickerModal } from '../components';
 
 import { educationApi } from '@/services/education/api';
-import type { SkillTopicSummary } from '@/services/education/types';
+import type { SkillPracticeSetSummary } from '@/services/education/types';
+
+const describeListeningSet = (set: SkillPracticeSetSummary): string =>
+  `${set.questionCount} câu luyện tập`;
+
+const listeningSetGroup = (set: SkillPracticeSetSummary): string => {
+  const labels = { textbook: 'Sách bài tập', vocabulary: 'Ôn từ vựng (biên soạn)', other: 'Bài luyện khác' };
+  return `HSK ${set.hskLevel} · ${labels[set.sourceKind]}`;
+};
 
 interface Props {
   onBack: () => void;
-  onStartPractice: (hskLevel: number, topic: string) => void;
+  onStartPractice: (hskLevel: number, practiceSetId: number) => void;
 }
 
 export const ListeningPracticeSetupView = ({ onBack, onStartPractice }: Props) => {
   const [selectedHsk, setSelectedHsk] = useState<number>(1);
-  const [topics, setTopics] = useState<SkillTopicSummary[]>([]);
-  const [selectedTopic, setSelectedTopic] = useState<string>('');
+  const [practiceSets, setPracticeSets] = useState<SkillPracticeSetSummary[]>([]);
+  const [selectedSetId, setSelectedSetId] = useState<number | null>(null);
+  const selectedSet = practiceSets.find(set =>
+    set.id === selectedSetId && set.hskLevel === selectedHsk && set.skill === 'LISTENING');
 
   React.useEffect(() => {
     let cancelled = false;
-    setTopics([]);
-    setSelectedTopic('');
-    const fetchTopics = async () => {
+    setPracticeSets([]);
+    setSelectedSetId(null);
+    const fetchPracticeSets = async () => {
       try {
-        const topicList = await educationApi.getTopicsForSkill('LISTENING', selectedHsk);
+        const sets = await educationApi.getPracticeSetSummaries('LISTENING', selectedHsk);
         if (cancelled) return;
-        setTopics(topicList);
-        if (topicList.length > 0) {
-          setSelectedTopic(topicList[0].topicKey);
-        } else {
-          setSelectedTopic('');
-        }
+        setPracticeSets(sets);
+        setSelectedSetId(sets[0]?.id ?? null);
       } catch (err) {
-        console.warn('Failed to fetch topics', err);
+        console.warn('Failed to fetch listening practice sets', err);
       }
     };
-    fetchTopics();
+    fetchPracticeSets();
     return () => { cancelled = true; };
   }, [selectedHsk]);
 
@@ -48,7 +55,7 @@ export const ListeningPracticeSetupView = ({ onBack, onStartPractice }: Props) =
 
       <ScrollView contentContainerStyle={{ paddingHorizontal: hs(16), paddingTop: vs(16), paddingBottom: vs(100) }} showsVerticalScrollIndicator={false}>
         <Text style={{ fontSize: ms(14), color: '#4B5563', lineHeight: vs(24), marginBottom: vs(32) }}>
-          Luyện nghe theo 3 chế độ: Nghe chọn ảnh, nghe chọn từ vựng và nghe chọn True/False (thêm Nghe chọn các hình ảnh theo số lượng và bài nghe cho HSK 3)
+          Chọn bài luyện, nghe audio rồi chọn đáp án, nghe–đọc lại hoặc nghe–viết theo yêu cầu của từng mục.
         </Text>
 
         {/* HSK Level Selection */}
@@ -58,18 +65,28 @@ export const ListeningPracticeSetupView = ({ onBack, onStartPractice }: Props) =
         />
 
         {/* Topic Selection */}
-        <PracticeTopicPicker
-          selectedTopic={selectedTopic}
-          topics={topics}
-          onSelectTopic={setSelectedTopic}
+        <TopicPickerModal
+          title="Chọn bài luyện nghe"
+          modalTitle="Chọn bài luyện nghe"
+          description="Chọn một bộ bài luyện và làm các câu hỏi trong bộ đó."
+          selectedLabel={selectedSet?.title || 'Chọn bài luyện nghe'}
+          selectedDescription={selectedSet ? describeListeningSet(selectedSet) : undefined}
+          topics={practiceSets}
+          getTopicLabel={set => set.title}
+          getTopicDescription={describeListeningSet}
+          getTopicGroup={listeningSetGroup}
+          getTopicKey={set => set.id}
+          isSelected={set => set.id === selectedSetId}
+          onSelectTopic={set => setSelectedSetId(set.id)}
+          emptyMessage="Chưa có bộ luyện nghe cho cấp HSK này."
         />
       </ScrollView>
 
       {/* Start Button */}
       <View style={{ position: 'absolute', bottom: vs(32), left: hs(16), right: hs(16) }}>
         <TouchableOpacity
-          disabled={!selectedTopic}
-          onPress={() => onStartPractice(selectedHsk, selectedTopic)}
+          disabled={!selectedSet?.questionCount}
+          onPress={() => selectedSet?.questionCount && onStartPractice(selectedSet.hskLevel, selectedSet.id)}
           style={{
             backgroundColor: '#1E3A8A',
             borderRadius: ms(8),

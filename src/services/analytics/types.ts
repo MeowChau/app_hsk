@@ -26,6 +26,17 @@ export interface PingSessionDto {
   module: string;
 }
 
+export interface VocabularyProgressDto {
+  vocabularyId: number;
+  action: 'studied' | 'remembered' | 'unknown';
+}
+
+export interface VocabularyProgressResponse {
+  vocabularyId: number;
+  status: 'learning' | 'remembered' | 'needs_review';
+  lastStudiedAt: string;
+}
+
 export interface PingSessionResponse {
   id: number;
   studyDate: string;

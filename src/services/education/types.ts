@@ -1,5 +1,12 @@
 export type BackendQuestionSkill = 'LISTENING' | 'READING' | 'WRITING' | 'SPEAKING';
 
+export interface RecommendedLessonTarget {
+  skill: BackendQuestionSkill;
+  hskLevel: number;
+  topic: string;
+  practiceSetId?: number;
+}
+
 export type BackendQuestionType =
   | 'MULTIPLE_CHOICE'
   | 'TRUE_FALSE'
