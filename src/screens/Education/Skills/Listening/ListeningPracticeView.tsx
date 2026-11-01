@@ -1,10 +1,16 @@
 // @refresh reset
-import { useAudioPlayback, audioTime } from '@/services/audio/AudioProvider';
+import { PracticeHeader } from '../../components/PracticeHeader';
+import { QuestionAudioPlayer } from '../../components/QuestionAudioPlayer';
+import { PracticeBookmarkButton } from '../../components/PracticeBookmarkButton';
+import { SharedAudioHeader, SharedAudioEnd } from '../../components/SharedAudioHeader';
+import { buildSharedAudioRows, audioStickyHeaderIndices } from '../../components/sharedAudioRows';
+import type { SharedAudioRow } from '../../components/sharedAudioRows';
+import { useAudioListScroll } from '../../components/useAudioListScroll';
 import { imageSource } from '@/services/media';
 import { useStudyTimer } from '@/hooks/useStudyTimer';
+import { useScreenBackHandler } from '@/navigation/useScreenBackHandler';
 import React, { useState, useCallback, useMemo, memo, useRef, useEffect } from 'react';
 import { View, Text, SafeAreaView, FlatList, TouchableOpacity, Image, Alert } from 'react-native';
-import Svg, { Path, Rect } from 'react-native-svg';
 import { ListeningQuestionCard } from './ListeningQuestionCard';
 import { ReadingPracticeImage } from '../Reading/ReadingPracticeImage';
 import { ListeningPracticeQuestion, ListeningPracticeOption } from '../../types';
@@ -79,14 +85,14 @@ const GroupHeader = memo(({ images, exampleDialogue, exampleAnswer }: {
 // ============================================================
 // GROUP_SELECT individual question card (chỉ audio + A-F buttons)
 // ============================================================
-const GroupQuestionCard = memo(({ question, selectedOptionId, onSelectOption, bookmarked, onToggleBookmark }: {
+const GroupQuestionCard = memo(({ question, selectedOptionId, onSelectOption, bookmarked, onToggleBookmark, showAudio }: {
   question: ListeningPracticeQuestion;
   selectedOptionId?: string;
   onSelectOption: (qId: string, oId: string) => void;
   bookmarked?: boolean;
   onToggleBookmark: (qId: string) => void;
+  showAudio: boolean;
 }) => {
-  const audio = useAudioPlayback(question.audioUrl);
   const allLetters = ['A', 'B', 'C', 'D', 'E', 'F'];
   return (
     <View style={{
@@ -97,54 +103,12 @@ const GroupQuestionCard = memo(({ question, selectedOptionId, onSelectOption, bo
       padding: ms(12),
       marginBottom: vs(10),
     }}>
-      {/* Audio row */}
-      <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: vs(10) }}>
-        {/* Index */}
-        <View style={{ width: ms(28), height: ms(28), borderRadius: ms(14), backgroundColor: '#E5E7EB', justifyContent: 'center', alignItems: 'center', marginRight: hs(8) }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: vs(10) }}>
+        <View style={{ width: ms(30), height: ms(30), borderRadius: ms(15), backgroundColor: '#E5E7EB', justifyContent: 'center', alignItems: 'center' }}>
           <Text style={{ color: '#374151', fontWeight: '800', fontSize: ms(14) }}>{question.index}</Text>
         </View>
-
-        {/* Volume icon */}
-        <Svg height="15" viewBox="0 0 24 24" width="15">
-          <Path d="M11 5L6 9H2v6h4l5 4V5zM15.54 8.46a5 5 0 0 1 0 7.07" fill="none" stroke="#6B7280" strokeWidth="2" strokeLinecap="round" />
-        </Svg>
-
-        {/* Play */}
-        <TouchableOpacity onPress={audio.toggle} style={{ marginHorizontal: hs(4) }}>
-          <Svg height="11" viewBox="0 0 24 24" width="11">
-            <Path d={audio.playing ? "M5 3h5v18H5zM14 3h5v18h-5z" : "M5 3l14 9-14 9V3z"} fill="#374151" />
-          </Svg>
-        </TouchableOpacity>
-
-        {/* Time */}
-        <Text style={{ fontSize: ms(12), color: '#9CA3AF', marginRight: hs(4) }}>{audioTime(audio.position)} / {audioTime(audio.duration)}</Text>
-
-        {/* Progress bar stretches */}
-        <View style={{ flex: 1, height: vs(3), backgroundColor: '#D1D5DB', borderRadius: ms(2) }}>
-          <View style={{ width: `${audio.progress}%`, height: '100%', backgroundColor: '#374151', borderRadius: ms(2) }} />
-        </View>
-
-        {/* Volume small */}
-        <Svg height="13" viewBox="0 0 24 24" width="13" style={{ marginLeft: hs(4) }}>
-          <Path d="M11 5L6 9H2v6h4l5 4V5z" fill="none" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round" />
-        </Svg>
-
-        {/* Three dots */}
-        <TouchableOpacity style={{ marginLeft: hs(4) }}>
-          <Svg height="14" viewBox="0 0 24 24" width="14">
-            <Path d="M12 5v.01M12 12v.01M12 19v.01" fill="none" stroke="#9CA3AF" strokeWidth="2.5" strokeLinecap="round" />
-          </Svg>
-        </TouchableOpacity>
-
-        {/* Bookmark */}
-        <TouchableOpacity onPress={() => onToggleBookmark(question.id)} style={{ marginLeft: hs(6) }}>
-          <Svg height="15" viewBox="0 0 24 24" width="15">
-            <Path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1zM4 22v-7"
-              fill={bookmarked ? '#D97706' : 'none'}
-              stroke={bookmarked ? '#D97706' : '#9CA3AF'}
-              strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-          </Svg>
-        </TouchableOpacity>
+        {showAudio ? <QuestionAudioPlayer url={question.audioUrl} label={`câu ${question.index}`} /> : <View style={{ flex: 1 }} />}
+        <PracticeBookmarkButton index={question.index} selected={bookmarked} onPress={() => onToggleBookmark(question.id)} />
       </View>
 
       {/* A-F buttons */}
@@ -181,13 +145,18 @@ const GroupQuestionCard = memo(({ question, selectedOptionId, onSelectOption, bo
 // ============================================================
 type FlatItem =
   | { kind: 'group_header'; images: ListeningPracticeOption[]; exampleDialogue?: string; exampleAnswer?: string; id: string }
-  | { kind: 'question'; question: ListeningPracticeQuestion };
+  | SharedAudioRow<ListeningPracticeQuestion>;
 
 function buildFlatData(questions: ListeningPracticeQuestion[]): FlatItem[] {
   const items: FlatItem[] = [];
   let groupHeaderInserted = false;
 
-  for (const q of questions) {
+  for (const row of buildSharedAudioRows(questions)) {
+    if (row.kind !== 'question') {
+      items.push(row);
+      continue;
+    }
+    const q = row.question;
     if (q.type === 'GROUP_SELECT') {
       if (!groupHeaderInserted) {
         // First GROUP_SELECT question carries the groupImages
@@ -200,7 +169,7 @@ function buildFlatData(questions: ListeningPracticeQuestion[]): FlatItem[] {
         groupHeaderInserted = true;
       }
     }
-    items.push({ kind: 'question', question: q });
+    items.push(row);
   }
   return items;
 }
@@ -243,13 +212,14 @@ export const ListeningPracticeView = ({ hskLevel, practiceSetId, onBack, onSubmi
 
   const studyTimer = useStudyTimer(!isLoading && questions.length > 0, 'practice_listening');
   const flatData = useMemo(() => buildFlatData(questions), [questions]);
+  const stickyHeaders = useMemo(() => audioStickyHeaderIndices(flatData, 1), [flatData]);
+  const { listRef: flatListRef, scrollToQuestion, rememberHeaderHeight, onScrollToIndexFailed } = useAudioListScroll(flatData);
 
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [bookmarks, setBookmarks] = useState<Record<string, boolean>>({});
   const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [showGridModal, setShowGridModal] = useState(false);
   const [currentQuestionId, setCurrentQuestionId] = useState<string | null>(null);
-  const flatListRef = useRef<FlatList>(null);
 
   const onViewableItemsChanged = useRef(({ viewableItems }: any) => {
     if (viewableItems.length > 0) {
@@ -291,10 +261,9 @@ export const ListeningPracticeView = ({ hskLevel, practiceSetId, onBack, onSubmi
   const handleGridPress = useCallback((questionId: string) => {
     setShowGridModal(false);
     const index = flatData.findIndex(item => item.kind === 'question' && item.question.id === questionId);
-    if (index !== -1 && flatListRef.current) {
-      flatListRef.current.scrollToIndex({ index, animated: true, viewPosition: 0 });
-    }
-  }, [flatData]);
+    const row = flatData[index];
+    scrollToQuestion(index, row?.kind === 'question' ? row.sharedAudioHeaderId : undefined);
+  }, [flatData, scrollToQuestion]);
 
   const handleExitPress = useCallback(() => {
     Alert.alert(
@@ -306,6 +275,12 @@ export const ListeningPracticeView = ({ hskLevel, practiceSetId, onBack, onSubmi
       ]
     );
   }, [onBack]);
+
+  useScreenBackHandler(() => {
+    if (isLoading || questions.length === 0) onBack();
+    else handleExitPress();
+    return true;
+  });
 
   const answeredCount = Object.keys(answers).length;
   const totalCount = questions.length;
@@ -323,6 +298,8 @@ export const ListeningPracticeView = ({ hskLevel, practiceSetId, onBack, onSubmi
   })), [questions, answers, bookmarks, currentQuestionId]);
 
   const renderItem = useCallback(({ item }: { item: FlatItem }) => {
+    if (item.kind === 'audio_header') return <SharedAudioHeader url={item.audioUrl} label={item.label} onHeight={height => rememberHeaderHeight(item.id, height)} />;
+    if (item.kind === 'audio_end') return <SharedAudioEnd />;
     if (item.kind === 'group_header') {
       return <GroupHeader images={item.images} exampleDialogue={item.exampleDialogue} exampleAnswer={item.exampleAnswer} />;
     }
@@ -331,6 +308,7 @@ export const ListeningPracticeView = ({ hskLevel, practiceSetId, onBack, onSubmi
       return (
         <GroupQuestionCard
           question={q}
+          showAudio={!item.sharedAudioHeaderId}
           selectedOptionId={answers[q.id]}
           onSelectOption={handleSelectOption}
           bookmarked={bookmarks[q.id]}
@@ -341,13 +319,14 @@ export const ListeningPracticeView = ({ hskLevel, practiceSetId, onBack, onSubmi
     return (
       <ListeningQuestionCard
         question={q}
+        showAudio={!item.sharedAudioHeaderId}
         selectedOptionId={answers[q.id]}
         onSelectOption={handleSelectOption}
         bookmarked={bookmarks[q.id]}
         onToggleBookmark={handleToggleBookmark}
       />
     );
-  }, [answers, bookmarks, handleSelectOption, handleToggleBookmark]);
+  }, [answers, bookmarks, handleSelectOption, handleToggleBookmark, rememberHeaderHeight]);
 
   if (isLoading) {
     return (
@@ -370,55 +349,28 @@ export const ListeningPracticeView = ({ hskLevel, practiceSetId, onBack, onSubmi
 
   return (
     <SafeAreaView onTouchStart={studyTimer.markActivity} onTouchMove={studyTimer.markActivity} style={{ flex: 1, backgroundColor: '#E5E7EB' }}>
-      {/* Sticky Header */}
-      <View style={{ backgroundColor: '#FFFFFF', paddingHorizontal: hs(16), paddingTop: vs(8), paddingBottom: vs(12), flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: 1, borderBottomColor: '#E5E7EB' }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
-          <TouchableOpacity onPress={handleExitPress} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }} style={{ marginRight: hs(8), padding: ms(8), marginLeft: hs(-6) }}>
-            <Svg height="24" viewBox="0 0 24 24" width="24">
-              <Path d="M20 12H4M10 18l-6-6 6-6" fill="none" stroke="#1E3A8A" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-            </Svg>
-          </TouchableOpacity>
-          <View style={{ flex: 1 }}>
-            <Text style={{ fontSize: ms(18), fontWeight: '800', color: '#111827' }} numberOfLines={1}>
-              Luyện tập kỹ năng nghe
-            </Text>
-            <Text style={{ fontSize: ms(14), color: '#4B5563', fontWeight: '500' }}>
-              {answeredCount}/{totalCount} {isManualOnly ? 'mục đã làm' : 'câu đã trả lời'}
-            </Text>
-          </View>
-        </View>
-
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: hs(12) }}>
-          <TouchableOpacity onPress={() => setShowGridModal(true)}>
-            <Svg height="24" viewBox="0 0 24 24" width="24">
-              <Rect x="3" y="3" width="7" height="7" rx="1" fill="none" stroke="#4B5563" strokeWidth="2" />
-              <Rect x="14" y="3" width="7" height="7" rx="1" fill="none" stroke="#4B5563" strokeWidth="2" />
-              <Rect x="3" y="14" width="7" height="7" rx="1" fill="none" stroke="#4B5563" strokeWidth="2" />
-              <Rect x="14" y="14" width="7" height="7" rx="1" fill="none" stroke="#4B5563" strokeWidth="2" />
-            </Svg>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => setShowSubmitModal(true)} style={{ backgroundColor: '#1E3A8A', borderRadius: ms(6), paddingHorizontal: hs(14), paddingVertical: vs(7) }}>
-            <Text style={{ color: '#FFFFFF', fontSize: ms(14), fontWeight: '700' }}>{submitLabel}</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
+      <PracticeHeader
+        title="Luyện tập kỹ năng nghe"
+        subtitle={`${answeredCount}/${totalCount} ${isManualOnly ? 'mục đã làm' : 'câu đã trả lời'}`}
+        onBack={handleExitPress}
+        onOpenGrid={() => setShowGridModal(true)}
+        onSubmit={() => setShowSubmitModal(true)}
+        submitLabel={submitLabel}
+      />
 
       <FlatList
         keyboardShouldPersistTaps="handled"
         ref={flatListRef}
         data={flatData}
-        keyExtractor={(item) => (item.kind === 'group_header' ? item.id : item.question.id)}
+        keyExtractor={(item) => item.id}
+        stickyHeaderIndices={stickyHeaders}
+        removeClippedSubviews={false}
         renderItem={renderItem}
         contentContainerStyle={{ padding: ms(16) }}
         showsVerticalScrollIndicator={false}
         onViewableItemsChanged={onViewableItemsChanged}
         viewabilityConfig={viewabilityConfig}
-        onScrollToIndexFailed={(info) => {
-          const wait = new Promise(resolve => setTimeout(resolve, 500));
-          wait.then(() => {
-            flatListRef.current?.scrollToIndex({ index: info.index, animated: true });
-          });
-        }}
+        onScrollToIndexFailed={onScrollToIndexFailed}
         ListHeaderComponent={
           <View style={{ marginBottom: vs(20) }}>
             <Text style={{ fontSize: ms(14), color: '#4B5563', lineHeight: vs(22) }}>

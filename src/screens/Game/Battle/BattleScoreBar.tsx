@@ -1,7 +1,8 @@
+// @refresh reset
 import React from 'react';
 import { View, Text } from 'react-native';
 import { UserAvatar } from '@/components/atoms';
-import { hs, vs, ms } from '@/theme';
+import { hs, vs, ms, useTheme } from '@/theme';
 
 interface BattleScoreBarProps {
   myScore: number;
@@ -20,26 +21,23 @@ export const BattleScoreBar = ({
   opponentCombo = 0,
   photoUrl,
 }: BattleScoreBarProps) => {
+  const { colors } = useTheme();
   const total = myScore + opponentScore;
-  const myRatio = total === 0 ? 0.5 : Math.max(0.15, Math.min(0.85, myScore / total));
+  const myRatio =
+    total === 0 ? 0.5 : Math.max(0.15, Math.min(0.85, myScore / total));
   const myPercent = `${Math.round(myRatio * 100)}%`;
   const opponentPercent = `${Math.round((1 - myRatio) * 100)}%`;
 
   return (
     <View
       style={{
-        backgroundColor: '#1E1A46',
+        backgroundColor: colors.surface,
         borderRadius: ms(18),
         paddingHorizontal: hs(16),
         paddingTop: vs(14),
         paddingBottom: vs(12),
-        borderWidth: 1.5,
-        borderColor: '#2E2766',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.2,
-        shadowRadius: 6,
-        elevation: 4,
+        borderWidth: 1,
+        borderColor: colors.gray100,
       }}
     >
       {/* Upper row: Players and VS */}
@@ -53,15 +51,30 @@ export const BattleScoreBar = ({
       >
         {/* Left: Player */}
         <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
-          <UserAvatar photoUrl={photoUrl} size={ms(40)} backgroundColor="#3730A3" style={{ marginRight: hs(10), borderWidth: 1.5, borderColor: '#818CF8' }} />
+          <UserAvatar
+            photoUrl={photoUrl}
+            size={ms(40)}
+            backgroundColor={colors.accentLightBlue}
+            style={{
+              marginRight: hs(10),
+              borderWidth: 1,
+              borderColor: colors.gray100,
+            }}
+          />
           <View>
-            <Text style={{ color: '#A5B4FC', fontSize: ms(12), fontWeight: '600' }}>
+            <Text
+              style={{
+                color: colors.text,
+                fontSize: ms(12),
+                fontWeight: '600',
+              }}
+            >
               Bạn
             </Text>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <Text
                 style={{
-                  color: '#FFFFFF',
+                  color: colors.gray800,
                   fontSize: ms(20),
                   fontWeight: '900',
                   marginRight: hs(6),
@@ -72,13 +85,19 @@ export const BattleScoreBar = ({
               {myCombo > 1 && (
                 <View
                   style={{
-                    backgroundColor: '#6366F1',
+                    backgroundColor: colors.primary,
                     borderRadius: ms(6),
                     paddingHorizontal: hs(5),
                     paddingVertical: vs(1),
                   }}
                 >
-                  <Text style={{ color: '#FFFFFF', fontSize: ms(10), fontWeight: '800' }}>
+                  <Text
+                    style={{
+                      color: colors.onPrimary,
+                      fontSize: ms(10),
+                      fontWeight: '800',
+                    }}
+                  >
                     x{myCombo}
                   </Text>
                 </View>
@@ -90,18 +109,24 @@ export const BattleScoreBar = ({
         {/* Center: VS Badge */}
         <View
           style={{
-            width: hs(28),
-            height: vs(28),
+            width: ms(28),
+            height: ms(28),
             borderRadius: ms(14),
-            backgroundColor: '#2D2764',
+            backgroundColor: colors.accentLightBlue,
             alignItems: 'center',
             justifyContent: 'center',
             marginHorizontal: hs(8),
             borderWidth: 1,
-            borderColor: '#4338CA',
+            borderColor: colors.gray100,
           }}
         >
-          <Text style={{ color: '#A5B4FC', fontSize: ms(11), fontWeight: '900' }}>
+          <Text
+            style={{
+              color: colors.onAccent,
+              fontSize: ms(11),
+              fontWeight: '900',
+            }}
+          >
             VS
           </Text>
         </View>
@@ -116,28 +141,40 @@ export const BattleScoreBar = ({
           }}
         >
           <View style={{ alignItems: 'flex-end' }}>
-            <Text style={{ color: '#A5B4FC', fontSize: ms(12), fontWeight: '600' }}>
+            <Text
+              style={{
+                color: colors.text,
+                fontSize: ms(12),
+                fontWeight: '600',
+              }}
+            >
               {opponentName}
             </Text>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               {opponentCombo > 1 && (
                 <View
                   style={{
-                    backgroundColor: '#06B6D4',
+                    backgroundColor: colors.accentLightBlue,
                     borderRadius: ms(6),
                     paddingHorizontal: hs(5),
                     paddingVertical: vs(1),
                     marginRight: hs(6),
                   }}
                 >
-                  <Text style={{ color: '#FFFFFF', fontSize: ms(10), fontWeight: '800' }}>
+                  <Text
+                    style={{
+                      color: colors.onAccent,
+                      fontSize: ms(10),
+                      fontWeight: '800',
+                    }}
+                  >
                     x{opponentCombo}
                   </Text>
                 </View>
               )}
               <Text
                 style={{
-                  color: '#FFFFFF',
+                  color: colors.gray800,
                   fontSize: ms(20),
                   fontWeight: '900',
                 }}
@@ -148,20 +185,20 @@ export const BattleScoreBar = ({
           </View>
           <View
             style={{
-              width: hs(40),
-              height: vs(40),
+              width: ms(40),
+              height: ms(40),
               borderRadius: ms(20),
-              backgroundColor: '#0E7490',
+              backgroundColor: colors.accentLightBlue,
               alignItems: 'center',
               justifyContent: 'center',
               marginLeft: hs(10),
-              borderWidth: 1.5,
-              borderColor: '#22D3EE',
+              borderWidth: 1,
+              borderColor: colors.gray100,
             }}
           >
             <Text
               style={{
-                color: '#FFFFFF',
+                color: colors.onAccent,
                 fontSize: ms(18),
                 fontWeight: '900',
               }}
@@ -177,7 +214,7 @@ export const BattleScoreBar = ({
         style={{
           height: vs(6),
           borderRadius: ms(3),
-          backgroundColor: '#131131',
+          backgroundColor: colors.gray100,
           flexDirection: 'row',
           overflow: 'hidden',
         }}
@@ -185,7 +222,7 @@ export const BattleScoreBar = ({
         <View
           style={{
             width: myPercent as any,
-            backgroundColor: '#818CF8',
+            backgroundColor: colors.primary,
             borderTopLeftRadius: ms(3),
             borderBottomLeftRadius: ms(3),
           }}
@@ -193,7 +230,7 @@ export const BattleScoreBar = ({
         <View
           style={{
             width: opponentPercent as any,
-            backgroundColor: '#22D3EE',
+            backgroundColor: colors.primaryLight,
             borderTopRightRadius: ms(3),
             borderBottomRightRadius: ms(3),
           }}

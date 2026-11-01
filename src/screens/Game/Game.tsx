@@ -1,35 +1,29 @@
-import React, { useEffect, useState } from 'react';
+// @refresh reset
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useScreenBackHandler } from '@/navigation/useScreenBackHandler';
+import { useTabLeaveGuard } from '@/navigation/tabLeaveGuard';
 import { useIsFocused } from '@react-navigation/native';
 import { useQueryClient } from '@tanstack/react-query';
 import { Alert, View, Text, TouchableOpacity, ScrollView, SafeAreaView, useWindowDimensions } from 'react-native';
 import Svg, { Path, Circle } from 'react-native-svg';
 import { UserAvatar } from '@/components/atoms';
-import { hs, vs, ms } from '@/theme';
+import { hs, vs, ms, useTheme } from '@/theme';
 import { LeaderboardRow } from './components/LeaderboardRow';
 import { GameMatchCard } from './components/GameMatchCard';
 import { GameMatchingView } from './Matching';
-import { GameBattleView, type MatchResultData } from './Battle';
+import { GameBattleView } from './Battle';
 import { AUTH_QUERY_KEYS, useProfile } from '@/services/auth/useAuth';
 import { getTotalExperience, useExperienceLeaderboard } from '@/services/leaderboard';
 import { usePkGame } from '@/services/game/usePkGame';
-
-interface MatchHistoryItem {
-  id: string;
-  matchIndex: number;
-  opponentName: string;
-  correctCount: number;
-  totalQuestions: number;
-  score: number;
-  isWin: boolean;
-  isDraw?: boolean;
-  xpEarned: number;
-}
+import { PK_HISTORY_QUERY_KEYS, usePkHistory } from '@/services/game/pkHistory';
 
 export function GameContent({ navigation, route, targetView: propTargetView }: any) {
+  const { colors } = useTheme();
   const { height: screenHeight } = useWindowDimensions();
   const isFocused = useIsFocused();
   const queryClient = useQueryClient();
   const [matchAttempt, setMatchAttempt] = useState(0);
+  const leavingDialog = useRef(false);
 
   // Lấy targetView và timestamp từ route params hoặc props
   const currentTargetView = route?.params?.targetView || propTargetView;
@@ -40,9 +34,6 @@ export function GameContent({ navigation, route, targetView: propTargetView }: a
   const [internalViewState, setInternalViewState] = useState<
     'main' | 'rules' | 'leaderboard' | 'matching' | 'battle'
   >(currentTargetView || 'main');
-
-  // Quản lý Lịch sử thi đấu và Điểm kinh nghiệm (XP) tích lũy
-  const [matchHistory, setMatchHistory] = useState<MatchHistoryItem[]>([]);
 
   // Đồng bộ viewState ngay lập tức trong render cycle khi params thay đổi (không bị delay/flicker sang màn main)
   const { data: profile } = useProfile();
@@ -56,38 +47,61 @@ export function GameContent({ navigation, route, targetView: propTargetView }: a
   const currentUserItem = gameLeaderboardList.find(item => item.id === profile?.id);
   const userTotalXp = Math.max(currentUserItem?.totalExp ?? leaderboardData?.myTotalExp ?? 0, getTotalExperience(profile));
   const userLevel = Math.max(currentUserItem?.level ?? 1, profile?.level ?? 1);
-  let viewState = internalViewState;
-  if (currentKey && currentKey !== lastHandledKey) {
+  const hasRequestedView = Boolean(currentKey && currentKey !== lastHandledKey);
+  const viewState = hasRequestedView ? currentTargetView : internalViewState;
+  useEffect(() => {
+    if (!hasRequestedView) return;
     setLastHandledKey(currentKey);
     setInternalViewState(currentTargetView);
-    viewState = currentTargetView;
-  }
+  }, [hasRequestedView, currentKey, currentTargetView]);
 
-  const setViewState = (
+  const history = usePkHistory(profile?.id, isFocused && viewState === 'main');
+  const matchHistory = history.data?.pages.flatMap(page => page.data) ?? [];
+
+  const setViewState = useCallback((
     newView: 'main' | 'rules' | 'leaderboard' | 'matching' | 'battle'
   ) => {
     setInternalViewState(newView);
     if (newView === 'main') {
       navigation?.setParams?.({ targetView: 'main', timestamp: Date.now() });
     }
-  };
+  }, [navigation]);
 
   const pk = usePkGame(isFocused && (viewState === 'matching' || viewState === 'battle'), profile?.id, profile?.currentHskLevel || 1, matchAttempt);
   useEffect(() => {
     if (!isFocused && (viewState === 'matching' || viewState === 'battle')) setViewState('main');
-  }, [isFocused, viewState]);
+  }, [isFocused, viewState, setViewState]);
   const handleSearch = () => { setMatchAttempt(value => value + 1); setViewState('matching'); };
 
-  const handleBattleComplete = async (result: MatchResultData, _durationInSeconds: number) => {
-    setMatchHistory(previous => [{ id: pk.state.match?.roomId || Date.now().toString(), matchIndex: previous.length + 1, opponentName: result.opponentName, correctCount: result.correctCount, totalQuestions: result.totalQuestions, score: result.myScore, isWin: result.isWin, isDraw: result.isDraw, xpEarned: result.xpEarned }, ...previous]);
+  const handleBattleComplete = async () => {
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: AUTH_QUERY_KEYS.profile }),
       queryClient.invalidateQueries({ queryKey: ['leaderboard'] }),
+      queryClient.invalidateQueries({ queryKey: PK_HISTORY_QUERY_KEYS.user(profile?.id) }),
     ]);
   };
 
   // Cập nhật Lịch sử thi đấu và BXH khi hoàn thành trận PK trở về sảnh
   const handleBattleExit = () => { setViewState('main'); };
+
+  const confirmLeaveBattle = useCallback((proceed: () => void) => {
+    if (leavingDialog.current) return;
+    leavingDialog.current = true;
+    const dismiss = () => { leavingDialog.current = false; };
+    Alert.alert('Rời trận PK', 'Rời trận đang đấu sẽ được tính là đầu hàng.', [
+      { text: 'Tiếp tục đấu', style: 'cancel', onPress: dismiss },
+      { text: 'Rời trận', style: 'destructive', onPress: () => {
+        dismiss(); setViewState('main'); proceed();
+      } },
+    ], { cancelable: true, onDismiss: dismiss });
+  }, [setViewState]);
+  const inBattle = viewState === 'matching' || viewState === 'battle';
+  useTabLeaveGuard(confirmLeaveBattle, inBattle && pk.state.phase === 'playing');
+  useScreenBackHandler(() => {
+    if (inBattle && pk.state.phase === 'playing') confirmLeaveBattle(() => {});
+    else setViewState('main');
+    return true;
+  }, viewState !== 'main');
 
   // Màn hình Tìm đối thủ (Matching)
   if ((viewState === 'matching' || viewState === 'battle') && pk.state.phase !== 'playing' && pk.state.phase !== 'finished') {
@@ -247,6 +261,7 @@ export function GameContent({ navigation, route, targetView: propTargetView }: a
                     name={item.fullName || item.email || `Học viên #${item.id}`}
                     level={item.level || 1}
                     totalExp={item.totalExp}
+                    photoUrl={item.photo?.path}
                     bg={item.rank === 1 ? '#F5A623' : item.rank === 2 ? '#D6B4E6' : item.rank === 3 ? '#FF7043' : '#F0F2F5'}
                     color={item.rank !== null && item.rank <= 3 ? '#FFFFFF' : '#4B5563'}
                   />
@@ -357,8 +372,15 @@ export function GameContent({ navigation, route, targetView: propTargetView }: a
           {/* Danh sách các trận đã đấu */}
           {matchHistory.length === 0 ? (
             <View style={{ padding: ms(32), alignItems: 'center', justifyContent: 'center' }}>
-              <Text style={{ color: '#9CA3AF', fontSize: ms(14), fontWeight: '500' }}>
-                Hãy bắt đầu chơi ngay nào!
+              <Text
+                onPress={history.isError ? () => { void history.refetch(); } : undefined}
+                style={{ color: colors.text, fontSize: ms(14), fontWeight: '500', textAlign: 'center' }}
+              >
+                {history.isPending
+                  ? 'Đang tải lịch sử thi đấu...'
+                  : history.isError
+                    ? 'Không thể tải lịch sử. Chạm để thử lại.'
+                    : 'Hãy bắt đầu chơi ngay nào!'}
               </Text>
             </View>
           ) : (
@@ -383,7 +405,7 @@ export function GameContent({ navigation, route, targetView: propTargetView }: a
                     style={{
                       fontSize: ms(11),
                       fontWeight: '700',
-                      color: item.isWin ? '#059669' : '#DC2626',
+                      color: item.isWin ? colors.success : item.isDraw ? colors.text : colors.red500,
                     }}
                   >
                     {item.isWin ? 'Thắng' : item.isDraw ? 'Hòa' : 'Thua'}
@@ -418,6 +440,22 @@ export function GameContent({ navigation, route, targetView: propTargetView }: a
               </View>
             ))
           )}
+          {matchHistory.length > 0 && history.hasNextPage ? (
+            <TouchableOpacity
+              accessibilityRole="button"
+              disabled={history.isFetchingNextPage}
+              onPress={() => { void history.fetchNextPage(); }}
+              style={{ minHeight: ms(44), padding: ms(12), alignItems: 'center', justifyContent: 'center' }}
+            >
+              <Text style={{ color: colors.primary, fontSize: ms(14), fontWeight: '600', textAlign: 'center' }}>
+                {history.isFetchingNextPage
+                  ? 'Đang tải thêm...'
+                  : history.isFetchNextPageError
+                    ? 'Chưa tải thêm được. Chạm để thử lại.'
+                    : 'Xem thêm lịch sử'}
+              </Text>
+            </TouchableOpacity>
+          ) : null}
         </View>
 
         {/* Current User Row dưới đáy màn hình chính chuẩn Figma */}

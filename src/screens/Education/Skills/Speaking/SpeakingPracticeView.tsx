@@ -1,14 +1,17 @@
 // @refresh reset
+import IconButton from '@/components/atoms/IconButton';
+import { PracticeHeader } from '../../components/PracticeHeader';
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { View, Text, SafeAreaView, TouchableOpacity, Alert, Platform, PermissionsAndroid, ScrollView, AppState } from 'react-native';
 import { useFocusEffect, useIsFocused } from '@react-navigation/native';
-import Svg, { Path, Rect } from 'react-native-svg';
+import Svg, { Path } from 'react-native-svg';
 import { educationApi } from '@/services/education/api';
 import { transformQuestionToSpeaking } from '@/services/education/transformers';
 import { SpeakingPracticeQuestion, SpeakingPracticeResult } from '../../types';
-import { ms, hs, vs } from '@/theme';
+import { ms, hs, vs, useControlSizes } from '@/theme';
 import { SubmitConfirmModal, QuestionGridModal } from '@/screens/Education/components';
 import { useStudyTimer } from '@/hooks/useStudyTimer';
+import { useScreenBackHandler } from '@/navigation/useScreenBackHandler';
 import { useAudioPlayback } from '@/services/audio/AudioProvider';
 import { VoiceRecorder } from '@/services/audio/VoiceRecorder';
 import type { VoiceRecorderEvent, VoiceRecorderHandle } from '@/services/audio/VoiceRecorder';
@@ -28,6 +31,7 @@ type RecordState = 'idle' | 'preparing' | 'recording' | 'processing' | 'result';
 type Recording = { durationMs: number; bytes: number; status: 'pending' | 'graded' | 'error'; assessment?: PronunciationAssessment; error?: string };
 
 export const SpeakingPracticeView = ({ hskLevel, topic, onBack, onSubmit }: Props) => {
+  const controlSizes = useControlSizes();
   const [questions, setQuestions] = useState<SpeakingPracticeQuestion[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [recordState, setRecordState] = useState<RecordState>('idle');
@@ -137,6 +141,12 @@ export const SpeakingPracticeView = ({ hskLevel, topic, onBack, onSubmit }: Prop
       ]
     );
   };
+
+  useScreenBackHandler(() => {
+    if (isLoading || questions.length === 0) onBack();
+    else handleExit();
+    return true;
+  });
 
   const requestMicrophonePermission = async () => {
     if (Platform.OS === 'android') {
@@ -281,38 +291,14 @@ export const SpeakingPracticeView = ({ hskLevel, topic, onBack, onSubmit }: Prop
 
   return (
     <SafeAreaView onTouchStart={studyTimer.markActivity} onTouchMove={studyTimer.markActivity} style={{ flex: 1, backgroundColor: '#E5E7EB' }}>
-      {/* Sticky Header (Giống màn Luyện Nghe) */}
-      <View style={{ backgroundColor: '#FFFFFF', paddingHorizontal: hs(16), paddingTop: vs(8), paddingBottom: vs(12), flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: 1, borderBottomColor: '#E5E7EB' }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
-          <TouchableOpacity onPress={handleExit} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }} style={{ marginRight: hs(8), padding: ms(8), marginLeft: hs(-6) }}>
-            <Svg height="24" viewBox="0 0 24 24" width="24">
-              <Path d="M20 12H4M10 18l-6-6 6-6" fill="none" stroke="#1E3A8A" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-            </Svg>
-          </TouchableOpacity>
-          <View style={{ flex: 1 }}>
-            <Text style={{ fontSize: ms(18), fontWeight: '800', color: '#111827' }} numberOfLines={1}>
-              Luyện tập kỹ năng nói
-            </Text>
-            <Text style={{ fontSize: ms(14), color: '#4B5563', fontWeight: '500' }}>
-              {answeredCount}/{totalCount} câu đã ghi âm · {gradedCount} đã chấm
-            </Text>
-          </View>
-        </View>
-
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: hs(12) }}>
-          <TouchableOpacity onPress={() => setShowGridModal(true)}>
-            <Svg height="24" viewBox="0 0 24 24" width="24">
-              <Rect x="3" y="3" width="7" height="7" rx="1" fill="none" stroke="#4B5563" strokeWidth="2" />
-              <Rect x="14" y="3" width="7" height="7" rx="1" fill="none" stroke="#4B5563" strokeWidth="2" />
-              <Rect x="3" y="14" width="7" height="7" rx="1" fill="none" stroke="#4B5563" strokeWidth="2" />
-              <Rect x="14" y="14" width="7" height="7" rx="1" fill="none" stroke="#4B5563" strokeWidth="2" />
-            </Svg>
-          </TouchableOpacity>
-          <TouchableOpacity disabled={isCapturing || isGrading} onPress={() => setShowSubmitModal(true)} style={{ backgroundColor: '#1E3A8A', borderRadius: ms(6), paddingHorizontal: hs(14), paddingVertical: vs(7), opacity: isCapturing || isGrading ? 0.5 : 1 }}>
-            <Text style={{ color: '#FFFFFF', fontSize: ms(14), fontWeight: '700' }}>Nộp bài</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
+      <PracticeHeader
+        title="Luyện tập kỹ năng nói"
+        subtitle={`${answeredCount}/${totalCount} câu đã ghi âm · ${gradedCount} đã chấm`}
+        onBack={handleExit}
+        onOpenGrid={() => setShowGridModal(true)}
+        onSubmit={() => setShowSubmitModal(true)}
+        submitLabel={'Nộp bài'} disabled={isCapturing || isGrading}
+      />
 
       <ScrollView contentContainerStyle={{ paddingHorizontal: hs(16), paddingTop: vs(16), paddingBottom: vs(40) }} showsVerticalScrollIndicator={false}>
         {/* Practice Card Container */}
@@ -322,19 +308,16 @@ export const SpeakingPracticeView = ({ hskLevel, topic, onBack, onSubmit }: Prop
           <View style={{ backgroundColor: '#FFFFFF', padding: ms(24), alignItems: 'center' }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: vs(8) }}>
               <Text style={{ fontSize: ms(48), fontWeight: '500', color: '#111827' }}>{currentQ.character}</Text>
-              <TouchableOpacity
-                accessibilityRole="button"
+              <IconButton
                 accessibilityLabel={audio.playing ? 'Tạm dừng phát âm mẫu' : 'Nghe phát âm mẫu'}
                 accessibilityState={{ busy: audio.loading, disabled: isCapturing }}
                 disabled={isCapturing}
-                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
                 onPress={() => { recorder.current?.pausePlayback(); audio.toggle(); }}
                 style={{ marginLeft: hs(8) }}
-              >
-                <Svg height="24" viewBox="0 0 24 24" width="24">
-                  <Path d="M11 5L6 9H2v6h4l5 4V5zM15.54 8.46a5 5 0 0 1 0 7.07" fill="none" stroke={audio.playing ? '#1E3A8A' : '#6B7280'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                </Svg>
-              </TouchableOpacity>
+                renderIcon={(size, color) => <Svg width={size} height={size} viewBox="0 0 24 24">
+                  <Path d="M11 5L6 9H2v6h4l5 4V5zM15.54 8.46a5 5 0 0 1 0 7.07" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </Svg>}
+              />
             </View>
             <Text style={{ fontSize: ms(16), color: '#374151', marginBottom: vs(4) }}>{currentQ.pinyin}</Text>
             <Text style={{ fontSize: ms(14), color: '#6B7280', marginBottom: vs(32) }}>{currentQ.meaning}</Text>
@@ -343,10 +326,11 @@ export const SpeakingPracticeView = ({ hskLevel, topic, onBack, onSubmit }: Prop
             {recordState === 'idle' && (
               <View style={{ alignItems: 'center', marginTop: vs(16) }}>
                 <TouchableOpacity
+                  accessibilityRole="button" accessibilityLabel="Bắt đầu ghi âm"
                   onPress={startRecording}
-                  style={{ width: ms(56), height: ms(56), borderRadius: ms(28), backgroundColor: '#1E3A8A', justifyContent: 'center', alignItems: 'center', marginBottom: vs(12) }}
+                  style={{ width: controlSizes.recordButton, height: controlSizes.recordButton, borderRadius: controlSizes.recordButton / 2, backgroundColor: '#1E3A8A', justifyContent: 'center', alignItems: 'center', marginBottom: vs(12) }}
                 >
-                  <Svg height="24" viewBox="0 0 24 24" width="24">
+                  <Svg height={controlSizes.icon} viewBox="0 0 24 24" width={controlSizes.icon}>
                     <Path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3zM19 10v2a7 7 0 0 1-14 0v-2M12 19v4M8 23h8" fill="none" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                   </Svg>
                 </TouchableOpacity>
@@ -359,7 +343,7 @@ export const SpeakingPracticeView = ({ hskLevel, topic, onBack, onSubmit }: Prop
               <View style={{ alignItems: 'center', marginTop: vs(16) }}>
                 <TouchableOpacity
                   onPress={stopRecording}
-                  style={{ width: ms(56), height: ms(56), borderRadius: ms(28), backgroundColor: '#EF4444', justifyContent: 'center', alignItems: 'center', marginBottom: vs(12) }}
+                  style={{ width: controlSizes.recordButton, height: controlSizes.recordButton, borderRadius: controlSizes.recordButton / 2, backgroundColor: '#EF4444', justifyContent: 'center', alignItems: 'center', marginBottom: vs(12) }}
                 >
                   <View style={{ width: ms(16), height: ms(16), backgroundColor: '#FFFFFF', borderRadius: ms(4) }} />
                 </TouchableOpacity>
@@ -388,9 +372,9 @@ export const SpeakingPracticeView = ({ hskLevel, topic, onBack, onSubmit }: Prop
                     accessibilityRole="button"
                     accessibilityLabel={playingRecordingId === currentQ.id ? 'Tạm dừng bản ghi' : 'Nghe giọng bạn'}
                     onPress={() => { audio.stop(); recorder.current?.togglePlayback(currentQ.id); }}
-                    style={{ marginLeft: hs(16), minWidth: ms(44), minHeight: ms(44), alignItems: 'center', justifyContent: 'center' }}
+                    style={{ marginLeft: hs(16), minWidth: controlSizes.touchTarget, minHeight: controlSizes.touchTarget, alignItems: 'center', justifyContent: 'center' }}
                   >
-                    <Svg height="14" viewBox="0 0 24 24" width="14">
+                    <Svg height={controlSizes.smallIcon} viewBox="0 0 24 24" width={controlSizes.smallIcon}>
                       <Path d="M11 5L6 9H2v6h4l5 4V5zM15.54 8.46a5 5 0 0 1 0 7.07" fill="none" stroke={playingRecordingId === currentQ.id ? '#1E3A8A' : '#6B7280'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                     </Svg>
                     <Text style={{ fontSize: ms(10), color: '#6B7280', fontWeight: '500' }}>Giọng bạn</Text>
@@ -406,7 +390,7 @@ export const SpeakingPracticeView = ({ hskLevel, topic, onBack, onSubmit }: Prop
                 {/* Buttons */}
                 <View style={{ flexDirection: 'row', gap: hs(12), width: '100%', marginTop: vs(8) }}>
                   <TouchableOpacity onPress={handleRetry} style={{ flex: 1, borderWidth: 1, borderColor: '#D1D5DB', borderRadius: ms(8), paddingVertical: vs(12), alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: hs(6) }}>
-                    <Svg height="16" viewBox="0 0 24 24" width="16">
+                    <Svg height={ms(16)} viewBox="0 0 24 24" width={ms(16)}>
                       <Path d="M21 2v6h-6M3 12a9 9 0 0 1 15-6.7L21 8M3 22v-6h6M21 12a9 9 0 0 1-15 6.7L3 16" fill="none" stroke="#4B5563" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                     </Svg>
                     <Text style={{ color: '#374151', fontSize: ms(15), fontWeight: '700' }}>Đọc lại</Text>
@@ -414,7 +398,7 @@ export const SpeakingPracticeView = ({ hskLevel, topic, onBack, onSubmit }: Prop
 
                   <TouchableOpacity disabled={currentIndex === totalCount - 1 && isGrading} onPress={handleNext} style={{ flex: 1, backgroundColor: '#1E3A8A', borderRadius: ms(8), paddingVertical: vs(12), alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: hs(6), opacity: currentIndex === totalCount - 1 && isGrading ? 0.5 : 1 }}>
                     <Text style={{ color: '#FFFFFF', fontSize: ms(16), fontWeight: '700' }}>{currentIndex < totalCount - 1 ? 'Tiếp theo' : 'Hoàn thành'}</Text>
-                    <Svg height="16" viewBox="0 0 24 24" width="16">
+                    <Svg height={ms(16)} viewBox="0 0 24 24" width={ms(16)}>
                       <Path d="M5 12h14M12 5l7 7-7 7" fill="none" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                     </Svg>
                   </TouchableOpacity>

@@ -39,6 +39,7 @@ export const transformSectionQuestionToExamQuestion = (
     type,
     index: payload.index ?? fallbackIndex,
     audioUrl: resolveMediaUrl(payload.audioUrl || fallbackAudioUrl),
+    sharedAudio: type === 'LISTENING' && (payload.audioScope === 'source-track' || Boolean(!payload.audioUrl && fallbackAudioUrl)),
     imageUrl: resolveMediaUrl(payload.imageUrl),
     text: payload.text || payload.sentence || payload.questionText,
     options,

@@ -1,4 +1,5 @@
-import { useAudioPlayback, audioTime } from '@/services/audio/AudioProvider';
+import { QuestionAudioPlayer } from '../../components/QuestionAudioPlayer';
+import { PracticeBookmarkButton } from '../../components/PracticeBookmarkButton';
 import { imageSource } from '@/services/media';
 import { hasExamAnswer, isExamAnswerCorrect } from '@/services/exams/answers';
 import React, { memo } from 'react';
@@ -9,6 +10,7 @@ import { ms, hs, vs } from '@/theme';
 
 interface Props {
   question: ExamQuestion;
+  showAudio?: boolean;
   selectedOptionId?: string;
   onSelectOption: (questionId: string, optionId: string) => void;
   bookmarked?: boolean;
@@ -16,8 +18,7 @@ interface Props {
   isReviewMode?: boolean;
 }
 
-export const HskExamQuestionCard = memo(({ question, selectedOptionId, onSelectOption, bookmarked, onToggleBookmark, isReviewMode }: Props) => {
-  const audio = useAudioPlayback(question.audioUrl);
+export const HskExamQuestionCard = memo(({ question, selectedOptionId, onSelectOption, bookmarked, onToggleBookmark, isReviewMode, showAudio = true }: Props) => {
   return (
     <View style={{
       backgroundColor: '#FFFFFF',
@@ -38,7 +39,7 @@ export const HskExamQuestionCard = memo(({ question, selectedOptionId, onSelectO
               {hasExamAnswer(selectedOptionId) ? (
                 isExamAnswerCorrect(question, selectedOptionId) ? (
                   <>
-                    <Svg height="16" viewBox="0 0 24 24" width="16" style={{ marginRight: hs(4) }}>
+                    <Svg height={ms(16)} viewBox="0 0 24 24" width={ms(16)} style={{ marginRight: hs(4) }}>
                       <Circle cx="12" cy="12" r="10" fill="none" stroke="#22C55E" strokeWidth="2" />
                       <Path d="M8 12l3 3 5-5" fill="none" stroke="#22C55E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                     </Svg>
@@ -46,7 +47,7 @@ export const HskExamQuestionCard = memo(({ question, selectedOptionId, onSelectO
                   </>
                 ) : (
                   <>
-                    <Svg height="16" viewBox="0 0 24 24" width="16" style={{ marginRight: hs(4) }}>
+                    <Svg height={ms(16)} viewBox="0 0 24 24" width={ms(16)} style={{ marginRight: hs(4) }}>
                       <Circle cx="12" cy="12" r="10" fill="none" stroke="#EF4444" strokeWidth="2" />
                       <Path d="M15 9l-6 6M9 9l6 6" stroke="#EF4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                     </Svg>
@@ -55,7 +56,7 @@ export const HskExamQuestionCard = memo(({ question, selectedOptionId, onSelectO
                 )
               ) : (
                 <>
-                  <Svg height="16" viewBox="0 0 24 24" width="16" style={{ marginRight: hs(4) }}>
+                  <Svg height={ms(16)} viewBox="0 0 24 24" width={ms(16)} style={{ marginRight: hs(4) }}>
                     <Circle cx="12" cy="12" r="10" fill="none" stroke="#EF4444" strokeWidth="2" />
                     <Path d="M15 9l-6 6M9 9l6 6" stroke="#EF4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                   </Svg>
@@ -68,37 +69,15 @@ export const HskExamQuestionCard = memo(({ question, selectedOptionId, onSelectO
         <View style={{ flexDirection: 'row', gap: hs(8) }}>
           {!isReviewMode && (
             <>
-              <TouchableOpacity onPress={() => onToggleBookmark(question.id)} style={{ borderWidth: 1, borderColor: '#E5E7EB', borderRadius: ms(8), padding: ms(6), backgroundColor: bookmarked ? '#FEF3C7' : '#FFFFFF' }}>
-                <Svg height="16" viewBox="0 0 24 24" width="16">
-                  <Path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1zM4 22v-7" fill={bookmarked ? "#D97706" : "none"} stroke={bookmarked ? "#D97706" : "#6B7280"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                </Svg>
-              </TouchableOpacity>
+              <PracticeBookmarkButton index={question.index} selected={bookmarked} onPress={() => onToggleBookmark(question.id)} />
             </>
           )}
         </View>
       </View>
 
-      {/* Audio Player (If Listening) */}
-      {question.type === 'LISTENING' && (
-        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: vs(16), justifyContent: 'space-between' }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: hs(8) }}>
-            <Svg height="16" viewBox="0 0 24 24" width="16">
-              <Path d="M11 5L6 9H2v6h4l5 4V5zM15.54 8.46a5 5 0 0 1 0 7.07M19.07 4.93a10 10 0 0 1 0 14.14" fill="none" stroke="#1E3A8A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            </Svg>
-            <TouchableOpacity onPress={() => audio.seek(-5)} style={{ borderWidth: 1, borderColor: '#E5E7EB', borderRadius: ms(12), paddingHorizontal: hs(8), paddingVertical: vs(2) }}>
-              <Text style={{ fontSize: ms(12), color: '#4B5563', fontWeight: '600' }}>-5s</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={audio.toggle}>
-              <Svg height="24" viewBox="0 0 24 24" width="24">
-                <Circle cx="12" cy="12" r="12" fill="#1E3A8A" />
-                <Path d={audio.playing ? "M8 8h3v8H8zM13 8h3v8h-3z" : "M10 8l6 4-6 4V8z"} fill="#FFFFFF" />
-              </Svg>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => audio.seek(5)} style={{ borderWidth: 1, borderColor: '#E5E7EB', borderRadius: ms(12), paddingHorizontal: hs(8), paddingVertical: vs(2) }}>
-              <Text style={{ fontSize: ms(12), color: '#4B5563', fontWeight: '600' }}>+5s</Text>
-            </TouchableOpacity>
-          </View>
-          <Text style={{ fontSize: ms(14), color: '#6B7280', fontWeight: '500' }}>{audioTime(audio.position)}</Text>
+      {question.type === 'LISTENING' && showAudio && (
+        <View style={{ marginBottom: vs(16) }}>
+          <QuestionAudioPlayer url={question.audioUrl} label={`câu ${question.index}`} seekable />
         </View>
       )}
 
@@ -209,9 +188,9 @@ export const HskExamQuestionCard = memo(({ question, selectedOptionId, onSelectO
                 </View>
               ) : (
                 <View style={{ width: ms(24), height: ms(24), borderRadius: ms(12), borderWidth: 1.5, borderColor: (!isReviewMode && isSelected) ? '#1E3A8A' : (isReviewMode ? iconColor : '#D1D5DB'), backgroundColor: (!isReviewMode && isSelected) ? '#1E3A8A' : '#FFFFFF', justifyContent: 'center', alignItems: 'center', marginRight: hs(12) }}>
-                  {isSelected && !isReviewMode && <Svg height="14" viewBox="0 0 24 24" width="14"><Path d="M20 6L9 17l-5-5" fill="none" stroke="#FFFFFF" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" /></Svg>}
-                  {isReviewMode && isCorrectAnswer && <Svg height="14" viewBox="0 0 24 24" width="14"><Path d="M20 6L9 17l-5-5" fill="none" stroke={iconColor} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" /></Svg>}
-                  {isReviewMode && isSelected && !isCorrectAnswer && <Svg height="14" viewBox="0 0 24 24" width="14"><Path d="M18 6L6 18M6 6l12 12" fill="none" stroke={iconColor} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" /></Svg>}
+                  {isSelected && !isReviewMode && <Svg height={ms(14)} viewBox="0 0 24 24" width={ms(14)}><Path d="M20 6L9 17l-5-5" fill="none" stroke="#FFFFFF" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" /></Svg>}
+                  {isReviewMode && isCorrectAnswer && <Svg height={ms(14)} viewBox="0 0 24 24" width={ms(14)}><Path d="M20 6L9 17l-5-5" fill="none" stroke={iconColor} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" /></Svg>}
+                  {isReviewMode && isSelected && !isCorrectAnswer && <Svg height={ms(14)} viewBox="0 0 24 24" width={ms(14)}><Path d="M18 6L6 18M6 6l12 12" fill="none" stroke={iconColor} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" /></Svg>}
                 </View>
               )}
               {opt.text && <Text style={{ fontSize: ms(16), color: textColor, fontWeight: '600', flex: 1 }}>{opt.text}</Text>}

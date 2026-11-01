@@ -1,7 +1,10 @@
+// @refresh reset
+import { PracticeHeader } from '../../components/PracticeHeader';
 import { useStudyTimer } from '@/hooks/useStudyTimer';
+import { useScreenBackHandler } from '@/navigation/useScreenBackHandler';
 import React, { useCallback, useState, useEffect, useRef } from 'react';
 import { View, Text, SafeAreaView, ScrollView, TouchableOpacity, Alert } from 'react-native';
-import Svg, { Path, Rect } from 'react-native-svg';
+import Svg, { Path } from 'react-native-svg';
 import { WebView } from 'react-native-webview';
 import { ms, hs, vs } from '@/theme';
 import { SubmitConfirmModal, QuestionGridModal } from '@/screens/Education/components';
@@ -180,6 +183,18 @@ export const WritingPracticeView = ({ hskLevel, topic, wordOrder, onBack, onSubm
     onSubmit({ totalCount, answeredCount, statuses, words, durationInSeconds: studyTimer.takeSeconds() });
   };
 
+  const handleExitPress = () => {
+    Alert.alert('Thoát bài luyện tập', 'Bạn có chắc chắn muốn thoát?', [
+      { text: 'Hủy', style: 'cancel' },
+      { text: 'Thoát', style: 'destructive', onPress: onBack },
+    ]);
+  };
+  useScreenBackHandler(() => {
+    if (isLoading || !currentWord) onBack();
+    else handleExitPress();
+    return true;
+  });
+
   if (isLoading) {
     return (
       <SafeAreaView onTouchStart={studyTimer.markActivity} onTouchMove={studyTimer.markActivity} style={{ flex: 1, backgroundColor: '#FFFFFF', justifyContent: 'center', alignItems: 'center' }}>
@@ -201,43 +216,14 @@ export const WritingPracticeView = ({ hskLevel, topic, wordOrder, onBack, onSubm
 
   return (
     <SafeAreaView onTouchStart={studyTimer.markActivity} onTouchMove={studyTimer.markActivity} style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
-      {/* Header */}
-      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: hs(16), paddingTop: vs(12), paddingBottom: vs(12), borderBottomWidth: 1, borderBottomColor: '#E5E7EB' }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
-          <TouchableOpacity onPress={() => {
-            Alert.alert('Thoát bài luyện tập', 'Bạn có chắc chắn muốn thoát?', [
-              { text: 'Hủy', style: 'cancel' },
-              { text: 'Thoát', style: 'destructive', onPress: onBack },
-            ]);
-          }} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }} style={{ marginRight: hs(8), padding: ms(8), marginLeft: hs(-6) }}>
-            <Svg height="24" viewBox="0 0 24 24" width="24">
-              <Path d="M20 12H4M10 18l-6-6 6-6" fill="none" stroke="#1E3A8A" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-            </Svg>
-          </TouchableOpacity>
-          <View style={{ flex: 1 }}>
-            <Text style={{ fontSize: ms(18), fontWeight: '800', color: '#111827' }} numberOfLines={1}>
-              Luyện tập kỹ năng viết
-            </Text>
-            <Text style={{ fontSize: ms(14), color: '#4B5563', fontWeight: '500' }}>
-              {answeredCount}/{totalCount} số lượng từ
-            </Text>
-          </View>
-        </View>
-
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: hs(12) }}>
-          <TouchableOpacity onPress={() => setShowGridModal(true)}>
-            <Svg height="24" viewBox="0 0 24 24" width="24">
-              <Rect x="3" y="3" width="7" height="7" rx="1" fill="none" stroke="#4B5563" strokeWidth="2" />
-              <Rect x="14" y="3" width="7" height="7" rx="1" fill="none" stroke="#4B5563" strokeWidth="2" />
-              <Rect x="3" y="14" width="7" height="7" rx="1" fill="none" stroke="#4B5563" strokeWidth="2" />
-              <Rect x="14" y="14" width="7" height="7" rx="1" fill="none" stroke="#4B5563" strokeWidth="2" />
-            </Svg>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => setShowSubmitModal(true)} style={{ backgroundColor: '#1E3A8A', borderRadius: ms(6), paddingHorizontal: hs(12), paddingVertical: vs(6) }}>
-            <Text style={{ color: '#FFFFFF', fontSize: ms(14), fontWeight: '700' }}>Nộp bài</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
+      <PracticeHeader
+        title="Luyện tập kỹ năng viết"
+        subtitle={`${answeredCount}/${totalCount} số lượng từ`}
+        onBack={handleExitPress}
+        onOpenGrid={() => setShowGridModal(true)}
+        onSubmit={() => setShowSubmitModal(true)}
+        submitLabel={'Nộp bài'}
+      />
 
       {/* Main Content */}
       <ScrollView
@@ -288,7 +274,7 @@ export const WritingPracticeView = ({ hskLevel, topic, wordOrder, onBack, onSubm
         <View style={{ flexDirection: 'row', justifyContent: 'center', gap: hs(24), marginTop: vs(24) }}>
           <TouchableOpacity onPress={handleClear} style={{ alignItems: 'center' }}>
             <View style={{ width: ms(48), height: ms(48), borderRadius: ms(24), backgroundColor: '#F3F4F6', justifyContent: 'center', alignItems: 'center', marginBottom: vs(8) }}>
-              <Svg height="24" viewBox="0 0 24 24" width="24">
+              <Svg height={ms(24)} viewBox="0 0 24 24" width={ms(24)}>
                 <Path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" fill="none" stroke="#4B5563" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               </Svg>
             </View>
@@ -297,7 +283,7 @@ export const WritingPracticeView = ({ hskLevel, topic, wordOrder, onBack, onSubm
 
           <TouchableOpacity onPress={handleAnimate} style={{ alignItems: 'center' }}>
             <View style={{ width: ms(48), height: ms(48), borderRadius: ms(24), backgroundColor: '#DBEAFE', justifyContent: 'center', alignItems: 'center', marginBottom: vs(8) }}>
-              <Svg height="24" viewBox="0 0 24 24" width="24">
+              <Svg height={ms(24)} viewBox="0 0 24 24" width={ms(24)}>
                 <Path d="M5 3l14 9-14 9V3z" fill="none" stroke="#2563EB" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               </Svg>
             </View>

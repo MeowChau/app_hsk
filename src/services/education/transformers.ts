@@ -102,7 +102,7 @@ export const transformQuestionToListening = (
     instruction: payload.instruction || payload.text,
     imageUrl: payload.presentation === 'options' ? undefined
       : resolveMediaUrl(payload.contextImageUrl || payload.imageUrl || payload.source?.scanUrl),
-    sharedAudio: payload.audioScope === 'source-track',
+    sharedAudio: payload.audioScope === 'source-track' || Boolean(!payload.audioUrl && fallbackAudioUrl),
     requiresManualReview: Boolean(payload.manualGrading || !correctOptionId
       || mappedType === 'LISTEN_REPEAT' || mappedType === 'DICTATION'),
     inputHint: payload.inputHint,

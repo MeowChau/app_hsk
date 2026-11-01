@@ -105,9 +105,9 @@ export const SubmitConfirmModal = ({
                   }}
                 >
                   <Svg
-                    height="16"
+                    height={ms(16)}
                     viewBox="0 0 24 24"
-                    width="16"
+                    width={ms(16)}
                     style={{ marginTop: 2, marginRight: hs(8) }}
                   >
                     <Path

@@ -101,7 +101,7 @@ export const ReadingPracticeSetupView = ({ onBack, onStartPractice }: Props) => 
             gap: hs(8),
           }}
         >
-          <Svg height="18" viewBox="0 0 24 24" width="18">
+          <Svg height={ms(18)} viewBox="0 0 24 24" width={ms(18)}>
             <Path d="M4 7l3 3 4-4" fill="none" stroke="#FFFFFF" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
             <Path d="M4 17l3 3 4-4" fill="none" stroke="#FFFFFF" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
             <Path d="M14 8h6" fill="none" stroke="#FFFFFF" strokeWidth="2.5" strokeLinecap="round" />

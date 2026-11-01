@@ -1,12 +1,8 @@
-import React, { useRef, useState } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  useWindowDimensions,
-} from 'react-native';
+// @refresh reset
+import React from 'react';
+import { View, Text, TouchableOpacity } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
-import { hs, vs, ms } from '@/theme';
+import { hs, vs, ms, useTheme } from '@/theme';
 export interface BattleQuestion {
   id: number;
   hanzi: string;
@@ -35,26 +31,13 @@ export const BattleQuestionCard = ({
   questionNumber,
   totalQuestions,
 }: BattleQuestionCardProps) => {
-  const { width, fontScale } = useWindowDimensions();
-  const measurementKey = JSON.stringify([
-    question.id,
-    question.options,
-    width,
-    fontScale,
-  ]);
-  const activeMeasurementKey = useRef(measurementKey);
-  activeMeasurementKey.current = measurementKey;
-  const [measurement, setMeasurement] = useState({ key: '', height: 0 });
-  const optionHeight = Math.max(
-    ms(64),
-    measurement.key === measurementKey ? measurement.height + vs(24) + 4 : 0,
-  );
+  const { colors } = useTheme();
   const answersLocked = !isMyTurn || selectedOption !== null || showResult;
 
   return (
     <View
       style={{
-        backgroundColor: '#1E1A46',
+        backgroundColor: colors.surface,
         borderBottomLeftRadius: ms(20),
         borderBottomRightRadius: ms(20),
         paddingHorizontal: hs(16),
@@ -64,7 +47,7 @@ export const BattleQuestionCard = ({
       {/* Category / Prompt Label */}
       <Text
         style={{
-          color: '#818CF8',
+          color: colors.primary,
           fontSize: ms(12),
           fontWeight: '700',
           letterSpacing: 1.5,
@@ -82,7 +65,7 @@ export const BattleQuestionCard = ({
       {/* Chinese Characters (Hanzi) */}
       <Text
         style={{
-          color: '#FFFFFF',
+          color: colors.gray800,
           fontSize: ms(26),
           fontWeight: '900',
           textAlign: 'center',
@@ -96,7 +79,7 @@ export const BattleQuestionCard = ({
       {/* Pinyin */}
       <Text
         style={{
-          color: '#A5B4FC',
+          color: colors.text,
           fontSize: ms(14),
           fontWeight: '500',
           textAlign: 'center',
@@ -106,38 +89,38 @@ export const BattleQuestionCard = ({
         {question.pinyin}
       </Text>
 
-      {/* Answer Options */}
+      {/* Each answer wraps independently so long text does not stretch its siblings. */}
       <View style={{ rowGap: vs(12) }}>
         {question.options.map((optionText, index) => {
           const isSelected = selectedOption === index;
           const isCorrect = index === question.correctIndex;
 
-          let bgColor = '#181439';
-          let borderColor = '#48406E';
-          let textColor = '#E0E7FF';
-          let numBg = '#262054';
-          let numText = '#A5B4FC';
+          let bgColor: string = colors.surface;
+          let borderColor: string = colors.gray100;
+          let textColor: string = colors.gray800;
+          let numBg: string = colors.accentLightBlue;
+          let numText: string = colors.onAccent;
 
           if (showResult) {
             if (isCorrect) {
-              bgColor = '#064E3B';
-              borderColor = '#10B981';
-              textColor = '#FFFFFF';
-              numBg = '#10B981';
-              numText = '#FFFFFF';
+              bgColor = colors.accentGreen;
+              borderColor = colors.success;
+              textColor = colors.onAccent;
+              numBg = colors.success;
+              numText = colors.onPrimary;
             } else if (isSelected && !isCorrect) {
-              bgColor = '#7F1D1D';
-              borderColor = '#EF4444';
-              textColor = '#FFFFFF';
-              numBg = '#EF4444';
-              numText = '#FFFFFF';
+              bgColor = colors.accentPink;
+              borderColor = colors.red500;
+              textColor = colors.onAccent;
+              numBg = colors.red500;
+              numText = colors.onPrimary;
             }
           } else if (isSelected) {
-            bgColor = '#312A6E';
-            borderColor = '#818CF8';
-            textColor = '#FFFFFF';
-            numBg = '#6366F1';
-            numText = '#FFFFFF';
+            bgColor = colors.accentLightBlue;
+            borderColor = colors.primary;
+            textColor = colors.onAccent;
+            numBg = colors.primary;
+            numText = colors.onPrimary;
           }
 
           const resultIcon =
@@ -177,7 +160,7 @@ export const BattleQuestionCard = ({
                 borderColor: borderColor,
                 borderWidth: 2,
                 borderRadius: ms(12),
-                minHeight: optionHeight,
+                minHeight: ms(64),
                 width: '100%',
                 paddingHorizontal: hs(16),
                 paddingVertical: vs(12),
@@ -209,20 +192,6 @@ export const BattleQuestionCard = ({
 
               {/* Option Text */}
               <Text
-                onTextLayout={(event) => {
-                  if (activeMeasurementKey.current !== measurementKey) return;
-                  const height = Math.ceil(
-                    event.nativeEvent.lines.reduce(
-                      (total, line) => total + line.height,
-                      0,
-                    ),
-                  );
-                  setMeasurement((previous) =>
-                    previous.key === measurementKey && previous.height >= height
-                      ? previous
-                      : { key: measurementKey, height },
-                  );
-                }}
                 style={{
                   color: textColor,
                   fontSize: ms(16),

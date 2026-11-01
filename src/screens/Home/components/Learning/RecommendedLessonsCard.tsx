@@ -3,7 +3,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { useQuery } from '@tanstack/react-query';
-import { useIsFocused } from '@react-navigation/native';
+import { useFocusEffect } from '@react-navigation/native';
 import { useProfile } from '@/services/auth/useAuth';
 import {
   getRecommendedLessons,
@@ -58,17 +58,21 @@ export const RecommendedLessonsCard = ({
   onSeeAll,
   onOpenLesson,
 }: RecommendedLessonsCardProps) => {
-  const { layout } = useTheme();
+  const { colors, layout } = useTheme();
   const { data: profile } = useProfile();
-  const focused = useIsFocused();
   const level = profile?.currentHskLevel || 1;
   const query = useQuery({
     queryKey: ['recommended-lessons', level],
     queryFn: () => getRecommendedLessons(level),
-    enabled: focused && Boolean(profile?.id),
+    enabled: Boolean(profile?.id),
     staleTime: 5 * 60 * 1000,
     retry: 1,
   });
+  const { isStale, refetch } = query;
+  const userId = profile?.id;
+  useFocusEffect(React.useCallback(() => {
+    if (userId && isStale) void refetch();
+  }, [userId, isStale, refetch]));
 
   return (
     <View style={{ paddingHorizontal: hs(16), marginBottom: vs(20) }}>
@@ -163,7 +167,7 @@ export const RecommendedLessonsCard = ({
                 flexBasis: '45%',
                 flexGrow: 1,
                 minWidth: 0,
-                backgroundColor: '#F0F7FF',
+                backgroundColor: colors.accentLightBlue,
                 borderColor: '#D4E8FC',
                 borderRadius: ms(14),
                 borderWidth: 1,

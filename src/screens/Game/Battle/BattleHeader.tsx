@@ -1,7 +1,8 @@
+// @refresh reset
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import Svg, { Path, Circle } from 'react-native-svg';
-import { hs, vs, ms } from '@/theme';
+import { hs, vs, ms, useTheme } from '@/theme';
 
 interface BattleHeaderProps {
   isMyTurn: boolean;
@@ -20,6 +21,7 @@ export const BattleHeader = ({
   maxTurnsPerPlayer = 4,
   onForfeit,
 }: BattleHeaderProps) => {
+  const { colors } = useTheme();
   return (
     <View
       style={{
@@ -29,15 +31,22 @@ export const BattleHeader = ({
         paddingHorizontal: hs(16),
         paddingTop: vs(12),
         paddingBottom: vs(16),
-        backgroundColor: '#201C48',
+        backgroundColor: colors.accentLightBlue,
         borderTopLeftRadius: ms(20),
         borderTopRightRadius: ms(20),
         borderBottomWidth: 1,
-        borderBottomColor: '#2C275E',
+        borderBottomColor: colors.gray100,
       }}
     >
       {/* Left: Info turn */}
-      <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: hs(12) }}>
+      <View
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          flex: 1,
+          marginRight: hs(12),
+        }}
+      >
         {/* Forfeit button icon */}
         {onForfeit && (
           <TouchableOpacity
@@ -51,7 +60,7 @@ export const BattleHeader = ({
             <Svg height="20" viewBox="0 0 24 24" width="20" fill="none">
               <Path
                 d="M19 12H5M12 19l-7-7 7-7"
-                stroke="#A5B4FC"
+                stroke={colors.primary}
                 strokeWidth={2.2}
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -64,20 +73,42 @@ export const BattleHeader = ({
         <View style={{ marginRight: hs(8) }}>
           {isMyTurn ? (
             <Svg height="20" viewBox="0 0 24 24" width="20" fill="none">
-              <Circle cx="12" cy="13" r="8" stroke="#FBBF24" strokeWidth={2} />
-              <Path d="M12 9v4l2.5 2.5" stroke="#FBBF24" strokeWidth={2} strokeLinecap="round" />
-              <Path d="M12 5V2M10 2h4" stroke="#FBBF24" strokeWidth={2} strokeLinecap="round" />
+              <Circle
+                cx="12"
+                cy="13"
+                r="8"
+                stroke={colors.primary}
+                strokeWidth={2}
+              />
+              <Path
+                d="M12 9v4l2.5 2.5"
+                stroke={colors.primary}
+                strokeWidth={2}
+                strokeLinecap="round"
+              />
+              <Path
+                d="M12 5V2M10 2h4"
+                stroke={colors.primary}
+                strokeWidth={2}
+                strokeLinecap="round"
+              />
             </Svg>
           ) : (
             <Svg height="20" viewBox="0 0 24 24" width="20" fill="none">
               <Path
                 d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"
-                stroke="#818CF8"
+                stroke={colors.primary}
                 strokeWidth={2}
                 strokeLinecap="round"
                 strokeLinejoin="round"
               />
-              <Circle cx="12" cy="12" r="3" stroke="#818CF8" strokeWidth={2} />
+              <Circle
+                cx="12"
+                cy="12"
+                r="3"
+                stroke={colors.primary}
+                strokeWidth={2}
+              />
             </Svg>
           )}
         </View>
@@ -87,7 +118,7 @@ export const BattleHeader = ({
           <Text
             numberOfLines={1}
             style={{
-              color: '#FFFFFF',
+              color: colors.onAccent,
               fontSize: ms(13.5),
               fontWeight: '800',
               letterSpacing: 0.2,
@@ -100,7 +131,7 @@ export const BattleHeader = ({
           <Text
             numberOfLines={1}
             style={{
-              color: '#A5B4FC',
+              color: colors.onAccent,
               fontSize: ms(12),
               marginTop: vs(2),
               fontWeight: '500',
@@ -116,11 +147,11 @@ export const BattleHeader = ({
       {/* Right: Circular Countdown Badge */}
       <View
         style={{
-          width: hs(38),
-          height: vs(38),
+          width: ms(38),
+          height: ms(38),
           borderRadius: ms(19),
-          backgroundColor: '#27225B',
-          borderColor: timeLeft <= 5 ? '#EF4444' : '#6366F1',
+          backgroundColor: timeLeft <= 5 ? colors.accentPink : colors.surface,
+          borderColor: timeLeft <= 5 ? colors.red500 : colors.primary,
           borderWidth: 2,
           alignItems: 'center',
           justifyContent: 'center',
@@ -128,7 +159,7 @@ export const BattleHeader = ({
       >
         <Text
           style={{
-            color: timeLeft <= 5 ? '#F87171' : '#FFFFFF',
+            color: timeLeft <= 5 ? colors.red500 : colors.primary,
             fontSize: ms(16),
             fontWeight: '900',
           }}

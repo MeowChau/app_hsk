@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleProp, ViewStyle } from 'react-native';
+import { View, Text, StyleProp, ViewStyle, TextStyle } from 'react-native';
 import { BackButton } from '@/components/atoms';
 import { ms, hs, vs } from '@/theme';
 
@@ -10,6 +10,8 @@ export interface ScreenHeaderProps {
   rightElement?: React.ReactNode;
   style?: StyleProp<ViewStyle>;
   titleColor?: string;
+  titleStyle?: StyleProp<TextStyle>;
+  titleNumberOfLines?: number;
 }
 
 export const ScreenHeader = ({
@@ -19,6 +21,8 @@ export const ScreenHeader = ({
   rightElement,
   style,
   titleColor = '#111827',
+  titleStyle,
+  titleNumberOfLines = 1,
 }: ScreenHeaderProps) => {
   return (
     <View
@@ -34,7 +38,14 @@ export const ScreenHeader = ({
         style,
       ]}
     >
-      <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+      <View
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          flex: 1,
+          minWidth: 0,
+        }}
+      >
         <BackButton
           onPress={onBack}
           style={{ marginRight: hs(8), marginLeft: hs(-6) }}
@@ -42,12 +53,15 @@ export const ScreenHeader = ({
         {title ? (
           <View style={{ flex: 1 }}>
             <Text
-              numberOfLines={1}
-              style={{
-                fontSize: ms(20),
-                fontWeight: '800',
-                color: titleColor,
-              }}
+              numberOfLines={titleNumberOfLines}
+              style={[
+                {
+                  fontSize: ms(20),
+                  fontWeight: '800',
+                  color: titleColor,
+                },
+                titleStyle,
+              ]}
             >
               {title}
             </Text>

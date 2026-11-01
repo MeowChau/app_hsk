@@ -72,14 +72,14 @@ export const HskExamResultView = ({ result, onBack, onReview, onRetake }: Props)
 
           <View style={{ flexDirection: 'row', gap: hs(12), marginBottom: vs(12) }}>
             <TouchableOpacity onPress={onReview} style={{ flex: 2, backgroundColor: '#1E3A8A', borderRadius: ms(8), paddingVertical: vs(12), flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
-              <Svg height="16" viewBox="0 0 24 24" width="16" style={{ marginRight: hs(8) }}>
+              <Svg height={ms(16)} viewBox="0 0 24 24" width={ms(16)} style={{ marginRight: hs(8) }}>
                 <Path d="M3 3h18v18H3V3zm16 16V5H5v14h14zM7 7h10v2H7V7zm0 4h10v2H7v-2zm0 4h7v2H7v-2z" fill="#FFFFFF" />
               </Svg>
               <Text style={{ color: '#FFFFFF', fontSize: ms(16), fontWeight: '700' }}>Xem lại chi tiết bài làm</Text>
             </TouchableOpacity>
 
             <TouchableOpacity onPress={onRetake} style={{ flex: 1, backgroundColor: '#F3F4F6', borderWidth: 1, borderColor: '#E5E7EB', borderRadius: ms(8), paddingVertical: vs(12), flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
-              <Svg height="16" viewBox="0 0 24 24" width="16" style={{ marginRight: hs(6) }}>
+              <Svg height={ms(16)} viewBox="0 0 24 24" width={ms(16)} style={{ marginRight: hs(6) }}>
                 <Path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z" fill="#4B5563" />
               </Svg>
               <Text style={{ color: '#4B5563', fontSize: ms(16), fontWeight: '700' }}>Làm lại</Text>

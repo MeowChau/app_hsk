@@ -1,6 +1,9 @@
 // @refresh reset
 import React, { useEffect, useRef, useState } from 'react';
 import type { LearnScreenParams } from '@/navigation/types';
+import { Paths } from '@/navigation/paths';
+import { useScrollToTop } from '@react-navigation/native';
+import { useScreenBackHandler } from '@/navigation/useScreenBackHandler';
 import { Alert, SafeAreaView, ScrollView } from 'react-native';
 import { EducationHeader } from './components/EducationHeader';
 import { EducationSegment } from './components/EducationSegment';
@@ -40,13 +43,23 @@ export function EducationContent({ navigation, route }: any) {
   const [readingPracticeSetId, setReadingPracticeSetId] = useState<number>(0);
   const [listeningPracticeSetId, setListeningPracticeSetId] = useState<number>(0);
   const [writingWordOrder, setWritingWordOrder] = useState<string[]>([]);
+  const mainScroll = useRef<ScrollView>(null);
+  useScrollToTop(mainScroll);
 
   const recommendation = route?.params as LearnScreenParams | undefined;
-  const handledRecommendation = useRef<LearnScreenParams | undefined>(undefined);
+  const recommendationKey = recommendation ? JSON.stringify([
+    recommendation.timestamp ?? 0,
+    recommendation.targetView,
+    recommendation.recommendedLesson?.skill,
+    recommendation.recommendedLesson?.hskLevel,
+    recommendation.recommendedLesson?.topic,
+    recommendation.recommendedLesson?.practiceSetId,
+  ]) : undefined;
+  const handledRecommendation = useRef<string | undefined>(undefined);
   useEffect(() => {
-    if (!recommendation || handledRecommendation.current === recommendation) return;
+    if (!recommendation || handledRecommendation.current === recommendationKey) return;
     if (recommendation.targetView !== 'skills' && !recommendation.recommendedLesson) return;
-    handledRecommendation.current = recommendation;
+    handledRecommendation.current = recommendationKey;
     setActiveTab(0);
     const lesson = recommendation.recommendedLesson;
     if (!lesson) {
@@ -75,7 +88,7 @@ export function EducationContent({ navigation, route }: any) {
     } else {
       setViewMode('skillSetup');
     }
-  }, [recommendation]);
+  }, [recommendation, recommendationKey]);
 
   const handleSelectHskLevel = (level: number) => {
     setSelectedHsk(level);
@@ -123,9 +136,17 @@ export function EducationContent({ navigation, route }: any) {
     if (navigation?.canGoBack?.()) {
       navigation.goBack();
     } else {
-      navigation?.navigate?.('Home');
+      navigation?.navigate?.(Paths.Home);
     }
   };
+
+  useScreenBackHandler(() => {
+    if (viewMode === 'examResult') handleBackFromTest();
+    else if (viewMode === 'examList' || viewMode === 'skillSetup') setViewMode('main');
+    else if (viewMode === 'skillFlashcard' || viewMode === 'skillPracticeResult') setViewMode('skillSetup');
+    else return false;
+    return true;
+  }, !['main', 'examTest', 'examReview', 'skillPractice'].includes(viewMode));
 
   if (viewMode === 'examResult' && activeExamId) {
     return <HskExamResultView result={examResults[activeExamId]} onBack={handleBackFromTest} onReview={handleReviewExam} onRetake={handleRetakeExam} />;
@@ -336,7 +357,7 @@ export function EducationContent({ navigation, route }: any) {
     <SafeAreaView style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
       <EducationHeader onBack={handleMainBack} />
       
-      <ScrollView contentContainerStyle={{ paddingBottom: 32 }} showsVerticalScrollIndicator={false}>
+      <ScrollView ref={mainScroll} contentContainerStyle={{ paddingBottom: 32 }} showsVerticalScrollIndicator={false}>
         <EducationSegment
           options={['Luyện tập kỹ năng', 'Đề thi HSK']}
           selectedIndex={activeTab}

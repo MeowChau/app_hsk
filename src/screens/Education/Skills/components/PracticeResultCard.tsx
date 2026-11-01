@@ -88,7 +88,7 @@ export const PracticeResultCard = ({
             gap: hs(6),
           }}
         >
-          <Svg height="14" viewBox="0 0 24 24" width="14">
+          <Svg height={ms(14)} viewBox="0 0 24 24" width={ms(14)}>
             <Path
               d="M20 12H4M10 18l-6-6 6-6"
               fill="none"
@@ -116,7 +116,7 @@ export const PracticeResultCard = ({
             gap: hs(6),
           }}
         >
-          <Svg height="14" viewBox="0 0 24 24" width="14">
+          <Svg height={ms(14)} viewBox="0 0 24 24" width={ms(14)}>
             <Path
               d="M21 2v6h-6M3 12a9 9 0 0 1 15-6.7L21 8M3 22v-6h6M21 12a9 9 0 0 1-15 6.7L3 16"
               fill="none"

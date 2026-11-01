@@ -1,4 +1,6 @@
-import React from 'react';
+// @refresh reset
+import React, { useRef } from 'react';
+import { useScrollToTop } from '@react-navigation/native';
 import { View, Text, TouchableOpacity, ScrollView, Image, useWindowDimensions } from 'react-native';
 
 import { Logo, UserAvatar } from '@/components/atoms';
@@ -24,6 +26,8 @@ export interface HomeContentProps {
 import { useProfile } from '@/services/auth/useAuth';
 
 export function HomeContent({ onSwitchTab, onNavigateToProfile }: HomeContentProps) {
+  const scroll = useRef<ScrollView>(null);
+  useScrollToTop(scroll);
   const { data: profile } = useProfile();
   const { layout } = useTheme();
   const { width: screenWidth } = useWindowDimensions();
@@ -32,6 +36,7 @@ export function HomeContent({ onSwitchTab, onNavigateToProfile }: HomeContentPro
 
   return (
     <ScrollView
+      ref={scroll}
       contentContainerStyle={{ paddingBottom: vs(24) }}
       showsVerticalScrollIndicator={false}
     >

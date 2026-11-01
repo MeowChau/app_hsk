@@ -6,7 +6,7 @@ export const enum Variant {
   DARK = 'dark',
 }
 
-const colorsLight = {
+const baseColorsLight = {
   // --- Màu mới thêm ---
   primary: '#0E84F2',
   primaryLight: '#33C9FC',
@@ -31,7 +31,7 @@ const colorsLight = {
   skeleton: '#A1A1A1',
 } as const;
 
-const colorsDark = {
+const baseColorsDark = {
   // --- Màu mới thêm (Dark mode) ---
   primary: '#0E84F2',
   primaryLight: '#33C9FC',
@@ -54,6 +54,26 @@ const colorsDark = {
   purple500: '#A6A4F0',
   red500: '#C13333',
   skeleton: '#303030',
+} as const;
+
+const colorsLight = {
+  ...baseColorsLight,
+  primaryAction: '#1E3A8A',
+  mediaBackground: '#000000',
+  surface: DefaultTheme.colors.card,
+  onPrimary: DefaultTheme.colors.card,
+  onAccent: baseColorsLight.gray800,
+  success: '#047857',
+} as const;
+
+const colorsDark = {
+  ...baseColorsDark,
+  primaryAction: colorsLight.primaryAction,
+  mediaBackground: colorsLight.mediaBackground,
+  surface: baseColorsDark.secondary,
+  onPrimary: colorsLight.onPrimary,
+  onAccent: colorsLight.onAccent,
+  success: colorsLight.success,
 } as const;
 
 const sizes = [4, 8, 12, 16, 20, 24, 32, 40, 48, 64, 80] as const;

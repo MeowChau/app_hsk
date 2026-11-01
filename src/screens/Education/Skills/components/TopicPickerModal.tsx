@@ -107,7 +107,7 @@ export function TopicPickerModal<T = any>({
             </Text>
           ) : null}
         </View>
-        <Svg height="16" viewBox="0 0 24 24" width="16">
+        <Svg height={ms(16)} viewBox="0 0 24 24" width={ms(16)}>
           <Path
             d="M7 15l5 5 5-5M7 9l5-5 5 5"
             fill="none"
@@ -185,7 +185,7 @@ export function TopicPickerModal<T = any>({
                         justifyContent: 'center',
                       }}
                     >
-                      <Svg height="20" viewBox="0 0 24 24" width="20">
+                      <Svg height={ms(20)} viewBox="0 0 24 24" width={ms(20)}>
                         <Path
                           d="M6 6l12 12M18 6L6 18"
                           fill="none"
@@ -313,7 +313,7 @@ export function TopicPickerModal<T = any>({
                               style={{ width: ms(16), alignItems: 'center' }}
                             >
                               {active && (
-                                <Svg height="16" viewBox="0 0 24 24" width="16">
+                                <Svg height={ms(16)} viewBox="0 0 24 24" width={ms(16)}>
                                   <Path
                                     d="M20 6L9 17l-5-5"
                                     fill="none"

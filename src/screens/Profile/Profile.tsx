@@ -1,6 +1,8 @@
+// @refresh reset
 import type { RootScreenProps } from '@/navigation/types';
 
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
+import { useScrollToTop } from '@react-navigation/native';
 import {
   Alert,
   ScrollView,
@@ -32,6 +34,8 @@ import {
 } from '@/services/auth/useAuth';
 
 export function ProfileContent({ onLogout }: { onLogout?: () => void }) {
+  const scroll = useRef<ScrollView>(null);
+  useScrollToTop(scroll);
   const { data: profile } = useProfile();
   const updateProfileMutation = useUpdateProfile();
   const updateStudyGoalsMutation = useUpdateStudyGoals();
@@ -141,6 +145,7 @@ export function ProfileContent({ onLogout }: { onLogout?: () => void }) {
 
   return (
     <ScrollView
+      ref={scroll}
       contentContainerStyle={{ paddingBottom: vs(24) }}
       showsVerticalScrollIndicator={false}
     >

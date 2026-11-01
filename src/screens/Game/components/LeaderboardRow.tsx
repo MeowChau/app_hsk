@@ -1,17 +1,19 @@
 import React from 'react';
 import { View, Text } from 'react-native';
 import { hs, vs, ms } from '@/theme';
+import { UserAvatar } from '@/components/atoms';
 
 export interface LeaderboardRowProps {
   rank: number | null;
   name: string;
   level: number;
   totalExp: number;
+  photoUrl?: string | null;
   bg: string;
   color: string;
 }
 
-export const LeaderboardRow = ({ rank, name, level, totalExp, bg, color }: LeaderboardRowProps) => {
+export const LeaderboardRow = ({ rank, name, level, totalExp, photoUrl, bg, color }: LeaderboardRowProps) => {
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: 1, borderBottomColor: '#F5F6F8', paddingBottom: vs(16) }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
@@ -20,7 +22,7 @@ export const LeaderboardRow = ({ rank, name, level, totalExp, bg, color }: Leade
             <Text style={{ color: color, fontSize: ms(11), fontWeight: '800' }}>{rank ?? '—'}</Text>
           </View>
         </View>
-        <View style={{ backgroundColor: '#E0E0E0', borderRadius: ms(16), height: vs(32), width: hs(32), marginLeft: hs(16), marginRight: hs(12) }} />
+        <UserAvatar photoUrl={photoUrl} size={ms(32)} style={{ marginLeft: hs(16), marginRight: hs(12) }} />
         <View style={{ flex: 1 }}>
           <Text style={{ color: '#111827', fontSize: ms(15), fontWeight: '700' }} numberOfLines={1}>{name}</Text>
           <Text style={{ color: '#9E9E9E', fontSize: ms(12), marginTop: vs(1) }}>Level {level}</Text>

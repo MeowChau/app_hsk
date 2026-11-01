@@ -1,8 +1,11 @@
 // @refresh reset
+import { PracticeBookmarkButton } from '../../components/PracticeBookmarkButton';
+import { PracticeHeader } from '../../components/PracticeHeader';
 import { useStudyTimer } from '@/hooks/useStudyTimer';
 import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
-import { View, Text, SafeAreaView, TouchableOpacity, Alert, SectionList, BackHandler, TextInput, useWindowDimensions } from 'react-native';
-import Svg, { Path, Rect } from 'react-native-svg';
+import { View, Text, SafeAreaView, TouchableOpacity, Alert, SectionList, TextInput, useWindowDimensions } from 'react-native';
+import { useScreenBackHandler } from '@/navigation/useScreenBackHandler';
+import Svg, { Path } from 'react-native-svg';
 import { ReadingPracticeQuestion } from '../../types';
 import { ms, hs, vs } from '@/theme';
 import { SubmitConfirmModal, QuestionGridModal } from '@/screens/Education/components';
@@ -114,14 +117,7 @@ const ReadingQuestionCard = React.memo(({ question, instructionGroup, isGroupSta
 }) => {
 
   const renderFlag = () => (
-    <TouchableOpacity onPress={() => onToggleBookmark(question.id)} style={{ padding: ms(2) }}>
-      <Svg height="16" viewBox="0 0 24 24" width="16">
-        <Path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1zM4 22v-7"
-          fill={bookmarked ? '#D97706' : 'none'}
-          stroke={bookmarked ? '#D97706' : '#9CA3AF'}
-          strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-      </Svg>
-    </TouchableOpacity>
+    <PracticeBookmarkButton index={question.index} selected={bookmarked} onPress={() => onToggleBookmark(question.id)} />
   );
 
   const renderNumber = (index: number) => (
@@ -266,7 +262,7 @@ const ReadingQuestionCard = React.memo(({ question, instructionGroup, isGroupSta
                   return (
                     <TouchableOpacity key={opt.id} onPress={() => onSelectOption(question.id, opt.id)} style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: isSelected ? '#EFF6FF' : '#FFFFFF', borderWidth: 1, borderColor: isSelected ? '#1E3A8A' : '#E5E7EB', borderRadius: ms(8), paddingVertical: vs(8), paddingHorizontal: hs(12) }}>
                       <View style={{ width: 20, height: 20, borderRadius: 10, borderWidth: 1, borderColor: isSelected ? '#1E3A8A' : '#9CA3AF', justifyContent: 'center', alignItems: 'center', marginRight: hs(8), backgroundColor: isSelected ? '#1E3A8A' : 'transparent' }}>
-                         {isSelected && <Svg width="12" height="12" viewBox="0 0 24 24"><Path d="M5 13l4 4L19 7" stroke="#FFFFFF" strokeWidth="3" fill="none" strokeLinecap="round" /></Svg>}
+                         {isSelected && <Svg width={ms(12)} height={ms(12)} viewBox="0 0 24 24"><Path d="M5 13l4 4L19 7" stroke="#FFFFFF" strokeWidth="3" fill="none" strokeLinecap="round" /></Svg>}
                       </View>
                       <Text style={{ fontSize: ms(14), color: isSelected ? '#1E3A8A' : '#4B5563', fontWeight: '500' }}>{opt.text}</Text>
                     </TouchableOpacity>
@@ -432,13 +428,11 @@ const ReadingPracticeSession = ({ hskLevel, practiceSetId, onBack, onSubmit }: P
     );
   }, [onBack]);
 
-  useEffect(() => {
-    const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
-      handleExitPress();
-      return true;
-    });
-    return () => backHandler.remove();
-  }, [handleExitPress]);
+  useScreenBackHandler(() => {
+    if (isLoading || questions.length === 0) onBack();
+    else handleExitPress();
+    return true;
+  });
 
   const answeredCount = Object.keys(answers).length;
   const totalCount = questions.length;
@@ -477,38 +471,14 @@ const ReadingPracticeSession = ({ hskLevel, practiceSetId, onBack, onSubmit }: P
 
   return (
     <SafeAreaView onTouchStart={studyTimer.markActivity} onTouchMove={studyTimer.markActivity} style={{ flex: 1, backgroundColor: '#E5E7EB' }}>
-      {/* Sticky Header */}
-      <View style={{ backgroundColor: '#FFFFFF', paddingHorizontal: hs(16), paddingTop: vs(8), paddingBottom: vs(12), flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: 1, borderBottomColor: '#E5E7EB' }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
-          <TouchableOpacity onPress={handleExitPress} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }} style={{ marginRight: hs(8), padding: ms(8), marginLeft: hs(-6) }}>
-            <Svg height="24" viewBox="0 0 24 24" width="24">
-              <Path d="M20 12H4M10 18l-6-6 6-6" fill="none" stroke="#1E3A8A" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-            </Svg>
-          </TouchableOpacity>
-          <View style={{ flex: 1 }}>
-            <Text style={{ fontSize: ms(18), fontWeight: '800', color: '#111827' }} numberOfLines={1}>
-              Luyện tập kỹ năng đọc
-            </Text>
-            <Text style={{ fontSize: ms(14), color: '#4B5563', fontWeight: '500' }}>
-              {answeredCount}/{totalCount} {countUnit}
-            </Text>
-          </View>
-        </View>
-
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: hs(12) }}>
-          <TouchableOpacity onPress={() => setShowGridModal(true)}>
-            <Svg height="24" viewBox="0 0 24 24" width="24">
-              <Rect x="3" y="3" width="7" height="7" rx="1" fill="none" stroke="#4B5563" strokeWidth="2" />
-              <Rect x="14" y="3" width="7" height="7" rx="1" fill="none" stroke="#4B5563" strokeWidth="2" />
-              <Rect x="3" y="14" width="7" height="7" rx="1" fill="none" stroke="#4B5563" strokeWidth="2" />
-              <Rect x="14" y="14" width="7" height="7" rx="1" fill="none" stroke="#4B5563" strokeWidth="2" />
-            </Svg>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => setShowSubmitModal(true)} style={{ backgroundColor: '#1E3A8A', borderRadius: ms(6), paddingHorizontal: hs(14), paddingVertical: vs(7) }}>
-            <Text style={{ color: '#FFFFFF', fontSize: ms(14), fontWeight: '700' }}>{submitLabel}</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
+      <PracticeHeader
+        title="Luyện tập kỹ năng đọc"
+        subtitle={`${answeredCount}/${totalCount} ${countUnit}`}
+        onBack={handleExitPress}
+        onOpenGrid={() => setShowGridModal(true)}
+        onSubmit={() => setShowSubmitModal(true)}
+        submitLabel={submitLabel}
+      />
 
       <SectionList<ReadingPracticeQuestion, ReadingQuestionSection>
         ref={sectionListRef}

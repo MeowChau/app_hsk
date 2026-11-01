@@ -51,6 +51,7 @@ export interface ExamQuestion {
   type: QuestionType;
   index: number;
   audioUrl?: any;
+  sharedAudio?: boolean;
   imageUrl?: any;
   text?: string;
   options: QuestionOption[];

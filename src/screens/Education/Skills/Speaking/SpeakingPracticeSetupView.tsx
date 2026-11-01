@@ -85,7 +85,7 @@ export const SpeakingPracticeSetupView = ({ hskLevel, onSelectHsk, onBack, onSta
             gap: hs(8),
           }}
         >
-          <Svg height="20" viewBox="0 0 24 24" width="20">
+          <Svg height={ms(20)} viewBox="0 0 24 24" width={ms(20)}>
             <Path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3zM19 10v2a7 7 0 0 1-14 0v-2M12 19v4M8 23h8" fill="none" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
           </Svg>
           <Text style={{ color: '#FFFFFF', fontSize: ms(16), fontWeight: '700' }}>

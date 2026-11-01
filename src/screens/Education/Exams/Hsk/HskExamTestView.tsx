@@ -1,9 +1,14 @@
+// @refresh reset
+import { PracticeHeader } from '../../components/PracticeHeader';
+import { SharedAudioHeader, SharedAudioEnd } from '../../components/SharedAudioHeader';
+import { buildSharedAudioRows, audioStickyHeaderIndices } from '../../components/sharedAudioRows';
+import type { SharedAudioRow } from '../../components/sharedAudioRows';
+import { useAudioListScroll } from '../../components/useAudioListScroll';
 import { useStudyTimer } from '@/hooks/useStudyTimer';
+import { useScreenBackHandler } from '@/navigation/useScreenBackHandler';
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { View, Text, SafeAreaView, FlatList, TouchableOpacity, Alert, KeyboardAvoidingView, Platform, Keyboard } from 'react-native';
 import { hasExamAnswer, isExamAnswerCorrect } from '@/services/exams/answers';
-import Svg, { Rect } from 'react-native-svg';
-import { BackButton } from '@/components/atoms';
 import { HskExamQuestionCard } from './HskExamQuestionCard';
 import { ms, hs, vs } from '@/theme';
 import { SubmitConfirmModal, QuestionGridModal, QuestionGridSection } from '@/screens/Education/components';
@@ -41,7 +46,7 @@ const ExamTimer = ({ durationMin }: { durationMin: number }) => {
 import { ActivityIndicator } from 'react-native';
 import { examsApi, ExamResponseMismatchError } from '@/services/exams/api';
 import { transformBackendExamToApp } from '@/services/exams/transformers';
-import { HskExam } from '../../types';
+import { HskExam, ExamQuestion } from '../../types';
 
 export const HskExamTestView = ({ examId, durationMin, onBack, onSubmit, isReviewMode, reviewAnswers }: Props) => {
   const [fullExam, setFullExam] = useState<HskExam | null>(null);
@@ -76,7 +81,10 @@ export const HskExamTestView = ({ examId, durationMin, onBack, onSubmit, isRevie
   }, [examId]);
 
   const studyTimer = useStudyTimer(!isLoading && !isReviewMode && (fullExam?.questions?.length ?? 0) > 0, 'hsk_exam');
-  const questions = fullExam?.questions || [];
+  const questions = useMemo(() => fullExam?.questions || [], [fullExam]);
+  const questionRows = useMemo(() => buildSharedAudioRows(questions, question => question.type === 'LISTENING'), [questions]);
+  const stickyHeaders = useMemo(() => audioStickyHeaderIndices(questionRows), [questionRows]);
+  const { listRef: flatListRef, scrollToQuestion, rememberHeaderHeight, onScrollToIndexFailed } = useAudioListScroll(questionRows);
 
   const [answers, setAnswers] = useState<Record<string, string>>(reviewAnswers || {});
   const [bookmarks, setBookmarks] = useState<Record<string, boolean>>({});
@@ -85,11 +93,11 @@ export const HskExamTestView = ({ examId, durationMin, onBack, onSubmit, isRevie
   const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [currentQuestionId, setCurrentQuestionId] = useState<string | null>(null);
   
-  const flatListRef = React.useRef<FlatList>(null);
 
   const onViewableItemsChanged = React.useRef(({ viewableItems }: any) => {
     if (viewableItems.length > 0) {
-      setCurrentQuestionId(viewableItems[0].item?.id || null);
+      const firstQuestion = viewableItems.find((item: any) => item.item.kind === 'question');
+      if (firstQuestion) setCurrentQuestionId(firstQuestion.item.question.id);
     }
   }).current;
   const viewabilityConfig = React.useRef({ itemVisiblePercentThreshold: 50 }).current;
@@ -139,11 +147,10 @@ export const HskExamTestView = ({ examId, durationMin, onBack, onSubmit, isRevie
   };
 
   const handleGridPress = (qId: string) => {
-    const dataIndex = questions.findIndex(q => q.id === qId);
-    if (dataIndex >= 0) {
-      flatListRef.current?.scrollToIndex({ index: dataIndex, animated: true });
-      setShowGridModal(false);
-    }
+    const dataIndex = questionRows.findIndex(row => row.kind === 'question' && row.question.id === qId);
+    const row = questionRows[dataIndex];
+    scrollToQuestion(dataIndex, row?.kind === 'question' ? row.sharedAudioHeaderId : undefined);
+    setShowGridModal(false);
   };
 
   const answeredCount = questions.filter(q => hasExamAnswer(answers[q.id])).length;
@@ -203,16 +210,25 @@ export const HskExamTestView = ({ examId, durationMin, onBack, onSubmit, isRevie
     );
   };
 
-  const renderItem = useCallback(({ item }: any) => (
-    <HskExamQuestionCard
-      question={item}
-      selectedOptionId={answers[item.id]}
+  useScreenBackHandler(() => {
+    if (isLoading || questions.length === 0) onBack();
+    else handleExitPress();
+    return true;
+  });
+
+  const renderItem = useCallback(({ item }: { item: SharedAudioRow<ExamQuestion> }) => {
+    if (item.kind === 'audio_header') return <SharedAudioHeader url={item.audioUrl} label={item.label} onHeight={height => rememberHeaderHeight(item.id, height)} />;
+    if (item.kind === 'audio_end') return <SharedAudioEnd />;
+    return <HskExamQuestionCard
+      question={item.question}
+      showAudio={!item.sharedAudioHeaderId}
+      selectedOptionId={answers[item.question.id]}
       onSelectOption={handleSelectOption}
-      bookmarked={bookmarks[item.id]}
+      bookmarked={bookmarks[item.question.id]}
       onToggleBookmark={handleToggleBookmark}
       isReviewMode={isReviewMode}
-    />
-  ), [answers, bookmarks, handleSelectOption, handleToggleBookmark, isReviewMode]);
+    />;
+  }, [answers, bookmarks, handleSelectOption, handleToggleBookmark, isReviewMode, rememberHeaderHeight]);
 
   if (isLoading) {
     return (
@@ -225,51 +241,23 @@ export const HskExamTestView = ({ examId, durationMin, onBack, onSubmit, isRevie
   return (
     <SafeAreaView onTouchStart={studyTimer.markActivity} onTouchMove={studyTimer.markActivity} style={{ flex: 1, backgroundColor: '#E5E7EB' }}>
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      {/* Header */}
-      <View style={{ backgroundColor: '#FFFFFF', paddingHorizontal: hs(16), paddingTop: vs(8), paddingBottom: vs(12), flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: 1, borderBottomColor: '#E5E7EB' }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <BackButton onPress={handleExitPress} style={{ marginRight: hs(8), marginLeft: hs(-6) }} />
-          <View>
-            <Text style={{ fontSize: ms(18), fontWeight: '800', color: '#111827' }}>
-              HSK {examLevel}
-            </Text>
-            <Text style={{ fontSize: ms(14), color: '#4B5563', fontWeight: '500' }}>
-              {answeredCount}/{totalCount} số lượng câu
-            </Text>
-          </View>
-        </View>
-
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: hs(12) }}>
-          {!isReviewMode && (
-            <View style={{ backgroundColor: '#F3F4F6', borderRadius: ms(4), paddingHorizontal: hs(8), paddingVertical: vs(4) }}>
-              <ExamTimer durationMin={durationMin} />
-            </View>
-          )}
-          <TouchableOpacity accessibilityLabel="Danh sách câu hỏi" onPress={() => { Keyboard.dismiss(); setShowGridModal(true); }}>
-            <Svg height="24" viewBox="0 0 24 24" width="24">
-              <Rect x="3" y="3" width="7" height="7" rx="1" fill="none" stroke="#4B5563" strokeWidth="2" />
-              <Rect x="14" y="3" width="7" height="7" rx="1" fill="none" stroke="#4B5563" strokeWidth="2" />
-              <Rect x="3" y="14" width="7" height="7" rx="1" fill="none" stroke="#4B5563" strokeWidth="2" />
-              <Rect x="14" y="14" width="7" height="7" rx="1" fill="none" stroke="#4B5563" strokeWidth="2" />
-            </Svg>
-          </TouchableOpacity>
-          {isReviewMode ? (
-            <TouchableOpacity onPress={onBack} style={{ backgroundColor: '#1E3A8A', borderRadius: ms(6), paddingHorizontal: hs(14), paddingVertical: vs(7) }}>
-              <Text style={{ color: '#FFFFFF', fontSize: ms(14), fontWeight: '700' }}>Về kết quả</Text>
-            </TouchableOpacity>
-          ) : (
-            <TouchableOpacity onPress={() => setShowSubmitModal(true)} style={{ backgroundColor: '#1E3A8A', borderRadius: ms(6), paddingHorizontal: hs(14), paddingVertical: vs(7) }}>
-              <Text style={{ color: '#FFFFFF', fontSize: ms(14), fontWeight: '700' }}>Nộp bài</Text>
-            </TouchableOpacity>
-          )}
-        </View>
-      </View>
+      <PracticeHeader
+        title={`HSK ${examLevel}`}
+        subtitle={`${answeredCount}/${totalCount} số lượng câu`}
+        onBack={handleExitPress}
+        onOpenGrid={() => { Keyboard.dismiss(); setShowGridModal(true); }}
+        onSubmit={isReviewMode ? onBack : () => setShowSubmitModal(true)}
+        submitLabel={isReviewMode ? 'Về kết quả' : 'Nộp bài'}
+        timer={!isReviewMode ? <ExamTimer durationMin={durationMin} /> : undefined}
+      />
 
       {/* Main Content */}
       <FlatList
         ref={flatListRef}
-        data={questions}
+        data={questionRows}
         keyExtractor={(item) => item.id}
+        stickyHeaderIndices={stickyHeaders}
+        removeClippedSubviews={false}
         contentContainerStyle={{ padding: ms(16) }}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
@@ -277,13 +265,7 @@ export const HskExamTestView = ({ examId, durationMin, onBack, onSubmit, isRevie
         onViewableItemsChanged={onViewableItemsChanged}
         viewabilityConfig={viewabilityConfig}
         renderItem={renderItem}
-        onScrollToIndexFailed={(info) => {
-          flatListRef.current?.scrollToOffset({ offset: info.averageItemLength * info.index, animated: false });
-          const wait = new Promise(resolve => setTimeout(resolve, 500));
-          wait.then(() => {
-            flatListRef.current?.scrollToIndex({ index: info.index, animated: true });
-          });
-        }}
+        onScrollToIndexFailed={onScrollToIndexFailed}
         ListFooterComponent={
           <View style={{ backgroundColor: '#FAF9F6', borderRadius: ms(12), padding: ms(24), alignItems: 'center', marginTop: vs(8), marginBottom: vs(24) }}>
             {isReviewMode ? (

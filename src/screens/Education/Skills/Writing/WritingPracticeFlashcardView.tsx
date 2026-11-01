@@ -144,7 +144,7 @@ export const WritingPracticeFlashcardView = ({ hskLevel, topic, onBack, onFinish
         {/* Flashcard */}
         <TouchableOpacity activeOpacity={0.9} onPress={toggleMeaning} disabled={isComplete} style={styles.card}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '100%', padding: ms(16) }}>
-            <Svg height="24" viewBox="0 0 24 24" width="24">
+            <Svg height={ms(24)} viewBox="0 0 24 24" width={ms(24)}>
               <Path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" fill="none" stroke="#38BDF8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
             </Svg>
             <Text style={{ fontSize: ms(14), color: '#6B7280', fontWeight: '500' }}>

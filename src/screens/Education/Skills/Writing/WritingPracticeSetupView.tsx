@@ -90,7 +90,7 @@ export const WritingPracticeSetupView = ({ hskLevel, onSelectHsk, onBack, onStar
             gap: hs(8),
           }}
         >
-          <Svg height="20" viewBox="0 0 24 24" width="20">
+          <Svg height={ms(20)} viewBox="0 0 24 24" width={ms(20)}>
             <Path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z" fill="none" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
           </Svg>
           <Text style={{ color: '#FFFFFF', fontSize: ms(16), fontWeight: '700' }}>

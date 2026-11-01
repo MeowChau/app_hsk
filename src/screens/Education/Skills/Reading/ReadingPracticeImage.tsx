@@ -1,8 +1,17 @@
-import React, { useState } from 'react';
-import { Image, Modal, Text, TouchableOpacity, View } from 'react-native';
+import React, { useMemo, useState } from 'react';
+import {
+  Image,
+  Modal,
+  StatusBar,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { WebView } from 'react-native-webview';
-import { hs, ms, vs } from '@/theme';
+import Svg, { Path } from 'react-native-svg';
+import IconButton from '@/components/atoms/IconButton';
+import { hs, ms, vs, useTheme } from '@/theme';
 
 interface Props {
   uri: string;
@@ -15,6 +24,7 @@ export const ReadingPracticeImage = ({
   aspectRatio = 1,
   maxHeight,
 }: Props) => {
+  const { colors } = useTheme();
   const [ratio, setRatio] = useState(aspectRatio);
   const [failed, setFailed] = useState(false);
   const [attempt, setAttempt] = useState(0);
@@ -29,6 +39,16 @@ export const ReadingPracticeImage = ({
         '"': '&quot;',
         "'": '&#39;',
       })[value]!,
+  );
+  const viewerSource = useMemo(
+    () => ({
+      html: `<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=6,user-scalable=yes" /><style>
+      html, body { margin: 0; width: 100%; height: 100%; background: ${colors.mediaBackground}; }
+      body { display: flex; align-items: center; justify-content: center; }
+      img { display: block; width: 100%; height: 100%; object-fit: contain; }
+    </style></head><body><img alt="Hình bài tập" src="${escapedUri}" /></body></html>`,
+    }),
+    [colors.mediaBackground, escapedUri],
   );
 
   return (
@@ -74,63 +94,78 @@ export const ReadingPracticeImage = ({
           </Text>
         </TouchableOpacity>
       )}
-      <Modal
-        visible={expanded}
-        animationType="fade"
-        onRequestClose={() => setExpanded(false)}
-      >
-        <SafeAreaView style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
-          <View
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              paddingHorizontal: hs(16),
-              borderBottomWidth: 1,
-              borderBottomColor: '#E5E7EB',
-            }}
+      {expanded ? (
+        <Modal
+          visible={expanded}
+          animationType="fade"
+          presentationStyle="fullScreen"
+          statusBarTranslucent
+          navigationBarTranslucent
+          onRequestClose={() => setExpanded(false)}
+        >
+          <StatusBar
+            barStyle="light-content"
+            backgroundColor={colors.mediaBackground}
+            translucent
+          />
+          <SafeAreaView
+            style={{ flex: 1, backgroundColor: colors.mediaBackground }}
           >
-            <Text
+            <View
               style={{
-                flex: 1,
-                fontSize: ms(16),
-                color: '#111827',
-                fontWeight: '700',
-              }}
-            >
-              Hình bài tập
-            </Text>
-            <TouchableOpacity
-              accessibilityRole="button"
-              onPress={() => setExpanded(false)}
-              style={{
-                minHeight: ms(44),
-                justifyContent: 'center',
-                paddingHorizontal: hs(12),
+                flexDirection: 'row',
+                alignItems: 'center',
+                paddingHorizontal: hs(16),
+                paddingVertical: vs(4),
               }}
             >
               <Text
                 style={{
-                  color: '#1E3A8A',
-                  fontSize: ms(14),
-                  fontWeight: '600',
+                  flex: 1,
+                  fontSize: ms(16),
+                  color: colors.onPrimary,
+                  fontWeight: '700',
                 }}
               >
-                Đóng
+                Hình bài tập
               </Text>
-            </TouchableOpacity>
-          </View>
-          <WebView
-            source={{
-              html: `<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=6,user-scalable=yes"></head><body style="margin:0;background:white"><img alt="Hình bài tập" src="${escapedUri}" style="display:block;width:100%;height:auto"></body></html>`,
-            }}
-            javaScriptEnabled={false}
-            domStorageEnabled={false}
-            setBuiltInZoomControls
-            setDisplayZoomControls={false}
-            style={{ flex: 1, backgroundColor: '#FFFFFF' }}
-          />
-        </SafeAreaView>
-      </Modal>
+              <IconButton
+                accessibilityLabel="Đóng hình bài tập"
+                onPress={() => setExpanded(false)}
+                color={colors.onPrimary}
+                renderIcon={(size, color) => (
+                  <Svg
+                    width={size}
+                    height={size}
+                    viewBox="0 0 24 24"
+                    fill="none"
+                  >
+                    <Path
+                      d="M6 6l12 12M18 6L6 18"
+                      stroke={color}
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                    />
+                  </Svg>
+                )}
+              />
+            </View>
+            <WebView
+              source={viewerSource}
+              javaScriptEnabled={false}
+              domStorageEnabled={false}
+              setBuiltInZoomControls
+              setDisplayZoomControls={false}
+              bounces={false}
+              overScrollMode="never"
+              showsHorizontalScrollIndicator={false}
+              showsVerticalScrollIndicator={false}
+              containerStyle={{ backgroundColor: colors.mediaBackground }}
+              style={{ flex: 1, backgroundColor: colors.mediaBackground }}
+            />
+          </SafeAreaView>
+        </Modal>
+      ) : null}
     </View>
   );
 };

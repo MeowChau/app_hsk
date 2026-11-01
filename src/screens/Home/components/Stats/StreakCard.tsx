@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { View, Text, TouchableOpacity, ActivityIndicator, Alert, AppState } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { useTheme, hs, vs, ms } from '@/theme';
@@ -6,7 +6,7 @@ import { useProfile } from '@/services/auth';
 import { useStreakLeaderboard } from '@/services/leaderboard';
 import { useDashboardStats, useCheckIn } from '@/services/analytics';
 import { getLastCheckInDate } from '@/services/storage';
-import { useIsFocused } from '@react-navigation/native';
+import { useFocusEffect } from '@react-navigation/native';
 
 const studyDateFormatter = new Intl.DateTimeFormat('en-CA', {
   timeZone: 'Asia/Ho_Chi_Minh',
@@ -55,7 +55,6 @@ export const StreakCard = ({
   onCheckIn: propOnCheckIn,
 }: StreakCardProps) => {
   const { layout } = useTheme();
-  const isFocused = useIsFocused();
   const { data: profile } = useProfile();
   const { data: leaderboardData } = useStreakLeaderboard();
   const { data: dashboardData, dataUpdatedAt: dashboardUpdatedAt, refetch: refetchDashboard } = useDashboardStats();
@@ -76,7 +75,7 @@ export const StreakCard = ({
     return () => { clearInterval(timer); subscription.remove(); };
   }, [refetchDashboard]);
 
-  useEffect(() => { if (isFocused) void refetchDashboard(); }, [localDate, isFocused, refetchDashboard]);
+  useFocusEffect(useCallback(() => { if (localDate) void refetchDashboard(); }, [localDate, refetchDashboard]));
 
   // Tìm thông tin của user hiện tại từ leaderboard và dashboard
   const currentUserItem = leaderboardData?.leaderboard?.find(

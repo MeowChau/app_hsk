@@ -1,3 +1,4 @@
+// @refresh reset
 import { NavigationContainer, createNavigationContainerRef, getStateFromPath } from '@react-navigation/native';
 import { useEffect, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
@@ -13,24 +14,10 @@ import { BottomTabNavigator } from '@/navigation/BottomTabNavigator';
 import { getAuthSessionVersion, isAuthenticated, subscribeAuthSession } from '@/services/storage';
 import { API_ORIGIN } from '@/services/config';
 import { AudioProvider } from '@/services/audio/AudioProvider';
+import { useReducedMotion } from './useReducedMotion';
 
 const Stack = createStackNavigator<RootStackParamList>();
 const navigationRef = createNavigationContainerRef<RootStackParamList>();
-
-const instantTransitionSpec = {
-  close: {
-    animation: 'timing' as const,
-    config: {
-      duration: 0,
-    },
-  },
-  open: {
-    animation: 'timing' as const,
-    config: {
-      duration: 0,
-    },
-  },
-};
 
 const linking = {
   prefixes: [
@@ -68,7 +55,8 @@ const linking = {
 };
 
 function ApplicationNavigator() {
-  const { navigationTheme } = useTheme();
+  const { navigationTheme, colors } = useTheme();
+  const reducedMotion = useReducedMotion();
   const queryClient = useQueryClient();
   const [sessionVersion, setSessionVersion] = useState(getAuthSessionVersion);
 
@@ -86,20 +74,16 @@ function ApplicationNavigator() {
       <NavigationContainer ref={navigationRef} linking={linking} theme={navigationTheme}>
         <AudioProvider>
         <Stack.Navigator
-          detachInactiveScreens={false}
           initialRouteName={Paths.Startup} //
           screenOptions={{
-            animation: 'none',
-            cardStyle: { backgroundColor: '#FFFFFF' },
-            cardStyleInterpolator: () => ({ cardStyle: {} }),
-            detachPreviousScreen: false,
+            animation: reducedMotion ? 'none' : 'slide_from_right',
+            cardStyle: { backgroundColor: colors.surface },
             freezeOnBlur: false,
             headerShown: false,
-            transitionSpec: instantTransitionSpec,
           }}
         >
-          <Stack.Screen key={`tabs-${sessionVersion}`} component={BottomTabNavigator} name={Paths.MainTabs} />
-          <Stack.Screen component={Startup} name={Paths.Startup} />
+          <Stack.Screen key={`tabs-${sessionVersion}`} component={BottomTabNavigator} name={Paths.MainTabs} options={{ animation: reducedMotion ? 'none' : 'fade' }} />
+          <Stack.Screen component={Startup} name={Paths.Startup} options={{ animation: 'none' }} />
           <Stack.Screen component={Onboarding} name={Paths.Onboarding} />
           <Stack.Screen component={Login} name={Paths.Login} />
           <Stack.Screen component={Register} name={Paths.Register} />

@@ -1,6 +1,7 @@
+// @refresh reset
 import React, { useState, useEffect, useRef } from 'react';
 import { View, SafeAreaView, Alert, ScrollView, Text, TouchableOpacity } from 'react-native';
-import { hs, vs, ms } from '@/theme';
+import { hs, vs, ms, useTheme } from '@/theme';
 import { BattleHeader } from './BattleHeader';
 import { BattleQuestionCard } from './BattleQuestionCard';
 import { BattleScoreBar } from './BattleScoreBar';
@@ -18,6 +19,7 @@ interface GameBattleViewProps {
 }
 
 export const GameBattleView = ({ state, onAnswer, onExit, onPlayAgain, onComplete }: GameBattleViewProps) => {
+  const { colors } = useTheme();
   const { data: profile } = useProfile();
   const [now, setNow] = useState(Date.now());
   const [pending, setPending] = useState(false);
@@ -68,9 +70,9 @@ export const GameBattleView = ({ state, onAnswer, onExit, onPlayAgain, onComplet
       outcome={state.result.winnerId === null ? 'draw' : state.result.winnerId === myId ? 'win' : 'loss'} onPlayAgain={onPlayAgain} onExit={onExit} />;
   }
   if (!question || !room || !myScore || !peerScore) {
-    return <SafeAreaView onTouchStart={markActivity} onTouchMove={markActivity} style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: ms(24), backgroundColor: '#FFFFFF' }}>
-      <Text style={{ color: '#475569', fontSize: ms(16), marginBottom: vs(16) }}>Không còn dữ liệu trận đấu.</Text>
-      <TouchableOpacity onPress={() => onExit()}><Text style={{ color: '#1F4086', fontSize: ms(16) }}>Về sảnh</Text></TouchableOpacity>
+    return <SafeAreaView onTouchStart={markActivity} onTouchMove={markActivity} style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: ms(24), backgroundColor: colors.surface }}>
+      <Text style={{ color: colors.text, fontSize: ms(16), marginBottom: vs(16) }}>Không còn dữ liệu trận đấu.</Text>
+      <TouchableOpacity onPress={() => onExit()}><Text style={{ color: colors.primary, fontSize: ms(16) }}>Về sảnh</Text></TouchableOpacity>
     </SafeAreaView>;
   }
   const answer = state.lastAnswer?.index === room.index ? state.lastAnswer : undefined;
@@ -78,9 +80,9 @@ export const GameBattleView = ({ state, onAnswer, onExit, onPlayAgain, onComplet
   const timeLeft = room.stage === 'playing' ? Math.max(0, Math.ceil((room.deadline - (now + (state.clockOffsetMs || 0))) / 1000)) : 0;
   const cardQuestion = { id: question.id, hanzi: question.hanzi, pinyin: question.pinyin, prompt: question.prompt, options: question.options.map(option => option.text), correctIndex: answer ? question.options.findIndex(option => option.id === answer.correctOptionId) : -1 };
   return (
-    <SafeAreaView onTouchStart={markActivity} onTouchMove={markActivity} style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
+    <SafeAreaView onTouchStart={markActivity} onTouchMove={markActivity} style={{ flex: 1, backgroundColor: colors.surface }}>
       <ScrollView contentContainerStyle={{ paddingHorizontal: hs(16), paddingTop: vs(12), paddingBottom: vs(24), flexGrow: 1, justifyContent: 'space-between' }} showsVerticalScrollIndicator={false}>
-        <View style={{ borderRadius: ms(20), overflow: 'hidden', borderWidth: 1.5, borderColor: '#2D2764', backgroundColor: '#1E1A46', marginBottom: vs(20) }}>
+        <View style={{ borderRadius: ms(20), overflow: 'hidden', borderWidth: 1, borderColor: colors.gray100, backgroundColor: colors.surface, marginBottom: vs(20) }}>
           <BattleHeader isMyTurn={isMyTurn} opponentName={opponentName} timeLeft={timeLeft} turnNumber={Math.floor(room.index / 2) + 1} maxTurnsPerPlayer={myScore.totalQuestions} onForfeit={handleForfeit} />
           <BattleQuestionCard question={cardQuestion} isMyTurn={isMyTurn && !pending && room.stage === 'playing'} selectedOption={selectedOption === -1 ? null : selectedOption} onSelectOption={handleSelect} showResult={!!answer} questionNumber={room.index + 1} totalQuestions={match!.questions.length} />
         </View>

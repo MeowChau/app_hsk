@@ -97,7 +97,7 @@ export const ListeningPracticeSetupView = ({ onBack, onStartPractice }: Props) =
             gap: hs(8),
           }}
         >
-          <Svg height="20" viewBox="0 0 24 24" width="20">
+          <Svg height={ms(20)} viewBox="0 0 24 24" width={ms(20)}>
             <Path d="M3 18v-6a9 9 0 0 1 18 0v6" fill="none" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
             <Path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z" fill="#FFFFFF" />
           </Svg>

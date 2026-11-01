@@ -1,4 +1,5 @@
-import { useAudioPlayback, audioTime } from '@/services/audio/AudioProvider';
+import { QuestionAudioPlayer } from '../../components/QuestionAudioPlayer';
+import { PracticeBookmarkButton } from '../../components/PracticeBookmarkButton';
 import { imageSource } from '@/services/media';
 import React, { memo } from 'react';
 import { View, Text, TouchableOpacity, Image, TextInput } from 'react-native';
@@ -9,6 +10,7 @@ import { ReadingPracticeImage } from '../Reading/ReadingPracticeImage';
 
 interface Props {
   question: ListeningPracticeQuestion;
+  showAudio?: boolean;
   selectedOptionId?: string;
   onSelectOption: (questionId: string, optionId: string) => void;
   bookmarked?: boolean;
@@ -17,70 +19,23 @@ interface Props {
 
 // ============================================================
 // Audio Row - dùng chung cho tất cả loại
-// Layout: [index] [🔊] [▶ 0:00/0:00 ——————] [🔉] [⋮] [🚩]
+// Shared tracks live in the pinned section header; this row keeps the question number/flag.
 // ============================================================
-const AudioRow = ({ question, bookmarked, onToggleBookmark }: {
+const AudioRow = ({ question, bookmarked, onToggleBookmark, showAudio }: {
   question: ListeningPracticeQuestion;
   bookmarked?: boolean;
   onToggleBookmark: (id: string) => void;
+  showAudio: boolean;
 }) => {
-  const audio = useAudioPlayback(question.audioUrl);
   return (
-  <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: vs(12) }}>
-    {/* Index badge - grey circle, left */}
-    <View style={{ width: ms(30), height: ms(30), borderRadius: ms(15), backgroundColor: '#E5E7EB', justifyContent: 'center', alignItems: 'center', marginRight: hs(8) }}>
-      <Text style={{ color: '#374151', fontWeight: '800', fontSize: ms(14) }}>{question.index}</Text>
-    </View>
-
-    {/* Spacer */}
-    <View style={{ flex: 1 }} />
-
-    {/* Audio controls - right side */}
-    <View style={{ flexDirection: 'row', alignItems: 'center', gap: hs(6) }}>
-      {/* Volume icon */}
-      <Svg height="16" viewBox="0 0 24 24" width="16">
-        <Path d="M11 5L6 9H2v6h4l5 4V5zM15.54 8.46a5 5 0 0 1 0 7.07" fill="none" stroke="#6B7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-      </Svg>
-
-      {/* Play button */}
-      <TouchableOpacity onPress={audio.toggle}>
-        <Svg height="12" viewBox="0 0 24 24" width="12">
-          <Path d={audio.playing ? "M5 3h5v18H5zM14 3h5v18h-5z" : "M5 3l14 9-14 9V3z"} fill="#374151" />
-        </Svg>
-      </TouchableOpacity>
-
-      {/* Time */}
-      <Text style={{ fontSize: ms(13), color: '#9CA3AF' }}>{audioTime(audio.position)} / {audioTime(audio.duration)}</Text>
-
-      {/* Progress bar */}
-      <View style={{ width: hs(60), height: vs(3), backgroundColor: '#D1D5DB', borderRadius: ms(2) }}>
-        <View style={{ width: `${audio.progress}%`, height: '100%', backgroundColor: '#374151', borderRadius: ms(2) }} />
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: vs(12) }}>
+      <View style={{ width: ms(30), height: ms(30), borderRadius: ms(15), backgroundColor: '#E5E7EB', justifyContent: 'center', alignItems: 'center', marginRight: 4 }}>
+        <Text style={{ color: '#374151', fontWeight: '800', fontSize: ms(14) }}>{question.index}</Text>
       </View>
-
-      {/* Volume small */}
-      <Svg height="13" viewBox="0 0 24 24" width="13">
-        <Path d="M11 5L6 9H2v6h4l5 4V5z" fill="none" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round" />
-      </Svg>
-
-      {/* Three dots */}
-      <TouchableOpacity>
-        <Svg height="14" viewBox="0 0 24 24" width="14">
-          <Path d="M12 5v.01M12 12v.01M12 19v.01" fill="none" stroke="#9CA3AF" strokeWidth="2.5" strokeLinecap="round" />
-        </Svg>
-      </TouchableOpacity>
-
-      {/* Bookmark - flag icon */}
-      <TouchableOpacity onPress={() => onToggleBookmark(question.id)} style={{ padding: ms(2) }}>
-        <Svg height="16" viewBox="0 0 24 24" width="16">
-          <Path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1zM4 22v-7"
-            fill={bookmarked ? '#D97706' : 'none'}
-            stroke={bookmarked ? '#D97706' : '#9CA3AF'}
-            strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-        </Svg>
-      </TouchableOpacity>
+      {showAudio ? <QuestionAudioPlayer url={question.audioUrl} label={`câu ${question.index}`} /> : <View style={{ flex: 1 }} />}
+      <PracticeBookmarkButton index={question.index} selected={bookmarked} onPress={() => onToggleBookmark(question.id)} />
     </View>
-  </View>
-);
+  );
 };
 
 // ============================================================
@@ -201,11 +156,11 @@ const TrueFalseOptions = ({ question, selectedOptionId, onSelectOption }: any) =
             justifyContent: 'center', alignItems: 'center',
           }}>
             {isTrue ? (
-              <Svg height="13" viewBox="0 0 24 24" width="13">
+              <Svg height={ms(13)} viewBox="0 0 24 24" width={ms(13)}>
                 <Path d="M20 6L9 17l-5-5" fill="none" stroke={isSelected ? '#FFFFFF' : '#9CA3AF'} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
               </Svg>
             ) : (
-              <Svg height="13" viewBox="0 0 24 24" width="13">
+              <Svg height={ms(13)} viewBox="0 0 24 24" width={ms(13)}>
                 <Path d="M18 6L6 18M6 6l12 12" fill="none" stroke={isSelected ? '#FFFFFF' : '#9CA3AF'} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
               </Svg>
             )}
@@ -265,7 +220,7 @@ const GroupSelectOptions = ({ question, selectedOptionId, onSelectOption }: any)
 // ============================================================
 // MAIN CARD COMPONENT
 // ============================================================
-export const ListeningQuestionCard = memo(({ question, selectedOptionId, onSelectOption, bookmarked, onToggleBookmark }: Props) => {
+export const ListeningQuestionCard = memo(({ question, selectedOptionId, onSelectOption, bookmarked, onToggleBookmark, showAudio = true }: Props) => {
   return (
     <View style={{
       backgroundColor: '#FFFFFF',
@@ -292,15 +247,14 @@ export const ListeningQuestionCard = memo(({ question, selectedOptionId, onSelec
         </View>
       )}
 
-      {/* Audio Row: [index] [🔊 ▶ 0:00/0:00 ——] [🔉] [⋮] [🚩] */}
-      <AudioRow question={question} bookmarked={bookmarked} onToggleBookmark={onToggleBookmark} />
+      <AudioRow question={question} bookmarked={bookmarked} onToggleBookmark={onToggleBookmark} showAudio={showAudio} />
 
       {question.instruction && question.type !== 'TRUE_FALSE' ? (
         <Text style={{ fontSize: ms(14), color: '#111827', fontWeight: '600', lineHeight: vs(22), marginBottom: vs(8) }}>
           {question.instruction}
         </Text>
       ) : null}
-      {question.sharedAudio ? (
+      {question.sharedAudio && showAudio ? (
         <Text style={{ fontSize: ms(12), color: '#6B7280', lineHeight: vs(18) }}>Audio dùng chung cho các mục trong phần bài tập.</Text>
       ) : null}
       {question.imageUrl ? <ReadingPracticeImage key={question.imageUrl} uri={question.imageUrl} /> : null}
