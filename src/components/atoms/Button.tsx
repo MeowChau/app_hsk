@@ -8,6 +8,7 @@ interface ButtonProps extends TouchableOpacityProps {
   loading?: boolean;
   icon?: string;
   fullWidth?: boolean;
+  textColor?: string;
 }
 
 const Button = ({
@@ -16,6 +17,7 @@ const Button = ({
   loading = false,
   icon,
   fullWidth = false,
+  textColor,
   style,
   disabled,
   ...props
@@ -34,6 +36,7 @@ const Button = ({
 
   const getTextColor = () => {
     if (disabled) return colors.gray400;
+    if (textColor) return textColor;
     if (isPrimary) return '#FFFFFF';
     return colors.primary;
   };

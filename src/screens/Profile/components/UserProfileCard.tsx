@@ -3,9 +3,11 @@ import { View, Text, TextInput, TouchableOpacity } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { UserAvatar } from '@/components/atoms';
 import { useTheme, hs, vs, ms } from '@/theme';
+import InputError from '@/components/atoms/InputError';
 
 interface UserProfileCardProps {
   displayName: string;
+  displayNameError?: string;
   setDisplayName: (name: string) => void;
   email: string;
   onSave?: () => void;
@@ -19,6 +21,7 @@ interface UserProfileCardProps {
 
 export function UserProfileCard({
   displayName,
+  displayNameError,
   setDisplayName,
   email,
   onSave,
@@ -29,7 +32,7 @@ export function UserProfileCard({
   onDeletePhoto,
   onChangePassword,
 }: UserProfileCardProps) {
-  const { layout } = useTheme();
+  const { colors, layout } = useTheme();
 
   return (
     <View
@@ -152,10 +155,12 @@ export function UserProfileCard({
           Tên hiển thị
         </Text>
         <TextInput
+          accessibilityLabel="Tên hiển thị"
+          accessibilityHint={displayNameError}
           onChangeText={setDisplayName}
           style={{
             backgroundColor: '#FFFFFF',
-            borderColor: '#E5E7EB',
+            borderColor: displayNameError ? colors.red500 : '#E5E7EB',
             borderRadius: ms(8),
             borderWidth: 1,
             color: '#000000',
@@ -165,6 +170,7 @@ export function UserProfileCard({
           }}
           value={displayName}
         />
+        <InputError message={displayNameError} />
       </View>
 
       {/* Input: Email */}

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { AppAlert } from '@/services/feedback/appAlert';
 import { SafeScreen } from '@/components/templates';
 import { InputField } from '@/components/molecules';
 import { Button, Logo } from '@/components/atoms';
@@ -7,6 +8,9 @@ import { useTheme } from '@/theme';
 import type { RootScreenProps } from '@/navigation/types';
 import { Paths } from '@/navigation/paths';
 import { useResetPassword } from '@/services/auth/useAuth';
+import InputError from '@/components/atoms/InputError';
+import { getFormErrors } from '@/services/auth/formErrors';
+import type { FormErrors } from '@/services/auth/formErrors';
 
 const ResetPassword = ({ route, navigation }: RootScreenProps<Paths.ResetPassword>) => {
   const { fonts, layout } = useTheme();
@@ -15,12 +19,13 @@ const ResetPassword = ({ route, navigation }: RootScreenProps<Paths.ResetPasswor
 
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [errors, setErrors] = useState<FormErrors>({});
   const resetPasswordMutation = useResetPassword();
   const isLoading = resetPasswordMutation.isPending;
 
   const handleReset = async () => {
     if (!hash) {
-      Alert.alert(
+      AppAlert.error(
         'Lỗi',
         'Liên kết đổi mật khẩu không hợp lệ hoặc đã hết hạn. Vui lòng thực hiện lại từ bước Quên mật khẩu.',
         [
@@ -36,20 +41,12 @@ const ResetPassword = ({ route, navigation }: RootScreenProps<Paths.ResetPasswor
     const trimmedPassword = password.trim();
     const trimmedConfirm = confirmPassword.trim();
 
-    if (!trimmedPassword || !trimmedConfirm) {
-      Alert.alert('Lỗi', 'Vui lòng nhập đầy đủ mật khẩu mới');
-      return;
-    }
-
-    if (trimmedPassword.length < 6) {
-      Alert.alert('Lỗi', 'Mật khẩu phải có độ dài tối thiểu 6 ký tự');
-      return;
-    }
-    
-    if (trimmedPassword !== trimmedConfirm) {
-      Alert.alert('Lỗi', 'Mật khẩu xác nhận không khớp');
-      return;
-    }
+    const nextErrors: FormErrors = {
+      password: !trimmedPassword ? 'Vui lòng nhập mật khẩu mới.' : trimmedPassword.length < 6 ? 'Mật khẩu phải có ít nhất 6 ký tự.' : undefined,
+      confirmPassword: !trimmedConfirm ? 'Vui lòng xác nhận mật khẩu mới.' : trimmedPassword !== trimmedConfirm ? 'Mật khẩu xác nhận không khớp.' : undefined,
+    };
+    setErrors(nextErrors);
+    if (Object.values(nextErrors).some(Boolean)) return;
 
     try {
       await resetPasswordMutation.mutateAsync({
@@ -57,24 +54,15 @@ const ResetPassword = ({ route, navigation }: RootScreenProps<Paths.ResetPasswor
         password: trimmedPassword,
       });
       
-      Alert.alert(
+      AppAlert.success(
         'Đổi mật khẩu thành công',
         'Mật khẩu của bạn đã được cập nhật thành công! Vui lòng đăng nhập với mật khẩu mới.',
         [
           { text: 'Đăng nhập ngay', onPress: () => navigation.navigate(Paths.Login) }
         ]
       );
-    } catch (e: any) {
-      let errorMessage = 'Không thể đổi mật khẩu. Liên kết có thể đã hết hạn.';
-      if (e.response) {
-        try {
-          const errData = await e.response.json();
-          errorMessage = errData.message || (errData.errors?.hash ? 'Liên kết đổi mật khẩu không hợp lệ hoặc đã hết hạn.' : errorMessage);
-        } catch (_) {}
-      } else if (e.message) {
-        errorMessage = e.message;
-      }
-      Alert.alert('Lỗi', errorMessage);
+    } catch (error) {
+      setErrors(await getFormErrors(error, 'Không thể đổi mật khẩu. Liên kết có thể đã hết hạn.'));
     }
   };
 
@@ -104,19 +92,22 @@ const ResetPassword = ({ route, navigation }: RootScreenProps<Paths.ResetPasswor
           <View style={{ marginBottom: 24 }}>
             <InputField
               iconType="lock"
-              onChangeText={setPassword}
+              error={errors.password}
+              onChangeText={value => { setPassword(value); setErrors(current => ({ ...current, password: undefined, confirmPassword: undefined, form: undefined })); }}
               placeholder="Mật khẩu mới (tối thiểu 6 ký tự)"
               secureTextEntry
               value={password}
-              style={{ marginBottom: 16 }}
+              containerStyle={{ marginBottom: 16 }}
             />
             <InputField
               iconType="lock"
-              onChangeText={setConfirmPassword}
+              error={errors.confirmPassword}
+              onChangeText={value => { setConfirmPassword(value); setErrors(current => ({ ...current, confirmPassword: undefined, form: undefined })); }}
               placeholder="Xác nhận mật khẩu mới"
               secureTextEntry
               value={confirmPassword}
             />
+            <InputError message={errors.form} />
           </View>
 
           <Button

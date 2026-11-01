@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
+import { AppAlert } from '@/services/feedback/appAlert';
 import Svg, { Path } from 'react-native-svg';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ScreenHeader } from '@/components/molecules';
@@ -38,7 +39,7 @@ export const WritingPracticeSetupView = ({ hskLevel, onSelectHsk, onBack, onStar
           setSelectedTopic(topicList[0]);
         }
       } catch (err) {
-        if (!cancelled) Alert.alert('Không thể tải chủ đề', 'Vui lòng kiểm tra kết nối và mở lại bài luyện.');
+        if (!cancelled) AppAlert.error('Không thể tải chủ đề', 'Vui lòng kiểm tra kết nối và mở lại bài luyện.');
       }
     };
     fetchTopics();

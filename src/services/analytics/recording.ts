@@ -1,4 +1,5 @@
-import { Alert } from 'react-native';
+
+import { AppAlert } from '@/services/feedback/appAlert';
 import { analyticsApi } from './api';
 import { getAuthSessionVersion, getUser, isAuthenticated } from '../storage';
 import type { VocabularyProgressDto } from './types';
@@ -37,7 +38,7 @@ export const recordStudyInterval = (userId: number, module: string, startedAt: n
   }).catch(() => {
     if (version === getAuthSessionVersion() && !errorShown.has(userId)) {
       errorShown.add(userId);
-      Alert.alert('Chưa lưu được thời gian học', 'Không thể xác nhận phiên học đã được lưu. Vui lòng kiểm tra kết nối.');
+      AppAlert.error('Chưa lưu được thời gian học', 'Không thể xác nhận phiên học đã được lưu. Vui lòng kiểm tra kết nối.');
     }
   }).finally(() => {
     activeRequests.set(userId, Math.max(0, (activeRequests.get(userId) ?? 1) - 1));
@@ -60,7 +61,7 @@ export const recordVocabularyProgress = (vocabularyId: number, action: Vocabular
     } catch {
       if (version === getAuthSessionVersion() && !vocabularyErrorShown.has(userId)) {
         vocabularyErrorShown.add(userId);
-        Alert.alert('Chưa lưu được tiến độ từ vựng', 'Lựa chọn vừa rồi chưa được xác nhận lưu. Vui lòng kiểm tra kết nối và ôn lại từ đó.');
+        AppAlert.error('Chưa lưu được tiến độ từ vựng', 'Lựa chọn vừa rồi chưa được xác nhận lưu. Vui lòng kiểm tra kết nối và ôn lại từ đó.');
       }
     } finally {
       notify();

@@ -56,9 +56,17 @@ const baseColorsDark = {
   skeleton: '#303030',
 } as const;
 
+const dialogAction = '#1F3E5B';
+
 const colorsLight = {
   ...baseColorsLight,
   primaryAction: '#1E3A8A',
+  dialogBackground: DefaultTheme.colors.card,
+  dialogAction,
+  dialogBorder: baseColorsLight.gray100,
+  dialogText: dialogAction,
+  warningBackground: '#FFFBEB',
+  warningText: '#B45309',
   mediaBackground: '#000000',
   surface: DefaultTheme.colors.card,
   onPrimary: DefaultTheme.colors.card,
@@ -69,6 +77,12 @@ const colorsLight = {
 const colorsDark = {
   ...baseColorsDark,
   primaryAction: colorsLight.primaryAction,
+  dialogBackground: colorsLight.dialogBackground,
+  dialogAction: colorsLight.dialogAction,
+  dialogBorder: colorsLight.dialogBorder,
+  dialogText: colorsLight.dialogText,
+  warningBackground: colorsLight.warningBackground,
+  warningText: colorsLight.warningText,
   mediaBackground: colorsLight.mediaBackground,
   surface: baseColorsDark.secondary,
   onPrimary: colorsLight.onPrimary,

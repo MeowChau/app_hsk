@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { AppAlert } from '@/services/feedback/appAlert';
 
 import { useI18n, useUser } from '@/hooks';
 import { useTheme, hs, vs, ms } from '@/theme';
@@ -38,7 +39,7 @@ function Example() {
 
   useEffect(() => {
     if (fetchOneUserQuery.isSuccess) {
-      Alert.alert(
+      AppAlert.info(
         t('screen_example.hello_user', { name: fetchOneUserQuery.data.name }),
       );
     }

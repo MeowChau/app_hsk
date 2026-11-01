@@ -1,5 +1,6 @@
 import React, { useEffect, useSyncExternalStore } from 'react';
-import { Alert, ScrollView, Text, View } from 'react-native';
+import { ScrollView, Text, View } from 'react-native';
+import { AppAlert } from '@/services/feedback/appAlert';
 
 import { useTheme, hs, vs, ms } from '@/theme';
 
@@ -15,7 +16,7 @@ export function StatisticsContent() {
   const { data: dashboardData, isError } = useDashboardStats();
   const pendingCount = useSyncExternalStore(subscribeStudyEvents, getPendingStudyCount, getPendingStudyCount);
   const dataStatus = isError ? 'Không tải được' : !dashboardData ? 'Đang tải…' : undefined;
-  useEffect(() => { if (isError) Alert.alert('Chưa tải được thống kê', 'Vui lòng kiểm tra kết nối và thử lại.'); }, [isError]);
+  useEffect(() => { if (isError) AppAlert.error('Chưa tải được thống kê', 'Vui lòng kiểm tra kết nối và thử lại.'); }, [isError]);
 
   return (
     <View style={[layout.flex_1, { backgroundColor: '#FFFFFF' }]}>

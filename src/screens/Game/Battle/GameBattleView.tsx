@@ -1,6 +1,7 @@
 // @refresh reset
 import React, { useState, useEffect, useRef } from 'react';
-import { View, SafeAreaView, Alert, ScrollView, Text, TouchableOpacity } from 'react-native';
+import { View, SafeAreaView, ScrollView, Text, TouchableOpacity } from 'react-native';
+import { AppAlert } from '@/services/feedback/appAlert';
 import { hs, vs, ms, useTheme } from '@/theme';
 import { BattleHeader } from './BattleHeader';
 import { BattleQuestionCard } from './BattleQuestionCard';
@@ -56,10 +57,10 @@ export const GameBattleView = ({ state, onAnswer, onExit, onPlayAgain, onComplet
     if (!question || !isMyTurn || room?.stage !== 'playing' || pendingRef.current) return;
     pendingRef.current = true; setPending(true); setLocalChoice(index);
     try { await onAnswer(question.id, question.options[index].id); }
-    catch (error) { Alert.alert('Chưa nhận được đáp án', error instanceof Error ? error.message : 'Vui lòng thử lại.'); }
+    catch (error) { AppAlert.error('Chưa nhận được đáp án', error instanceof Error ? error.message : 'Vui lòng thử lại.'); }
     finally { pendingRef.current = false; setPending(false); }
   };
-  const handleForfeit = () => Alert.alert('Rời trận PK', 'Rời trận đang đấu sẽ được tính là đầu hàng.', [
+  const handleForfeit = () => AppAlert.confirm('Rời trận PK', 'Rời trận đang đấu sẽ được tính là đầu hàng.', [
     { text: 'Tiếp tục đấu', style: 'cancel' },
     { text: 'Rời trận', style: 'destructive', onPress: () => onExit() },
   ]);

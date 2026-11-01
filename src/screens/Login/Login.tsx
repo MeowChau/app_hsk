@@ -16,7 +16,10 @@ import { Button, Logo } from '@/components/atoms';
 import { InputField, AuthDivider, GoogleSignInButton } from '@/components/molecules';
 import { SafeScreen } from '@/components/templates';
 
-import { Alert } from 'react-native';
+
+import InputError from '@/components/atoms/InputError';
+import { getFormErrors, validateEmail } from '@/services/auth/formErrors';
+import type { FormErrors } from '@/services/auth/formErrors';
 import { useLogin } from '@/services/auth';
 import { hasCompletedSurvey } from '@/services/storage';
 
@@ -25,16 +28,16 @@ function Login({ navigation }: RootScreenProps<Paths.Login>) {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [errors, setErrors] = useState<FormErrors>({});
   const loginMutation = useLogin();
 
   const handleLogin = () => {
     const trimmedEmail = email.trim();
     const trimmedPassword = password.trim();
 
-    if (!trimmedEmail || !trimmedPassword) {
-      Alert.alert('Lỗi', 'Vui lòng nhập đầy đủ email và mật khẩu');
-      return;
-    }
+    const nextErrors: FormErrors = { email: validateEmail(trimmedEmail), password: !trimmedPassword ? 'Vui lòng nhập mật khẩu.' : undefined };
+    setErrors(nextErrors);
+    if (Object.values(nextErrors).some(Boolean)) return;
 
     loginMutation.mutate(
       { email: trimmedEmail, password: trimmedPassword },
@@ -49,25 +52,7 @@ function Login({ navigation }: RootScreenProps<Paths.Login>) {
             ],
           });
         },
-        onError: (err: any) => {
-          const defaultMsg = 'Đăng nhập không thành công. Vui lòng kiểm tra lại thông tin.';
-          if (err?.response) {
-            err.response
-              .json()
-              .then((data: any) => {
-                let apiMsg = data?.message || data?.errors?.email || data?.errors?.password;
-                if (data?.errors?.status === 'accountPendingApproval' || data?.errors?.status === 'accountNotActive') {
-                  apiMsg = data?.message || 'Tài khoản của bạn đang chờ duyệt từ phía admin. Vui lòng quay lại sau khi tài khoản được duyệt.';
-                }
-                Alert.alert('Đăng nhập thất bại', apiMsg || defaultMsg);
-              })
-              .catch(() => {
-                Alert.alert('Đăng nhập thất bại', defaultMsg);
-              });
-            return;
-          }
-          Alert.alert('Đăng nhập thất bại', err?.message || defaultMsg);
-        },
+        onError: async (error) => setErrors(await getFormErrors(error, 'Đăng nhập không thành công. Vui lòng kiểm tra lại thông tin.')),
       },
     );
   };
@@ -135,18 +120,21 @@ function Login({ navigation }: RootScreenProps<Paths.Login>) {
               autoCapitalize="none"
               iconType="mail"
               keyboardType="email-address"
-              onChangeText={setEmail}
+              error={errors.email}
+              onChangeText={value => { setEmail(value); setErrors(current => ({ ...current, email: undefined, form: undefined })); }}
               placeholder="Email"
-              style={{ marginBottom: vs(16) }}
+              containerStyle={{ marginBottom: vs(16) }}
               value={email}
             />
             <InputField
               iconType="lock"
-              onChangeText={setPassword}
+              error={errors.password}
+              onChangeText={value => { setPassword(value); setErrors(current => ({ ...current, password: undefined, form: undefined })); }}
               placeholder="Mật khẩu"
               secureTextEntry
               value={password}
             />
+            <InputError message={errors.form} />
             <TouchableOpacity 
               style={{ alignSelf: 'flex-end', marginTop: vs(12) }}
               onPress={() => navigation.navigate(Paths.ForgotPassword)}

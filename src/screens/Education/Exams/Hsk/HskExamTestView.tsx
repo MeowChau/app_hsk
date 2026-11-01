@@ -7,10 +7,11 @@ import { useAudioListScroll } from '../../components/useAudioListScroll';
 import { useStudyTimer } from '@/hooks/useStudyTimer';
 import { useScreenBackHandler } from '@/navigation/useScreenBackHandler';
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { View, Text, SafeAreaView, FlatList, TouchableOpacity, Alert, KeyboardAvoidingView, Platform, Keyboard } from 'react-native';
+import { View, Text, SafeAreaView, FlatList, TouchableOpacity, KeyboardAvoidingView, Platform, Keyboard } from 'react-native';
+import { AppAlert } from '@/services/feedback/appAlert';
 import { hasExamAnswer, isExamAnswerCorrect } from '@/services/exams/answers';
 import { HskExamQuestionCard } from './HskExamQuestionCard';
-import { ms, hs, vs } from '@/theme';
+import { ms, hs, vs, useTheme } from '@/theme';
 import { SubmitConfirmModal, QuestionGridModal, QuestionGridSection } from '@/screens/Education/components';
 
 interface Props {
@@ -49,6 +50,7 @@ import { transformBackendExamToApp } from '@/services/exams/transformers';
 import { HskExam, ExamQuestion } from '../../types';
 
 export const HskExamTestView = ({ examId, durationMin, onBack, onSubmit, isReviewMode, reviewAnswers }: Props) => {
+  const { colors } = useTheme();
   const [fullExam, setFullExam] = useState<HskExam | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -63,7 +65,7 @@ export const HskExamTestView = ({ examId, durationMin, onBack, onSubmit, isRevie
         const examApp = transformBackendExamToApp(res);
         if (cancelled) return;
         if (examApp.unsupportedSkills?.length || !examApp.questions?.length) {
-          Alert.alert('Đề thi chưa được hỗ trợ', examApp.unsupportedSkills?.length ? 'Đề này có kỹ năng Nói mà giao diện hiện tại chưa hỗ trợ.' : 'Đề thi chưa có câu hỏi.', [{ text: 'OK', onPress: onBack }]);
+          AppAlert.warning('Đề thi chưa được hỗ trợ', examApp.unsupportedSkills?.length ? 'Đề này có kỹ năng Nói mà giao diện hiện tại chưa hỗ trợ.' : 'Đề thi chưa có câu hỏi.', [{ text: 'OK', onPress: onBack }]);
           setFullExam(null);
           return;
         }
@@ -71,7 +73,7 @@ export const HskExamTestView = ({ examId, durationMin, onBack, onSubmit, isRevie
         setAnswers(reviewAnswers || {});
         setBookmarks({});
       } catch (err) {
-        if (!cancelled) { setFullExam(null); Alert.alert('Không thể tải đề thi', err instanceof ExamResponseMismatchError ? err.message : 'Vui lòng kiểm tra kết nối.', [{ text: 'OK', onPress: onBack }]); }
+        if (!cancelled) { setFullExam(null); AppAlert.error('Không thể tải đề thi', err instanceof ExamResponseMismatchError ? err.message : 'Vui lòng kiểm tra kết nối.', [{ text: 'OK', onPress: onBack }]); }
       } finally {
         if (!cancelled) setIsLoading(false);
       }
@@ -200,7 +202,7 @@ export const HskExamTestView = ({ examId, durationMin, onBack, onSubmit, isRevie
       onBack();
       return;
     }
-    Alert.alert(
+    AppAlert.confirm(
       'Thoát bài thi HSK',
       'Bạn có chắc chắn muốn thoát? Kết quả làm bài hiện tại sẽ không được lưu.',
       [
@@ -267,7 +269,7 @@ export const HskExamTestView = ({ examId, durationMin, onBack, onSubmit, isRevie
         renderItem={renderItem}
         onScrollToIndexFailed={onScrollToIndexFailed}
         ListFooterComponent={
-          <View style={{ backgroundColor: '#FAF9F6', borderRadius: ms(12), padding: ms(24), alignItems: 'center', marginTop: vs(8), marginBottom: vs(24) }}>
+          <View style={{ backgroundColor: colors.surface, borderRadius: ms(12), padding: ms(24), alignItems: 'center', marginTop: vs(8), marginBottom: vs(24) }}>
             {isReviewMode ? (
               <>
                 <Text style={{ fontSize: ms(14), color: '#6B7280', fontWeight: '500', marginBottom: vs(16) }}>

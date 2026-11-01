@@ -7,7 +7,8 @@ import {
   TouchableWithoutFeedback,
   ScrollView,
 } from 'react-native';
-import { ms, hs, vs } from '@/theme';
+import { ms, hs, vs, useTheme } from '@/theme';
+import PopupCloseIcon from '@/components/atoms/PopupCloseIcon';
 
 export interface QuestionGridItem {
   id: string | number;
@@ -49,6 +50,7 @@ export const QuestionGridModal: React.FC<QuestionGridModalProps> = ({
   showLegend = true,
   closeOnSelect = true,
 }) => {
+  const { colors } = useTheme();
   const handleItemPress = (item: QuestionGridItem, index: number) => {
     if (closeOnSelect) {
       onClose();
@@ -58,32 +60,32 @@ export const QuestionGridModal: React.FC<QuestionGridModalProps> = ({
 
   const renderGridItem = (item: QuestionGridItem, index: number) => {
     const label = item.index !== undefined ? item.index : index + 1;
-    let bgColor = '#EBE3D5';
-    let textColor = '#1E3A8A';
-    let borderColor = 'transparent';
+    let bgColor: string = colors.gray50;
+    let textColor: string = colors.dialogText;
+    let borderColor: string = 'transparent';
     let borderWidth = 0;
     let borderStyle = 'solid';
 
     if (isReviewMode) {
       if (item.isAnswered) {
-        bgColor = item.isCorrect ? '#22C55E' : '#EF4444';
-        textColor = '#FFFFFF';
+        bgColor = item.isCorrect ? colors.success : colors.red500;
+        textColor = colors.onPrimary;
       } else {
         bgColor = 'transparent';
-        textColor = '#EF4444';
-        borderColor = '#EF4444';
+        textColor = colors.dialogText;
+        borderColor = colors.gray200;
         borderWidth = 1;
         borderStyle = 'dashed';
       }
     } else {
       if (item.isCurrent) {
-        bgColor = '#FEF3C7';
-        textColor = '#92400E';
+        bgColor = colors.accentLightBlue;
+        textColor = colors.dialogText;
         borderWidth = 2;
-        borderColor = '#F59E0B';
+        borderColor = colors.dialogAction;
       } else if (item.isAnswered) {
-        bgColor = '#1E3A8A';
-        textColor = '#FFFFFF';
+        bgColor = colors.dialogAction;
+        textColor = colors.onPrimary;
       }
     }
 
@@ -115,9 +117,9 @@ export const QuestionGridModal: React.FC<QuestionGridModalProps> = ({
               width: ms(12),
               height: ms(12),
               borderRadius: ms(6),
-              backgroundColor: '#F59E0B',
+              backgroundColor: colors.warningText,
               borderWidth: 2,
-              borderColor: '#FFFFFF',
+              borderColor: colors.onPrimary,
             }}
           />
         )}
@@ -141,7 +143,7 @@ export const QuestionGridModal: React.FC<QuestionGridModalProps> = ({
               style={{
                 width: '90%',
                 maxHeight: '80%',
-                backgroundColor: '#FAF9F6',
+                backgroundColor: colors.dialogBackground,
                 borderRadius: ms(12),
                 padding: ms(16),
               }}
@@ -155,7 +157,7 @@ export const QuestionGridModal: React.FC<QuestionGridModalProps> = ({
                   marginBottom: vs(16),
                 }}
               >
-                <Text style={{ fontSize: ms(20), fontWeight: '800', color: '#111827' }}>
+                <Text style={{ fontSize: ms(20), fontWeight: '800', color: colors.dialogText }}>
                   {title}
                 </Text>
                 <TouchableOpacity
@@ -163,16 +165,7 @@ export const QuestionGridModal: React.FC<QuestionGridModalProps> = ({
                   hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
                   style={{ position: 'absolute', right: 0, padding: ms(10), zIndex: 10 }}
                 >
-                  <Text
-                    style={{
-                      fontSize: ms(24),
-                      color: '#6B7280',
-                      fontWeight: '700',
-                      lineHeight: ms(24),
-                    }}
-                  >
-                    ×
-                  </Text>
+                  <PopupCloseIcon />
                 </TouchableOpacity>
               </View>
 
@@ -183,7 +176,7 @@ export const QuestionGridModal: React.FC<QuestionGridModalProps> = ({
                     style={{
                       fontSize: ms(16),
                       fontWeight: '700',
-                      color: '#111827',
+                      color: colors.dialogText,
                       marginBottom: vs(12),
                     }}
                   >
@@ -198,10 +191,10 @@ export const QuestionGridModal: React.FC<QuestionGridModalProps> = ({
                         style={{
                           fontSize: ms(16),
                           fontWeight: '700',
-                          color: '#1E3A8A',
+                          color: colors.dialogAction,
                           marginBottom: vs(12),
                           borderLeftWidth: 3,
-                          borderLeftColor: '#1E3A8A',
+                          borderLeftColor: colors.dialogAction,
                           paddingLeft: hs(8),
                         }}
                       >
@@ -243,10 +236,10 @@ export const QuestionGridModal: React.FC<QuestionGridModalProps> = ({
                           width: ms(10),
                           height: ms(10),
                           borderRadius: ms(5),
-                          backgroundColor: '#22C55E',
+                          backgroundColor: colors.success,
                         }}
                       />
-                      <Text style={{ fontSize: ms(14), color: '#4B5563', fontWeight: '500' }}>
+                      <Text style={{ fontSize: ms(14), color: colors.dialogText, fontWeight: '500' }}>
                         Đúng
                       </Text>
                     </View>
@@ -256,10 +249,10 @@ export const QuestionGridModal: React.FC<QuestionGridModalProps> = ({
                           width: ms(10),
                           height: ms(10),
                           borderRadius: ms(5),
-                          backgroundColor: '#EF4444',
+                          backgroundColor: colors.red500,
                         }}
                       />
-                      <Text style={{ fontSize: ms(14), color: '#4B5563', fontWeight: '500' }}>
+                      <Text style={{ fontSize: ms(14), color: colors.dialogText, fontWeight: '500' }}>
                         Sai
                       </Text>
                     </View>
@@ -270,11 +263,11 @@ export const QuestionGridModal: React.FC<QuestionGridModalProps> = ({
                           height: ms(12),
                           borderRadius: ms(2),
                           borderWidth: 1,
-                          borderColor: '#EF4444',
+                          borderColor: colors.gray200,
                           borderStyle: 'dashed',
                         }}
                       />
-                      <Text style={{ fontSize: ms(14), color: '#4B5563', fontWeight: '500' }}>
+                      <Text style={{ fontSize: ms(14), color: colors.dialogText, fontWeight: '500' }}>
                         Chưa trả lời
                       </Text>
                     </View>
@@ -287,10 +280,10 @@ export const QuestionGridModal: React.FC<QuestionGridModalProps> = ({
                           width: ms(10),
                           height: ms(10),
                           borderRadius: ms(5),
-                          backgroundColor: '#1E3A8A',
+                          backgroundColor: colors.dialogAction,
                         }}
                       />
-                      <Text style={{ fontSize: ms(14), color: '#1E3A8A', fontWeight: '600' }}>
+                      <Text style={{ fontSize: ms(14), color: colors.dialogAction, fontWeight: '600' }}>
                         Đã trả lời
                       </Text>
                     </View>
@@ -300,10 +293,10 @@ export const QuestionGridModal: React.FC<QuestionGridModalProps> = ({
                           width: ms(10),
                           height: ms(10),
                           borderRadius: ms(5),
-                          backgroundColor: '#EBE3D5',
+                          backgroundColor: colors.gray50,
                         }}
                       />
-                      <Text style={{ fontSize: ms(14), color: '#1E3A8A', fontWeight: '600' }}>
+                      <Text style={{ fontSize: ms(14), color: colors.dialogAction, fontWeight: '600' }}>
                         Chưa trả lời
                       </Text>
                     </View>
@@ -313,12 +306,12 @@ export const QuestionGridModal: React.FC<QuestionGridModalProps> = ({
                           width: ms(10),
                           height: ms(10),
                           borderRadius: ms(5),
-                          backgroundColor: '#FEF3C7',
+                          backgroundColor: colors.accentLightBlue,
                           borderWidth: 1,
-                          borderColor: '#F59E0B',
+                          borderColor: colors.dialogAction,
                         }}
                       />
-                      <Text style={{ fontSize: ms(14), color: '#1E3A8A', fontWeight: '600' }}>
+                      <Text style={{ fontSize: ms(14), color: colors.dialogAction, fontWeight: '600' }}>
                         Đang học
                       </Text>
                     </View>
@@ -328,10 +321,10 @@ export const QuestionGridModal: React.FC<QuestionGridModalProps> = ({
                           width: ms(10),
                           height: ms(10),
                           borderRadius: ms(5),
-                          backgroundColor: '#F59E0B',
+                          backgroundColor: colors.warningText,
                         }}
                       />
-                      <Text style={{ fontSize: ms(14), color: '#1E3A8A', fontWeight: '600' }}>
+                      <Text style={{ fontSize: ms(14), color: colors.dialogAction, fontWeight: '600' }}>
                         Đã đánh dấu
                       </Text>
                     </View>

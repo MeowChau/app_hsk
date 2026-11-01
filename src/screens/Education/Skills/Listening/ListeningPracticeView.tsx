@@ -10,7 +10,8 @@ import { imageSource } from '@/services/media';
 import { useStudyTimer } from '@/hooks/useStudyTimer';
 import { useScreenBackHandler } from '@/navigation/useScreenBackHandler';
 import React, { useState, useCallback, useMemo, memo, useRef, useEffect } from 'react';
-import { View, Text, SafeAreaView, FlatList, TouchableOpacity, Image, Alert } from 'react-native';
+import { View, Text, SafeAreaView, FlatList, TouchableOpacity, Image } from 'react-native';
+import { AppAlert } from '@/services/feedback/appAlert';
 import { ListeningQuestionCard } from './ListeningQuestionCard';
 import { ReadingPracticeImage } from '../Reading/ReadingPracticeImage';
 import { ListeningPracticeQuestion, ListeningPracticeOption } from '../../types';
@@ -201,7 +202,7 @@ export const ListeningPracticeView = ({ hskLevel, practiceSetId, onBack, onSubmi
           transformQuestionToListening(question, idx + 1, set.audioUrl));
         if (!cancelled) { setQuestions(mappedQuestions); setAnswers({}); setBookmarks({}); }
       } catch (err) {
-        if (!cancelled) { setQuestions([]); Alert.alert('Không thể tải bài luyện', 'Vui lòng kiểm tra kết nối và mở lại bài luyện.'); }
+        if (!cancelled) { setQuestions([]); AppAlert.error('Không thể tải bài luyện', 'Vui lòng kiểm tra kết nối và mở lại bài luyện.'); }
       } finally {
         if (!cancelled) setIsLoading(false);
       }
@@ -266,7 +267,7 @@ export const ListeningPracticeView = ({ hskLevel, practiceSetId, onBack, onSubmi
   }, [flatData, scrollToQuestion]);
 
   const handleExitPress = useCallback(() => {
-    Alert.alert(
+    AppAlert.confirm(
       'Thoát bài luyện tập',
       'Bạn có chắc chắn muốn thoát? Kết quả hiện tại sẽ không được lưu.',
       [

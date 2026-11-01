@@ -21,7 +21,7 @@ export function VocabularyStatsCard({
   learningCount,
   reviewCount,
 }: VocabularyStatsCardProps) {
-  const { layout } = useTheme();
+  const { colors, layout } = useTheme();
   const { data, isError } = useDashboardStats();
   const stats = data?.vocabularyStats;
   const missing = isError ? 'Không tải được' : !data ? 'Đang tải…' : 'Chưa có dữ liệu';
@@ -34,7 +34,19 @@ export function VocabularyStatsCard({
   return (
     <SectionCard
       containerStyle={{ paddingHorizontal: 0, marginBottom: 0 }}
-      icon={<View style={{ backgroundColor: '#DFF0FE', borderRadius: ms(21), height: vs(42), width: hs(42) }} />}
+      icon={
+        <View style={{ alignItems: 'center', backgroundColor: '#DFF0FE', borderRadius: ms(21), height: vs(42), justifyContent: 'center', width: hs(42) }}>
+          <Svg width={ms(22)} height={ms(22)} viewBox="0 0 24 24" fill="none">
+            <Path
+              d="M12 5v16m0-16C9 3 5 3 2 4v15c3-1 7-1 10 2 3-3 7-3 10-2V4c-3-1-7-1-10 1Z"
+              stroke={colors.primaryAction}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.8}
+            />
+          </Svg>
+        </View>
+      }
       title="Thống kê học tập từ vựng"
       headerStyle={{ marginBottom: vs(14) }}
     >

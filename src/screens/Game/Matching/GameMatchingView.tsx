@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, SafeAreaView, ScrollView, Alert } from 'react-native';
+import { View, Text, SafeAreaView, ScrollView } from 'react-native';
+import { AppAlert } from '@/services/feedback/appAlert';
 import { hs, vs, ms, useTheme } from '@/theme';
 import { Button } from '@/components/atoms';
 import { ScreenHeader } from '@/components/molecules';
@@ -34,7 +35,7 @@ export const GameMatchingView = ({ onCancel, state, onReady }: GameMatchingViewP
     if (readyBusy || myReady) return;
     setReadyBusy(true);
     try { await onReady(); }
-    catch (error) { Alert.alert('Chưa thể sẵn sàng', error instanceof Error ? error.message : 'Vui lòng thử lại.'); }
+    catch (error) { AppAlert.error('Chưa thể sẵn sàng', error instanceof Error ? error.message : 'Vui lòng thử lại.'); }
     finally { setReadyBusy(false); }
   };
   const title = failed ? 'Chưa thể ghép trận' : matched ? 'Đã tìm thấy đối thủ' : state.phase === 'connecting' ? 'Đang kết nối PK' : 'Đang tìm đối thủ';

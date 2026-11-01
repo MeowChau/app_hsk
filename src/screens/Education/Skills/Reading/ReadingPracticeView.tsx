@@ -3,7 +3,8 @@ import { PracticeBookmarkButton } from '../../components/PracticeBookmarkButton'
 import { PracticeHeader } from '../../components/PracticeHeader';
 import { useStudyTimer } from '@/hooks/useStudyTimer';
 import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
-import { View, Text, SafeAreaView, TouchableOpacity, Alert, SectionList, TextInput, useWindowDimensions } from 'react-native';
+import { View, Text, SafeAreaView, TouchableOpacity, SectionList, TextInput, useWindowDimensions } from 'react-native';
+import { AppAlert } from '@/services/feedback/appAlert';
 import { useScreenBackHandler } from '@/navigation/useScreenBackHandler';
 import Svg, { Path } from 'react-native-svg';
 import { ReadingPracticeQuestion } from '../../types';
@@ -344,7 +345,7 @@ const ReadingPracticeSession = ({ hskLevel, practiceSetId, onBack, onSubmit }: P
           .map(({ question }, idx) => transformQuestionToReading(question, idx + 1));
         if (!cancelled) { setQuestions(mappedQuestions); setAnswers({}); setBookmarks({}); setCurrentIndex(0); }
       } catch (err) {
-        if (!cancelled) { setQuestions([]); Alert.alert('Không thể tải bài luyện', 'Vui lòng kiểm tra kết nối và mở lại bài luyện.'); }
+        if (!cancelled) { setQuestions([]); AppAlert.error('Không thể tải bài luyện', 'Vui lòng kiểm tra kết nối và mở lại bài luyện.'); }
       } finally {
         if (!cancelled) setIsLoading(false);
       }
@@ -418,7 +419,7 @@ const ReadingPracticeSession = ({ hskLevel, practiceSetId, onBack, onSubmit }: P
   }, [sections]);
 
   const handleExitPress = useCallback(() => {
-    Alert.alert(
+    AppAlert.confirm(
       'Thoát bài luyện tập',
       'Bạn có chắc chắn muốn thoát? Kết quả hiện tại sẽ không được lưu.',
       [

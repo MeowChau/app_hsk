@@ -3,7 +3,7 @@ import { View, Text, SafeAreaView, ScrollView, TouchableOpacity } from 'react-na
 import Svg, { Path } from 'react-native-svg';
 import { ExamResult } from '../../types';
 import { hasExamAnswer, isExamAnswerCorrect } from '@/services/exams/answers';
-import { ms, hs, vs } from '@/theme';
+import { ms, hs, vs, useTheme } from '@/theme';
 import { ScreenHeader } from '@/components/molecules';
 
 interface Props {
@@ -14,6 +14,7 @@ interface Props {
 }
 
 export const HskExamResultView = ({ result, onBack, onReview, onRetake }: Props) => {
+  const { colors } = useTheme();
   const [filterMode, setFilterMode] = useState<'ALL' | 'WRONG'>('WRONG');
   const examIndex = result.examId.split('_')[1] || '1';
 
@@ -45,7 +46,7 @@ export const HskExamResultView = ({ result, onBack, onReview, onRetake }: Props)
 
       <ScrollView contentContainerStyle={{ padding: ms(16) }} showsVerticalScrollIndicator={false}>
         {/* Top Result Card */}
-        <View style={{ backgroundColor: '#FAF9F6', borderRadius: ms(12), padding: ms(16), marginBottom: vs(16), borderWidth: 1, borderColor: '#E5E7EB' }}>
+        <View style={{ backgroundColor: colors.surface, borderRadius: ms(12), padding: ms(16), marginBottom: vs(16), borderWidth: 1, borderColor: '#E5E7EB' }}>
 
           <View style={{ backgroundColor: '#F4EBE6', borderRadius: ms(8), paddingVertical: vs(24), alignItems: 'center', marginBottom: vs(20) }}>
             <Text style={{ fontSize: ms(40), fontWeight: '900', color: '#DC2626', marginBottom: vs(4) }}>
@@ -92,7 +93,7 @@ export const HskExamResultView = ({ result, onBack, onReview, onRetake }: Props)
         </View>
 
         {/* Review Grid Card */}
-        <View style={{ backgroundColor: '#FAF9F6', borderRadius: ms(12), padding: ms(16), borderWidth: 1, borderColor: '#E5E7EB' }}>
+        <View style={{ backgroundColor: colors.surface, borderRadius: ms(12), padding: ms(16), borderWidth: 1, borderColor: '#E5E7EB' }}>
 
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: vs(16) }}>
             <Text style={{ fontSize: ms(20), fontWeight: '800', color: '#111827' }}>Xem lại bài làm</Text>

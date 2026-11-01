@@ -4,7 +4,8 @@ import { useScreenBackHandler } from '@/navigation/useScreenBackHandler';
 import { useTabLeaveGuard } from '@/navigation/tabLeaveGuard';
 import { useIsFocused } from '@react-navigation/native';
 import { useQueryClient } from '@tanstack/react-query';
-import { Alert, View, Text, TouchableOpacity, ScrollView, SafeAreaView, useWindowDimensions } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, SafeAreaView, useWindowDimensions } from 'react-native';
+import { AppAlert } from '@/services/feedback/appAlert';
 import Svg, { Path, Circle } from 'react-native-svg';
 import { UserAvatar } from '@/components/atoms';
 import { hs, vs, ms, useTheme } from '@/theme';
@@ -88,7 +89,7 @@ export function GameContent({ navigation, route, targetView: propTargetView }: a
     if (leavingDialog.current) return;
     leavingDialog.current = true;
     const dismiss = () => { leavingDialog.current = false; };
-    Alert.alert('Rời trận PK', 'Rời trận đang đấu sẽ được tính là đầu hàng.', [
+    AppAlert.confirm('Rời trận PK', 'Rời trận đang đấu sẽ được tính là đầu hàng.', [
       { text: 'Tiếp tục đấu', style: 'cancel', onPress: dismiss },
       { text: 'Rời trận', style: 'destructive', onPress: () => {
         dismiss(); setViewState('main'); proceed();

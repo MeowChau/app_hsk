@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { View, Text, TouchableOpacity, ActivityIndicator, Alert, AppState } from 'react-native';
+import { View, Text, TouchableOpacity, ActivityIndicator, AppState } from 'react-native';
+import { AppAlert } from '@/services/feedback/appAlert';
 import Svg, { Path } from 'react-native-svg';
 import { useTheme, hs, vs, ms } from '@/theme';
 import { useProfile } from '@/services/auth';
@@ -137,7 +138,7 @@ export const StreakCard = ({
       undefined,
       {
         onSuccess: (response) => {
-          Alert.alert(
+          AppAlert.success(
             response.alreadyCheckedIn ? 'Đã điểm danh' : 'Điểm danh thành công! 🎉',
             response.alreadyCheckedIn
               ? 'Hôm nay đã được ghi nhận. Hãy quay lại vào ngày mai nhé.'
@@ -145,7 +146,7 @@ export const StreakCard = ({
           );
         },
         onError: async (error: unknown) => {
-          Alert.alert('Lỗi', await getCheckInError(error));
+          AppAlert.error('Lỗi', await getCheckInError(error));
         },
         onSettled: () => { busy.current = false; },
       },

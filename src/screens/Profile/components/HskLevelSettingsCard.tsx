@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, Modal, TouchableWithoutFeedback } from 'react-native';
 import { useTheme, hs, vs, ms } from '@/theme';
+import ConfirmationDialog from '@/components/molecules/ConfirmationDialog';
 
 interface HskLevelSettingsCardProps {
   currentLevel: number;
@@ -9,7 +10,7 @@ interface HskLevelSettingsCardProps {
 }
 
 export function HskLevelSettingsCard({ currentLevel, isSaving = false, onLevelChange }: HskLevelSettingsCardProps) {
-  const { layout } = useTheme();
+  const { colors, layout } = useTheme();
   const [modalVisible, setModalVisible] = useState(false);
   const [confirmModalVisible, setConfirmModalVisible] = useState(false);
   const [levelToConfirm, setLevelToConfirm] = useState(currentLevel);
@@ -69,20 +70,20 @@ export function HskLevelSettingsCard({ currentLevel, isSaving = false, onLevelCh
       </View>
 
       {/* Dropdown Modal (List thả xuống) */}
-      <Modal visible={modalVisible} transparent animationType="fade">
+      <Modal visible={modalVisible} transparent animationType="fade" onRequestClose={() => setModalVisible(false)}>
         <TouchableWithoutFeedback onPress={() => setModalVisible(false)}>
           <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', alignItems: 'center' }}>
             <TouchableWithoutFeedback>
-              <View style={{ backgroundColor: '#FFF', borderRadius: ms(12), width: '75%', padding: ms(16), elevation: 5 }}>
-                <Text style={{ fontSize: ms(16), fontWeight: '700', marginBottom: vs(16), textAlign: 'center', color: '#111827' }}>
+              <View style={{ backgroundColor: colors.dialogBackground, borderRadius: ms(12), width: '75%', padding: ms(16), elevation: 5 }}>
+                <Text style={{ fontSize: ms(16), fontWeight: '700', marginBottom: vs(16), textAlign: 'center', color: colors.dialogText }}>
                   Chọn trình độ
                 </Text>
                 {[1, 2, 3, 4, 5, 6].map((lvl) => (
                   <TouchableOpacity 
                     key={lvl} 
-                    style={{ paddingVertical: vs(14), borderBottomWidth: lvl !== 6 ? 1 : 0, borderBottomColor: '#F3F4F6' }}
+                    style={{ paddingVertical: vs(14), borderBottomWidth: lvl !== 6 ? 1 : 0, borderBottomColor: colors.dialogBorder }}
                     onPress={() => handleSelectLevel(lvl)}>
-                    <Text style={{ fontSize: ms(16), textAlign: 'center', fontWeight: lvl === currentLevel ? '700' : '400', color: lvl === currentLevel ? '#0E84F2' : '#111827' }}>
+                    <Text style={{ fontSize: ms(16), textAlign: 'center', fontWeight: lvl === currentLevel ? '700' : '400', color: colors.dialogText }}>
                       HSK {lvl}
                     </Text>
                   </TouchableOpacity>
@@ -93,32 +94,15 @@ export function HskLevelSettingsCard({ currentLevel, isSaving = false, onLevelCh
         </TouchableWithoutFeedback>
       </Modal>
 
-      {/* Confirm Popup Modal */}
-      <Modal visible={confirmModalVisible} transparent animationType="fade">
-        <TouchableWithoutFeedback onPress={() => setConfirmModalVisible(false)}>
-          <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', alignItems: 'center' }}>
-            <TouchableWithoutFeedback>
-              <View style={{ backgroundColor: '#FFF', borderRadius: ms(16), width: '85%', padding: ms(24), alignItems: 'center', elevation: 5 }}>
-                <Text style={{ fontSize: ms(18), fontWeight: '700', color: '#111827', marginBottom: vs(24), textAlign: 'center' }}>
-                  Thay đổi trình độ HSK của bạn?
-                </Text>
-                <View style={{ flexDirection: 'row', justifyContent: 'center', width: '100%' }}>
-                  <TouchableOpacity 
-                    onPress={() => setConfirmModalVisible(false)}
-                    style={{ flex: 1, paddingVertical: vs(12), borderRadius: ms(12), borderWidth: 1, borderColor: '#D1D5DB', alignItems: 'center', marginRight: hs(8) }}>
-                    <Text style={{ fontSize: ms(16), fontWeight: '700', color: '#374151' }}>Hủy</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity 
-                    onPress={handleConfirm}
-                    style={{ flex: 1, paddingVertical: vs(12), borderRadius: ms(12), backgroundColor: '#0E84F2', alignItems: 'center', marginLeft: hs(8) }}>
-                    <Text style={{ fontSize: ms(16), fontWeight: '700', color: '#FFF' }}>Xác nhận</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </TouchableWithoutFeedback>
-          </View>
-        </TouchableWithoutFeedback>
-      </Modal>
+      <ConfirmationDialog
+        visible={confirmModalVisible}
+        title="Thay đổi trình độ HSK của bạn?"
+        onClose={() => setConfirmModalVisible(false)}
+        buttons={[
+          { text: 'Hủy', onPress: () => setConfirmModalVisible(false), secondary: true },
+          { text: 'Xác nhận', onPress: handleConfirm },
+        ]}
+      />
     </>
   );
 }

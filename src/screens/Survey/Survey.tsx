@@ -1,6 +1,7 @@
 import type { RootScreenProps } from '@/navigation/types';
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, SafeAreaView, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, SafeAreaView } from 'react-native';
+import { AppAlert } from '@/services/feedback/appAlert';
 
 import { Paths } from '@/navigation/paths';
 import { useTheme, hs, vs, ms } from '@/theme';
@@ -49,7 +50,7 @@ export default function Survey({ navigation }: RootScreenProps<Paths.Survey>) {
     setPendingSurvey(userId, true);
     studyGoalsMutation.mutate(goals, {
       onSuccess: finish,
-      onError: (error) => Alert.alert('Chưa lưu được khảo sát', `${error instanceof Error ? error.message : 'Vui lòng thử lại.'} Câu trả lời đã được giữ lại trên thiết bị.`),
+      onError: (error) => AppAlert.error('Chưa lưu được khảo sát', `${error instanceof Error ? error.message : 'Vui lòng thử lại.'} Câu trả lời đã được giữ lại trên thiết bị.`),
     });
   };
 

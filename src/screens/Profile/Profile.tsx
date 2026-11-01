@@ -4,12 +4,12 @@ import type { RootScreenProps } from '@/navigation/types';
 import React, { useRef, useState } from 'react';
 import { useScrollToTop } from '@react-navigation/native';
 import {
-  Alert,
   ScrollView,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
+import { AppAlert } from '@/services/feedback/appAlert';
 import Svg, { Path } from 'react-native-svg';
 
 import { UserProfileCard } from './components/UserProfileCard';
@@ -24,6 +24,7 @@ import { filesApi } from '@/services/files/api';
 import type { PickedAvatar } from '@/services/files/api';
 import type { ChangePasswordDto } from '@/services/auth/types';
 import { getAuthSessionVersion } from '@/services/storage';
+import { getFormErrors } from '@/services/auth/formErrors';
 
 import {
   useLogout,
@@ -42,6 +43,7 @@ export function ProfileContent({ onLogout }: { onLogout?: () => void }) {
   const logoutMutation = useLogout();
   const changePasswordMutation = useChangePassword();
   const [showChangePassword, setShowChangePassword] = useState(false);
+  const [displayNameError, setDisplayNameError] = useState<string>();
   const [isUpdatingPhoto, setIsUpdatingPhoto] = useState(false);
   const photoBusy = React.useRef(false);
   const hskBusy = React.useRef(false);
@@ -65,17 +67,19 @@ export function ProfileContent({ onLogout }: { onLogout?: () => void }) {
   const handleSaveProfile = () => {
     const trimmed = displayName.trim();
     if (!trimmed) {
-      Alert.alert('Lỗi', 'Tên hiển thị không được để trống');
+      setDisplayNameError('Tên hiển thị không được để trống.');
       return;
     }
+    setDisplayNameError(undefined);
     updateProfileMutation.mutate(
       { fullName: trimmed },
       {
         onSuccess: () => {
-          Alert.alert('Thành công', 'Đã cập nhật thông tin tài khoản!');
+          AppAlert.success('Thành công', 'Đã cập nhật thông tin tài khoản!');
         },
-        onError: () => {
-          Alert.alert('Lỗi', 'Không thể lưu thay đổi. Vui lòng thử lại sau.');
+        onError: async (error) => {
+          const errors = await getFormErrors(error, 'Không thể lưu thay đổi. Vui lòng thử lại.');
+          setDisplayNameError(errors.fullName ?? errors.form);
         },
       },
     );
@@ -90,11 +94,11 @@ export function ProfileContent({ onLogout }: { onLogout?: () => void }) {
       {
         onSuccess: (updated) => {
           setCurrentHskLevel(updated.currentHskLevel ?? previousLevel);
-          Alert.alert('Thành công', `Đã cập nhật trình độ học sang HSK ${newLevel}!`);
+          AppAlert.success('Thành công', `Đã cập nhật trình độ học sang HSK ${newLevel}!`);
         },
         onError: (error) => {
           setCurrentHskLevel(previousLevel);
-          Alert.alert('Lỗi', error instanceof Error ? error.message : 'Không thể cập nhật trình độ HSK. Vui lòng thử lại sau.');
+          AppAlert.error('Lỗi', error instanceof Error ? error.message : 'Không thể cập nhật trình độ HSK. Vui lòng thử lại sau.');
         },
         onSettled: () => { hskBusy.current = false; },
       },
@@ -114,7 +118,7 @@ export function ProfileContent({ onLogout }: { onLogout?: () => void }) {
       if (version !== getAuthSessionVersion()) return;
       await updateProfileMutation.mutateAsync({ photo: { id: uploaded.id } });
     } catch (error) {
-      if (version === getAuthSessionVersion()) Alert.alert('Không thể đổi ảnh', error instanceof Error ? error.message : 'Vui lòng thử lại sau.');
+      if (version === getAuthSessionVersion()) AppAlert.error('Không thể đổi ảnh', error instanceof Error ? error.message : 'Vui lòng thử lại sau.');
     } finally {
       if (image) filesApi.releaseAvatar(image.uri);
       photoBusy.current = false;
@@ -125,7 +129,7 @@ export function ProfileContent({ onLogout }: { onLogout?: () => void }) {
   const handleDeletePhoto = () => {
     if (isUpdatingPhoto || updateProfileMutation.isPending || !profile?.photo) return;
     updateProfileMutation.mutate({ photo: null }, {
-      onError: () => Alert.alert('Không thể xóa ảnh', 'Vui lòng kiểm tra kết nối và thử lại.'),
+      onError: () => AppAlert.error('Không thể xóa ảnh', 'Vui lòng kiểm tra kết nối và thử lại.'),
     });
   };
 
@@ -140,7 +144,7 @@ export function ProfileContent({ onLogout }: { onLogout?: () => void }) {
   const handleChangePassword = async (dto: ChangePasswordDto) => {
     await changePasswordMutation.mutateAsync(dto);
     setShowChangePassword(false);
-    Alert.alert('Đổi mật khẩu thành công', 'Mật khẩu đã được cập nhật. Hãy dùng mật khẩu mới cho lần đăng nhập tiếp theo.');
+    AppAlert.success('Đổi mật khẩu thành công', 'Mật khẩu đã được cập nhật. Hãy dùng mật khẩu mới cho lần đăng nhập tiếp theo.');
   };
 
   return (
@@ -179,6 +183,7 @@ export function ProfileContent({ onLogout }: { onLogout?: () => void }) {
       <View style={{ paddingHorizontal: hs(16), marginBottom: vs(16) }}>
         <UserProfileCard
           displayName={displayName}
+          displayNameError={displayNameError}
           email={email}
           isSaving={updateProfileMutation.isPending}
           photoUrl={profile?.photo?.path}
@@ -187,7 +192,7 @@ export function ProfileContent({ onLogout }: { onLogout?: () => void }) {
           onDeletePhoto={handleDeletePhoto}
           onChangePassword={() => setShowChangePassword(true)}
           onSave={handleSaveProfile}
-          setDisplayName={setDisplayName}
+          setDisplayName={value => { setDisplayName(value); setDisplayNameError(undefined); }}
         />
       </View>
 

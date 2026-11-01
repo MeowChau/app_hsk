@@ -29,7 +29,7 @@ export function SharedAudioHeader({
       >
         <Text
           accessibilityRole="header"
-          style={{ fontSize: ms(13), fontWeight: '700', color: colors.primary }}
+          style={{ fontSize: ms(13), fontWeight: '700', color: colors.dialogAction }}
         >
           Audio dùng chung · {label}
         </Text>

@@ -10,7 +10,7 @@ import {
   ViewStyle,
 } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
-import { ms, hs, vs } from '@/theme';
+import { ms, hs, vs, useTheme } from '@/theme';
 
 export interface TopicPickerModalProps<T = any> {
   title?: string;
@@ -45,6 +45,7 @@ export function TopicPickerModal<T = any>({
   emptyMessage = 'Chưa có bài luyện để chọn.',
   containerStyle,
 }: TopicPickerModalProps<T>) {
+  const { colors } = useTheme();
   const [showTopicModal, setShowTopicModal] = useState(false);
   const groups = new Map<string, { topic: T; index: number }[]>();
   topics.forEach((topic, index) => {
@@ -61,7 +62,7 @@ export function TopicPickerModal<T = any>({
           style={{
             fontSize: ms(16),
             fontWeight: '800',
-            color: '#111827',
+            color: colors.dialogText,
             marginBottom: vs(12),
           }}
         >
@@ -81,8 +82,8 @@ export function TopicPickerModal<T = any>({
           alignItems: 'center',
           justifyContent: 'space-between',
           borderWidth: 1,
-          borderColor: '#E5E7EB',
-          backgroundColor: '#FAF9F6',
+          borderColor: colors.dialogBorder,
+          backgroundColor: colors.dialogBackground,
           borderRadius: ms(12),
           paddingVertical: vs(12),
           paddingHorizontal: hs(16),
@@ -93,7 +94,7 @@ export function TopicPickerModal<T = any>({
             style={{
               fontSize: ms(14),
               lineHeight: ms(20),
-              color: '#374151',
+              color: colors.dialogText,
               fontWeight: '600',
             }}
           >
@@ -101,7 +102,7 @@ export function TopicPickerModal<T = any>({
           </Text>
           {selectedDescription ? (
             <Text
-              style={{ fontSize: ms(12), lineHeight: ms(18), color: '#4B5563' }}
+              style={{ fontSize: ms(12), lineHeight: ms(18), color: colors.dialogText }}
             >
               {selectedDescription}
             </Text>
@@ -111,7 +112,7 @@ export function TopicPickerModal<T = any>({
           <Path
             d="M7 15l5 5 5-5M7 9l5-5 5 5"
             fill="none"
-            stroke="#6B7280"
+            stroke={colors.dialogAction}
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -139,7 +140,7 @@ export function TopicPickerModal<T = any>({
                 style={{
                   marginHorizontal: hs(16),
                   maxHeight: '80%',
-                  backgroundColor: '#FFFFFF',
+                  backgroundColor: colors.dialogBackground,
                   borderRadius: ms(16),
                   paddingVertical: vs(12),
                   shadowColor: '#000',
@@ -154,7 +155,7 @@ export function TopicPickerModal<T = any>({
                     paddingHorizontal: hs(16),
                     paddingBottom: vs(12),
                     borderBottomWidth: 1,
-                    borderBottomColor: '#E5E7EB',
+                    borderBottomColor: colors.dialogBorder,
                   }}
                 >
                   <View
@@ -169,7 +170,7 @@ export function TopicPickerModal<T = any>({
                         flex: 1,
                         fontSize: ms(16),
                         fontWeight: '700',
-                        color: '#111827',
+                        color: colors.dialogText,
                       }}
                     >
                       {modalTitle}
@@ -189,7 +190,7 @@ export function TopicPickerModal<T = any>({
                         <Path
                           d="M6 6l12 12M18 6L6 18"
                           fill="none"
-                          stroke="#4B5563"
+                          stroke={colors.dialogAction}
                           strokeWidth="2"
                           strokeLinecap="round"
                         />
@@ -201,7 +202,7 @@ export function TopicPickerModal<T = any>({
                       style={{
                         fontSize: ms(12),
                         lineHeight: ms(18),
-                        color: '#4B5563',
+                        color: colors.dialogText,
                       }}
                     >
                       {description}
@@ -221,7 +222,7 @@ export function TopicPickerModal<T = any>({
                         padding: ms(16),
                         fontSize: ms(14),
                         lineHeight: ms(20),
-                        color: '#4B5563',
+                        color: colors.dialogText,
                       }}
                     >
                       {emptyMessage}
@@ -238,7 +239,7 @@ export function TopicPickerModal<T = any>({
                             fontSize: ms(14),
                             lineHeight: ms(20),
                             fontWeight: '700',
-                            color: '#111827',
+                            color: colors.dialogText,
                           }}
                         >
                           {group}
@@ -275,7 +276,7 @@ export function TopicPickerModal<T = any>({
                               minHeight: ms(44),
                               borderRadius: ms(12),
                               backgroundColor: active
-                                ? '#F3F4F6'
+                                ? colors.accentLightBlue
                                 : 'transparent',
                             }}
                           >
@@ -290,7 +291,7 @@ export function TopicPickerModal<T = any>({
                               <Text
                                 style={{
                                   fontSize: ms(14),
-                                  color: active ? '#1E3A8A' : '#374151',
+                                  color: colors.dialogText,
                                   fontWeight: '600',
                                   lineHeight: ms(20),
                                 }}
@@ -302,7 +303,7 @@ export function TopicPickerModal<T = any>({
                                   style={{
                                     fontSize: ms(12),
                                     lineHeight: ms(18),
-                                    color: '#4B5563',
+                                    color: colors.dialogText,
                                   }}
                                 >
                                   {topicDescription}
@@ -317,7 +318,7 @@ export function TopicPickerModal<T = any>({
                                   <Path
                                     d="M20 6L9 17l-5-5"
                                     fill="none"
-                                    stroke="#1E3A8A"
+                                    stroke={colors.dialogAction}
                                     strokeWidth="2"
                                     strokeLinecap="round"
                                     strokeLinejoin="round"

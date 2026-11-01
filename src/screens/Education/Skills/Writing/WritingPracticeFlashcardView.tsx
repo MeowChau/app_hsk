@@ -1,5 +1,6 @@
 import React, { useReducer, useRef, useState } from 'react';
-import { View, Text, SafeAreaView, TouchableOpacity, StyleSheet, Dimensions, Alert } from 'react-native';
+import { View, Text, SafeAreaView, TouchableOpacity, StyleSheet, Dimensions } from 'react-native';
+import { AppAlert } from '@/services/feedback/appAlert';
 import Svg, { Path } from 'react-native-svg';
 import { ScreenHeader } from '@/components/molecules';
 import { ms, hs, vs } from '@/theme';
@@ -59,7 +60,7 @@ export const WritingPracticeFlashcardView = ({ hskLevel, topic, onBack, onFinish
       } catch (err) {
         if (!cancelled) {
           setWords([]);
-          Alert.alert('Không thể tải từ vựng', 'Vui lòng kiểm tra kết nối và mở lại bài luyện.');
+          AppAlert.error('Không thể tải từ vựng', 'Vui lòng kiểm tra kết nối và mở lại bài luyện.');
         }
       } finally {
         if (!cancelled) setIsLoading(false);

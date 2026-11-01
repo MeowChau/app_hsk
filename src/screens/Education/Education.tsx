@@ -4,7 +4,7 @@ import type { LearnScreenParams } from '@/navigation/types';
 import { Paths } from '@/navigation/paths';
 import { useScrollToTop } from '@react-navigation/native';
 import { useScreenBackHandler } from '@/navigation/useScreenBackHandler';
-import { Alert, SafeAreaView, ScrollView } from 'react-native';
+import { SafeAreaView, ScrollView } from 'react-native';
 import { EducationHeader } from './components/EducationHeader';
 import { EducationSegment } from './components/EducationSegment';
 import { SkillPracticeView } from './Skills/components/SkillPracticeView';

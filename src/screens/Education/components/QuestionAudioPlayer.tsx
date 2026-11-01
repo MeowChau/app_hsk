@@ -34,7 +34,7 @@ export function QuestionAudioPlayer({
           backgroundColor: colors.accentLightBlue,
           borderRadius: sizes.touchTarget / 2,
         }}
-        color={colors.primary}
+        color={colors.dialogAction}
         renderIcon={(size, color) =>
           audio.loading ? (
             <ActivityIndicator color={color} size="small" />
@@ -57,7 +57,7 @@ export function QuestionAudioPlayer({
           numberOfLines={1}
           style={{
             fontSize: ms(12),
-            color: colors.gray400,
+            color: colors.dialogAction,
             fontVariant: ['tabular-nums'],
           }}
         >
@@ -75,7 +75,7 @@ export function QuestionAudioPlayer({
             style={{
               width: `${audio.progress}%`,
               height: '100%',
-              backgroundColor: colors.primary,
+              backgroundColor: colors.dialogAction,
             }}
           />
         </View>
@@ -99,7 +99,7 @@ export function QuestionAudioPlayer({
               <Text
                 style={{
                   fontSize: ms(12),
-                  color: colors.gray400,
+                  color: colors.dialogAction,
                   fontWeight: '600',
                 }}
               >

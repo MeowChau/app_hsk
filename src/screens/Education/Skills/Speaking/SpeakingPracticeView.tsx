@@ -2,7 +2,8 @@
 import IconButton from '@/components/atoms/IconButton';
 import { PracticeHeader } from '../../components/PracticeHeader';
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { View, Text, SafeAreaView, TouchableOpacity, Alert, Platform, PermissionsAndroid, ScrollView, AppState } from 'react-native';
+import { View, Text, SafeAreaView, TouchableOpacity, Platform, PermissionsAndroid, ScrollView, AppState } from 'react-native';
+import { AppAlert } from '@/services/feedback/appAlert';
 import { useFocusEffect, useIsFocused } from '@react-navigation/native';
 import Svg, { Path } from 'react-native-svg';
 import { educationApi } from '@/services/education/api';
@@ -132,7 +133,7 @@ export const SpeakingPracticeView = ({ hskLevel, topic, onBack, onSubmit }: Prop
   };
 
   const handleExit = () => {
-    Alert.alert(
+    AppAlert.confirm(
       'Thoát luyện tập',
       'Bạn có chắc muốn thoát? Kết quả hiện tại sẽ không được lưu.',
       [
@@ -183,7 +184,7 @@ export const SpeakingPracticeView = ({ hskLevel, topic, onBack, onSubmit }: Prop
     }
     if (!hasPermission) {
       setRecordState(currentRecording ? 'result' : 'idle');
-      Alert.alert('Không có quyền truy cập', 'Vui lòng cấp quyền Microphone trong cài đặt để tiếp tục.');
+      AppAlert.warning('Không có quyền truy cập', 'Vui lòng cấp quyền Microphone trong cài đặt để tiếp tục.');
       return;
     }
 
@@ -204,7 +205,7 @@ export const SpeakingPracticeView = ({ hskLevel, topic, onBack, onSubmit }: Prop
     }
     if (event.type === 'error') {
       if (event.operation === 'recording') setRecordState(currentRecording ? 'result' : 'idle');
-      Alert.alert(event.operation === 'playback' ? 'Không thể nghe lại' : 'Không thể ghi âm', event.message || 'Vui lòng thử lại.');
+      AppAlert.error(event.operation === 'playback' ? 'Không thể nghe lại' : 'Không thể ghi âm', event.message || 'Vui lòng thử lại.');
       return;
     }
     if (event.questionId !== currentQ?.id) return;

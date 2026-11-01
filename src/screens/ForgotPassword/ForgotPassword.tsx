@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { AppAlert } from '@/services/feedback/appAlert';
 import { SafeScreen } from '@/components/templates';
 import { InputField } from '@/components/molecules';
 import { Button, Logo } from '@/components/atoms';
@@ -7,23 +8,26 @@ import { useTheme } from '@/theme';
 import type { RootScreenProps } from '@/navigation/types';
 import { Paths } from '@/navigation/paths';
 import { useForgotPassword } from '@/services/auth/useAuth';
+import InputError from '@/components/atoms/InputError';
+import { getFormErrors, validateEmail } from '@/services/auth/formErrors';
+import type { FormErrors } from '@/services/auth/formErrors';
 
 const ForgotPassword = ({ navigation }: RootScreenProps<Paths.ForgotPassword>) => {
   const { fonts, layout } = useTheme();
   const [email, setEmail] = useState('');
+  const [errors, setErrors] = useState<FormErrors>({});
   const forgotPasswordMutation = useForgotPassword();
   const isLoading = forgotPasswordMutation.isPending;
 
   const handleSendLink = async () => {
     const trimmedEmail = email.trim();
-    if (!trimmedEmail) {
-      Alert.alert('Lỗi', 'Vui lòng nhập email');
-      return;
-    }
+    const emailError = validateEmail(trimmedEmail);
+    setErrors({ email: emailError });
+    if (emailError) return;
 
     try {
       await forgotPasswordMutation.mutateAsync(trimmedEmail);
-      Alert.alert(
+      AppAlert.success(
         'Đã gửi liên kết',
         `Liên kết đặt lại mật khẩu đã được gửi đến email ${trimmedEmail}.\n\nVui lòng kiểm tra hộp thư và nhấn vào liên kết để chuyển về màn hình đổi mật khẩu!`,
         [
@@ -37,17 +41,8 @@ const ForgotPassword = ({ navigation }: RootScreenProps<Paths.ForgotPassword>) =
           },
         ]
       );
-    } catch (e: any) {
-      let errorMessage = 'Không thể gửi yêu cầu đặt lại mật khẩu. Vui lòng thử lại sau.';
-      if (e.response) {
-        try {
-          const errData = await e.response.json();
-          errorMessage = errData.message || (errData.errors?.email ? 'Email không tồn tại trong hệ thống.' : errorMessage);
-        } catch (_) {}
-      } else if (e.message) {
-        errorMessage = e.message;
-      }
-      Alert.alert('Lỗi', errorMessage);
+    } catch (error) {
+      setErrors(await getFormErrors(error, 'Không thể gửi liên kết đổi mật khẩu. Vui lòng thử lại.'));
     }
   };
 
@@ -73,10 +68,12 @@ const ForgotPassword = ({ navigation }: RootScreenProps<Paths.ForgotPassword>) =
               autoCapitalize="none"
               iconType="mail"
               keyboardType="email-address"
-              onChangeText={setEmail}
+              error={errors.email}
+              onChangeText={value => { setEmail(value); setErrors({}); }}
               placeholder="Email của bạn"
               value={email}
             />
+            <InputError message={errors.form} />
           </View>
 
           <Button

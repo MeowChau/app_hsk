@@ -16,8 +16,12 @@ import { Button, Logo } from '@/components/atoms';
 import { InputField, AuthDivider, GoogleSignInButton } from '@/components/molecules';
 import { SafeScreen } from '@/components/templates';
 
-import { Alert } from 'react-native';
+
+import { AppAlert } from '@/services/feedback/appAlert';
 import { useRegister } from '@/services/auth';
+import InputError from '@/components/atoms/InputError';
+import { getFormErrors, validateEmail } from '@/services/auth/formErrors';
+import type { FormErrors } from '@/services/auth/formErrors';
 
 function Register({ navigation }: RootScreenProps<Paths.Register>) {
   const { colors, fonts, gutters, layout } = useTheme();
@@ -26,6 +30,7 @@ function Register({ navigation }: RootScreenProps<Paths.Register>) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [errors, setErrors] = useState<FormErrors>({});
   const registerMutation = useRegister();
 
   const handleRegister = () => {
@@ -33,20 +38,14 @@ function Register({ navigation }: RootScreenProps<Paths.Register>) {
     const trimmedEmail = email.trim();
     const trimmedPassword = password.trim();
 
-    if (!trimmedUsername || !trimmedEmail || !trimmedPassword) {
-      Alert.alert('Lỗi', 'Vui lòng điền đầy đủ các thông tin đăng ký');
-      return;
-    }
-
-    if (trimmedPassword !== confirmPassword.trim()) {
-      Alert.alert('Lỗi', 'Mật khẩu xác nhận không trùng khớp');
-      return;
-    }
-
-    if (trimmedPassword.length < 6) {
-      Alert.alert('Lỗi', 'Mật khẩu phải có độ dài tối thiểu 6 ký tự');
-      return;
-    }
+    const nextErrors: FormErrors = {
+      username: !trimmedUsername ? 'Vui lòng nhập tên người dùng.' : undefined,
+      email: validateEmail(trimmedEmail),
+      password: !trimmedPassword ? 'Vui lòng nhập mật khẩu.' : trimmedPassword.length < 6 ? 'Mật khẩu phải có ít nhất 6 ký tự.' : undefined,
+      confirmPassword: !confirmPassword.trim() ? 'Vui lòng xác nhận mật khẩu.' : trimmedPassword !== confirmPassword.trim() ? 'Mật khẩu xác nhận không khớp.' : undefined,
+    };
+    setErrors(nextErrors);
+    if (Object.values(nextErrors).some(Boolean)) return;
 
     registerMutation.mutate(
       {
@@ -56,7 +55,7 @@ function Register({ navigation }: RootScreenProps<Paths.Register>) {
       },
       {
         onSuccess: () => {
-          Alert.alert(
+          AppAlert.success(
             'Đăng ký thành công',
             'Tài khoản đã được tạo thành công! Vui lòng chờ quản trị viên duyệt trước khi đăng nhập.',
             [
@@ -67,31 +66,7 @@ function Register({ navigation }: RootScreenProps<Paths.Register>) {
             ],
           );
         },
-        onError: (err: any) => {
-          const defaultMsg = 'Đăng ký không thành công. Vui lòng thử lại sau.';
-          if (err?.response) {
-            err.response
-              .json()
-              .then((data: any) => {
-                let apiMsg = data?.message;
-                if (data?.errors?.email === 'emailAlreadyExists') {
-                  apiMsg = 'Email này đã được đăng ký. Vui lòng sử dụng email khác hoặc chuyển sang Đăng nhập.';
-                } else if (data?.errors?.username === 'usernameAlreadyExists') {
-                  apiMsg = 'Tên người dùng này đã tồn tại. Vui lòng chọn tên khác.';
-                } else if (data?.errors?.email) {
-                  apiMsg = data.errors.email;
-                } else if (data?.errors?.username) {
-                  apiMsg = data.errors.username;
-                }
-                Alert.alert('Đăng ký thất bại', apiMsg || defaultMsg);
-              })
-              .catch(() => {
-                Alert.alert('Đăng ký thất bại', defaultMsg);
-              });
-            return;
-          }
-          Alert.alert('Đăng ký thất bại', err?.message || defaultMsg);
-        },
+        onError: async (error) => setErrors(await getFormErrors(error, 'Đăng ký không thành công. Vui lòng thử lại.')),
       },
     );
   };
@@ -157,7 +132,8 @@ function Register({ navigation }: RootScreenProps<Paths.Register>) {
           <View style={{ marginBottom: vs(24), rowGap: vs(14) }}>
             <InputField
               iconType="user"
-              onChangeText={setUsername}
+              error={errors.username}
+              onChangeText={value => { setUsername(value); setErrors(current => ({ ...current, username: undefined, form: undefined })); }}
               placeholder="Tên người dùng"
               value={username}
             />
@@ -165,24 +141,28 @@ function Register({ navigation }: RootScreenProps<Paths.Register>) {
               autoCapitalize="none"
               iconType="mail"
               keyboardType="email-address"
-              onChangeText={setEmail}
+              error={errors.email}
+              onChangeText={value => { setEmail(value); setErrors(current => ({ ...current, email: undefined, form: undefined })); }}
               placeholder="Email"
               value={email}
             />
             <InputField
               iconType="lock"
-              onChangeText={setPassword}
+              error={errors.password}
+              onChangeText={value => { setPassword(value); setErrors(current => ({ ...current, password: undefined, confirmPassword: undefined, form: undefined })); }}
               placeholder="Mật khẩu"
               secureTextEntry
               value={password}
             />
             <InputField
               iconType="lock"
-              onChangeText={setConfirmPassword}
+              error={errors.confirmPassword}
+              onChangeText={value => { setConfirmPassword(value); setErrors(current => ({ ...current, confirmPassword: undefined, form: undefined })); }}
               placeholder="Xác nhận mật khẩu"
               secureTextEntry
               value={confirmPassword}
             />
+            <InputError message={errors.form} />
           </View>
 
           {/* Main Action Button */}

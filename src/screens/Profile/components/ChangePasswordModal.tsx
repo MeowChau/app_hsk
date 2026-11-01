@@ -10,8 +10,11 @@ import {
 } from 'react-native';
 import { Button } from '@/components/atoms';
 import { InputField } from '@/components/molecules';
-import { hs, ms, vs } from '@/theme';
+import { hs, ms, vs, useTheme } from '@/theme';
 import type { ChangePasswordDto } from '@/services/auth/types';
+import InputError from '@/components/atoms/InputError';
+import { getFormErrors } from '@/services/auth/formErrors';
+import type { FormErrors } from '@/services/auth/formErrors';
 
 interface ChangePasswordModalProps {
   isSaving: boolean;
@@ -19,28 +22,12 @@ interface ChangePasswordModalProps {
   onSubmit: (dto: ChangePasswordDto) => Promise<void>;
 }
 
-const getPasswordError = async (error: unknown): Promise<string> => {
-  const response = (error as { response?: Response } | null)?.response;
-  if (response) {
-    if (response.status === 401) return 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.';
-    try {
-      const data = await response.clone().json();
-      if (data.errors?.oldPassword === 'incorrectOldPassword') return 'Mật khẩu hiện tại không đúng.';
-      if (data.errors?.oldPassword === 'missingOldPassword') return 'Vui lòng nhập mật khẩu hiện tại.';
-      if (data.errors?.password) return 'Mật khẩu mới phải có ít nhất 6 ký tự.';
-    } catch {
-      // Keep the message readable when the server returns a non-JSON response.
-    }
-  }
-  if (error instanceof Error && error.message.startsWith('Phiên đăng nhập')) return error.message;
-  return 'Không thể đổi mật khẩu. Vui lòng kiểm tra kết nối và thử lại.';
-};
-
 export function ChangePasswordModal({ isSaving, onClose, onSubmit }: ChangePasswordModalProps) {
+  const { colors } = useTheme();
   const [oldPassword, setOldPassword] = useState('');
   const [password, setPassword] = useState('');
   const [confirmation, setConfirmation] = useState('');
-  const [errorMessage, setErrorMessage] = useState('');
+  const [errors, setErrors] = useState<FormErrors>({});
   const [submitting, setSubmitting] = useState(false);
   const busy = useRef(false);
   const pending = isSaving || submitting;
@@ -53,30 +40,16 @@ export function ChangePasswordModal({ isSaving, onClose, onSubmit }: ChangePassw
 
   const handleSubmit = async () => {
     if (busy.current || isSaving) return;
-    if (!oldPassword || !password || !confirmation) {
-      setErrorMessage('Vui lòng nhập đầy đủ các trường mật khẩu.');
-      return;
-    }
-    if (password.length < 6) {
-      setErrorMessage('Mật khẩu mới phải có ít nhất 6 ký tự.');
-      return;
-    }
-    if (password !== password.trim()) {
-      setErrorMessage('Mật khẩu mới không được bắt đầu hoặc kết thúc bằng khoảng trắng.');
-      return;
-    }
-    if (password !== confirmation) {
-      setErrorMessage('Mật khẩu xác nhận không khớp.');
-      return;
-    }
-    if (password === oldPassword) {
-      setErrorMessage('Mật khẩu mới phải khác mật khẩu hiện tại.');
-      return;
-    }
+    const nextErrors: FormErrors = {
+      oldPassword: !oldPassword ? 'Vui lòng nhập mật khẩu hiện tại.' : undefined,
+      password: !password ? 'Vui lòng nhập mật khẩu mới.' : password.length < 6 ? 'Mật khẩu mới phải có ít nhất 6 ký tự.' : password !== password.trim() ? 'Mật khẩu mới không được bắt đầu hoặc kết thúc bằng khoảng trắng.' : password === oldPassword ? 'Mật khẩu mới phải khác mật khẩu hiện tại.' : undefined,
+      confirmPassword: !confirmation ? 'Vui lòng xác nhận mật khẩu mới.' : password !== confirmation ? 'Mật khẩu xác nhận không khớp.' : undefined,
+    };
+    setErrors(nextErrors);
+    if (Object.values(nextErrors).some(Boolean)) return;
 
     busy.current = true;
     setSubmitting(true);
-    setErrorMessage('');
     Keyboard.dismiss();
     try {
       await onSubmit({ oldPassword, password });
@@ -84,7 +57,7 @@ export function ChangePasswordModal({ isSaving, onClose, onSubmit }: ChangePassw
       setPassword('');
       setConfirmation('');
     } catch (error) {
-      setErrorMessage(await getPasswordError(error));
+      setErrors(await getFormErrors(error, 'Không thể đổi mật khẩu. Vui lòng kiểm tra kết nối và thử lại.'));
     } finally {
       busy.current = false;
       setSubmitting(false);
@@ -102,69 +75,71 @@ export function ChangePasswordModal({ isSaving, onClose, onSubmit }: ChangePassw
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          <View accessibilityViewIsModal style={{ backgroundColor: '#FFFFFF', borderRadius: ms(16), padding: ms(20) }}>
-            <Text accessibilityRole="header" style={{ color: '#111827', fontSize: ms(20), fontWeight: '700', marginBottom: vs(8) }}>
+          <View accessibilityViewIsModal style={{ backgroundColor: colors.dialogBackground, borderRadius: ms(16), padding: ms(20) }}>
+            <Text accessibilityRole="header" style={{ color: colors.dialogText, fontSize: ms(20), fontWeight: '700', marginBottom: vs(8) }}>
               Đổi mật khẩu
             </Text>
-            <Text style={{ color: '#6B7280', fontSize: ms(14), lineHeight: ms(20), marginBottom: vs(20) }}>
+            <Text style={{ color: colors.dialogText, fontSize: ms(14), lineHeight: ms(20), marginBottom: vs(20) }}>
               Nhập mật khẩu hiện tại và mật khẩu mới cho tài khoản của bạn.
             </Text>
             <View style={{ marginBottom: vs(16) }}>
-              <Text style={{ color: '#111827', fontSize: ms(14), fontWeight: '600', marginBottom: vs(6) }}>Mật khẩu hiện tại</Text>
+              <Text style={{ color: colors.dialogText, fontSize: ms(14), fontWeight: '600', marginBottom: vs(6) }}>Mật khẩu hiện tại</Text>
               <InputField
+                textColor={colors.dialogText}
                 accessibilityLabel="Mật khẩu hiện tại"
                 autoCapitalize="none"
                 autoComplete="current-password"
                 autoCorrect={false}
                 editable={!pending}
-                onChangeText={setOldPassword}
+                error={errors.oldPassword}
+                onChangeText={value => { setOldPassword(value); setErrors(current => ({ ...current, oldPassword: undefined, form: undefined })); }}
                 secureTextEntry
-                style={{ height: 48, borderColor: '#E5E7EB' }}
+                style={{ height: 48, borderColor: colors.dialogBorder }}
                 textContentType="password"
                 value={oldPassword}
               />
             </View>
             <View style={{ marginBottom: vs(16) }}>
-              <Text style={{ color: '#111827', fontSize: ms(14), fontWeight: '600', marginBottom: vs(6) }}>Mật khẩu mới</Text>
+              <Text style={{ color: colors.dialogText, fontSize: ms(14), fontWeight: '600', marginBottom: vs(6) }}>Mật khẩu mới</Text>
               <InputField
+                textColor={colors.dialogText}
                 accessibilityLabel="Mật khẩu mới"
                 autoCapitalize="none"
                 autoComplete="new-password"
                 autoCorrect={false}
                 editable={!pending}
-                onChangeText={setPassword}
+                error={errors.password}
+                onChangeText={value => { setPassword(value); setErrors(current => ({ ...current, password: undefined, confirmPassword: undefined, form: undefined })); }}
                 secureTextEntry
-                style={{ height: 48, borderColor: '#E5E7EB' }}
+                style={{ height: 48, borderColor: colors.dialogBorder }}
                 textContentType="newPassword"
                 value={password}
               />
-              <Text style={{ color: '#6B7280', fontSize: ms(12), marginTop: vs(6) }}>Tối thiểu 6 ký tự.</Text>
+              <Text style={{ color: colors.dialogText, fontSize: ms(12), marginTop: vs(6) }}>Tối thiểu 6 ký tự.</Text>
             </View>
             <View style={{ marginBottom: vs(20) }}>
-              <Text style={{ color: '#111827', fontSize: ms(14), fontWeight: '600', marginBottom: vs(6) }}>Xác nhận mật khẩu mới</Text>
+              <Text style={{ color: colors.dialogText, fontSize: ms(14), fontWeight: '600', marginBottom: vs(6) }}>Xác nhận mật khẩu mới</Text>
               <InputField
+                textColor={colors.dialogText}
                 accessibilityLabel="Xác nhận mật khẩu mới"
                 autoCapitalize="none"
                 autoComplete="new-password"
                 autoCorrect={false}
                 editable={!pending}
-                onChangeText={setConfirmation}
+                error={errors.confirmPassword}
+                onChangeText={value => { setConfirmation(value); setErrors(current => ({ ...current, confirmPassword: undefined, form: undefined })); }}
                 onSubmitEditing={handleSubmit}
                 returnKeyType="done"
                 secureTextEntry
-                style={{ height: 48, borderColor: '#E5E7EB' }}
+                style={{ height: 48, borderColor: colors.dialogBorder }}
                 textContentType="newPassword"
                 value={confirmation}
               />
             </View>
-            {!!errorMessage && (
-              <Text accessibilityLiveRegion="polite" style={{ color: '#C13333', fontSize: ms(14), lineHeight: ms(20), marginBottom: vs(16) }}>
-                {errorMessage}
-              </Text>
-            )}
+            <InputError message={errors.form} />
             <View style={{ flexDirection: 'row', gap: hs(10) }}>
-              <Button accessibilityRole="button" disabled={pending} onPress={handleClose} title="Hủy" variant="outline" style={{ flex: 1, borderRadius: ms(12), borderColor: '#D1D5DB' }} />
-              <Button accessibilityLabel="Lưu mật khẩu mới" accessibilityRole="button" loading={pending} onPress={handleSubmit} title="Lưu mật khẩu" style={{ flex: 1, borderRadius: ms(12), backgroundColor: '#1E3A8A' }} />
+              <Button accessibilityRole="button" disabled={pending} onPress={handleClose} title="Hủy" variant="outline" textColor={colors.dialogText} style={{ flex: 1, borderRadius: ms(12), borderColor: colors.dialogBorder }} />
+              <Button accessibilityLabel="Lưu mật khẩu mới" accessibilityRole="button" loading={pending} onPress={handleSubmit} title="Lưu mật khẩu" style={{ flex: 1, borderRadius: ms(12), backgroundColor: colors.dialogAction }} />
             </View>
           </View>
         </ScrollView>

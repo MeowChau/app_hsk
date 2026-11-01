@@ -8,7 +8,8 @@ import {
   useState,
 } from 'react';
 import type { PropsWithChildren } from 'react';
-import { Alert, AppState } from 'react-native';
+import { AppState } from 'react-native';
+import { AppAlert } from '@/services/feedback/appAlert';
 import { useFocusEffect } from '@react-navigation/native';
 import { WebView } from 'react-native-webview';
 import { API_ORIGIN } from '../config';
@@ -164,13 +165,13 @@ export function AudioProvider({ children }: PropsWithChildren) {
               loading: !!message.loading,
             });
             if (message.error)
-              Alert.alert('Không thể phát audio', message.error);
+              AppAlert.error('Không thể phát audio', message.error);
           } catch {
             /* Ignore messages that are not player state. */
           }
         }}
         onError={() =>
-          Alert.alert(
+          AppAlert.error(
             'Không thể phát audio',
             'Vui lòng kiểm tra kết nối và thử lại.',
           )
@@ -213,7 +214,7 @@ export const useAudioPlayback = (value?: string | null) => {
     },
     toggle: () => {
       if (!url) {
-        Alert.alert('Chưa có audio', 'Bài học này chưa có tệp audio.');
+        AppAlert.warning('Chưa có audio', 'Bài học này chưa có tệp audio.');
         return;
       }
       command({ type: 'toggle', ownerId, url });

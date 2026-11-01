@@ -8,6 +8,7 @@ import ApplicationNavigator from '@/navigation/Application';
 import { ThemeProvider } from '@/theme';
 import '@/translations';
 import { useSyncStudyEvents } from '@/services/analytics/useAnalytics';
+import AppAlertHost from '@/components/organisms/AppAlertHost';
 
 export const queryClient = new QueryClient({
   defaultOptions: {
@@ -29,6 +30,7 @@ function App() {
       <QueryClientProvider client={queryClient}>
         <ThemeProvider storage={storage}>
           <ApplicationNavigator />
+          <AppAlertHost />
         </ThemeProvider>
       </QueryClientProvider>
     </GestureHandlerRootView>

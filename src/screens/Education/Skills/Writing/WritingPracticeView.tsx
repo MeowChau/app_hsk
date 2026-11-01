@@ -3,7 +3,8 @@ import { PracticeHeader } from '../../components/PracticeHeader';
 import { useStudyTimer } from '@/hooks/useStudyTimer';
 import { useScreenBackHandler } from '@/navigation/useScreenBackHandler';
 import React, { useCallback, useState, useEffect, useRef } from 'react';
-import { View, Text, SafeAreaView, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, SafeAreaView, ScrollView, TouchableOpacity } from 'react-native';
+import { AppAlert } from '@/services/feedback/appAlert';
 import Svg, { Path } from 'react-native-svg';
 import { WebView } from 'react-native-webview';
 import { ms, hs, vs } from '@/theme';
@@ -53,7 +54,7 @@ export const WritingPracticeView = ({ hskLevel, topic, wordOrder, onBack, onSubm
       } catch (err) {
         if (!cancelled) {
           setWords([]);
-          Alert.alert('Không thể tải từ vựng', 'Vui lòng kiểm tra kết nối và mở lại bài luyện.');
+          AppAlert.error('Không thể tải từ vựng', 'Vui lòng kiểm tra kết nối và mở lại bài luyện.');
         }
       } finally {
         if (!cancelled) setIsLoading(false);
@@ -155,7 +156,7 @@ export const WritingPracticeView = ({ hskLevel, topic, wordOrder, onBack, onSubm
         });
       } else if (message.type === 'error') {
         console.warn('HanziWriter error:', message.error);
-        Alert.alert('Không thể tải nét chữ', message.error);
+        AppAlert.error('Không thể tải nét chữ', message.error);
       }
     } catch (error) {
       console.warn('Error parsing WebView message', error);
@@ -184,7 +185,7 @@ export const WritingPracticeView = ({ hskLevel, topic, wordOrder, onBack, onSubm
   };
 
   const handleExitPress = () => {
-    Alert.alert('Thoát bài luyện tập', 'Bạn có chắc chắn muốn thoát?', [
+    AppAlert.confirm('Thoát bài luyện tập', 'Bạn có chắc chắn muốn thoát?', [
       { text: 'Hủy', style: 'cancel' },
       { text: 'Thoát', style: 'destructive', onPress: onBack },
     ]);

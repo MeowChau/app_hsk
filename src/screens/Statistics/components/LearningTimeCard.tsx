@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text } from 'react-native';
-import Svg, { Path } from 'react-native-svg';
+import Svg, { Circle, Path } from 'react-native-svg';
 import { useTheme, hs, vs, ms } from '@/theme';
 
 export interface LearningTimeCardProps {
@@ -38,7 +38,7 @@ export function LearningTimeCard({
   timeTotalSeconds,
   pendingCount = 0,
 }: LearningTimeCardProps) {
-  const { layout } = useTheme();
+  const { colors, layout } = useTheme();
 
   return (
     <View style={{ paddingHorizontal: hs(16), marginBottom: vs(16) }}>
@@ -60,12 +60,25 @@ export function LearningTimeCard({
         <View style={[layout.row, layout.itemsCenter, { marginBottom: vs(16) }]}>
           <View
             style={{
+              alignItems: 'center',
               backgroundColor: '#DFF0FE',
               borderRadius: ms(21),
               height: vs(42),
+              justifyContent: 'center',
               width: hs(42),
             }}
-          />
+          >
+            <Svg width={ms(22)} height={ms(22)} viewBox="0 0 24 24" fill="none">
+              <Circle cx={12} cy={12} r={9} stroke={colors.primaryAction} strokeWidth={1.8} />
+              <Path
+                d="M12 7v5l3 2"
+                stroke={colors.primaryAction}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.8}
+              />
+            </Svg>
+          </View>
           <Text
             style={{
               color: '#000000',
