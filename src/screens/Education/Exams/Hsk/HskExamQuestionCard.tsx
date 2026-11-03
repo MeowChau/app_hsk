@@ -1,9 +1,9 @@
 import { QuestionAudioPlayer } from '../../components/QuestionAudioPlayer';
 import { PracticeBookmarkButton } from '../../components/PracticeBookmarkButton';
-import { imageSource } from '@/services/media';
+import { ReadingPracticeImage } from '../../Skills/Reading/ReadingPracticeImage';
 import { hasExamAnswer, isExamAnswerCorrect } from '@/services/exams/answers';
 import React, { memo } from 'react';
-import { View, Text, TouchableOpacity, Image, TextInput } from 'react-native';
+import { View, Text, TouchableOpacity, TextInput } from 'react-native';
 import Svg, { Path, Circle } from 'react-native-svg';
 import { ExamQuestion } from '../../types';
 import { ms, hs, vs } from '@/theme';
@@ -83,7 +83,7 @@ export const HskExamQuestionCard = memo(({ question, selectedOptionId, onSelectO
 
       {/* Question Image */}
       {question.imageUrl && (
-        <Image source={imageSource(question.imageUrl)} style={{ width: hs(120), height: vs(120), borderRadius: ms(8), marginBottom: vs(16), alignSelf: question.type === 'LISTENING' ? 'flex-start' : 'center' }} resizeMode="cover" />
+        <ReadingPracticeImage key={question.imageUrl} uri={question.imageUrl} />
       )}
 
       {question.text ? <Text style={{ fontSize: ms(16), color: '#111827', marginBottom: vs(12) }}>{question.text}</Text> : null}
@@ -167,21 +167,25 @@ export const HskExamQuestionCard = memo(({ question, selectedOptionId, onSelectO
           }
 
           return (
-            <TouchableOpacity
+            <View
               key={opt.id}
-              disabled={isReviewMode}
-              onPress={() => onSelectOption(question.id, opt.id)}
-              activeOpacity={isReviewMode ? 1 : 0.7}
               style={{
-                flexDirection: 'row',
-                alignItems: 'center',
                 borderWidth: 1.5,
                 borderColor,
                 backgroundColor: bgColor,
                 borderRadius: ms(8),
-                padding: ms(12),
               }}
             >
+              {opt.imageUrl ? <ReadingPracticeImage uri={opt.imageUrl} showHint={false} accessibilityLabel={`Phóng to ảnh đáp án ${opt.label || ''} câu ${question.index}`} style={{ margin: ms(12) }} /> : null}
+              <TouchableOpacity
+                disabled={isReviewMode}
+                onPress={() => onSelectOption(question.id, opt.id)}
+                activeOpacity={isReviewMode ? 1 : 0.7}
+                accessibilityRole="radio"
+                accessibilityLabel={`Đáp án ${opt.label || opt.text || ''} câu ${question.index}`}
+                accessibilityState={{ checked: isSelected, disabled: isReviewMode }}
+                style={{ flexDirection: 'row', alignItems: 'center', padding: ms(12), minHeight: ms(44) }}
+              >
               {opt.label ? (
                 <View style={{ width: ms(24), height: ms(24), borderRadius: ms(12), backgroundColor: (!isReviewMode && isSelected) ? '#1E3A8A' : (isReviewMode ? bgColor : '#F3F4F6'), borderWidth: isReviewMode ? 1.5 : 0, borderColor: isReviewMode ? iconColor : 'transparent', justifyContent: 'center', alignItems: 'center', marginRight: hs(12) }}>
                   <Text style={{ color: (!isReviewMode && isSelected) ? '#FFFFFF' : iconColor, fontWeight: '700', fontSize: ms(14) }}>{opt.label}</Text>
@@ -195,12 +199,12 @@ export const HskExamQuestionCard = memo(({ question, selectedOptionId, onSelectO
               )}
               {opt.text && <Text style={{ fontSize: ms(16), color: textColor, fontWeight: '600', flex: 1 }}>{opt.text}</Text>}
               
-              {opt.imageUrl && <Image source={imageSource(opt.imageUrl)} style={{ width: hs(80), height: vs(80), borderRadius: ms(8), marginLeft: hs(8) }} resizeMode="contain" />}
 
               {isReviewMode && isCorrectAnswer && (
                  <Text style={{ fontSize: ms(14), color: '#15803D', fontWeight: '700', marginLeft: 'auto', paddingLeft: hs(8) }}>Đáp án đúng</Text>
               )}
-            </TouchableOpacity>
+              </TouchableOpacity>
+            </View>
           );
         })}
       </View>

@@ -45,6 +45,21 @@ export function PracticeHeader({
         onBack={onBack}
         rightElement={
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+            {timer ? (
+              <View
+                style={{
+                  alignItems: 'center',
+                  backgroundColor: colors.secondary,
+                  borderRadius: ms(6),
+                  flexShrink: 0,
+                  minWidth: ms(54),
+                  paddingHorizontal: ms(8),
+                  paddingVertical: ms(4),
+                }}
+              >
+                {timer}
+              </View>
+            ) : null}
             <IconButton
               accessibilityLabel="Danh sách câu hỏi"
               onPress={onOpenGrid}
@@ -97,17 +112,6 @@ export function PracticeHeader({
           </View>
         }
       />
-      {timer ? (
-        <View
-          style={{
-            alignItems: 'flex-end',
-            paddingHorizontal: 16,
-            paddingBottom: 8,
-          }}
-        >
-          {timer}
-        </View>
-      ) : null}
     </View>
   );
 }

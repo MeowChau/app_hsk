@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   Image,
   Modal,
@@ -7,29 +7,61 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import type { ImageSourcePropType, StyleProp, ViewStyle } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { WebView } from 'react-native-webview';
 import Svg, { Path } from 'react-native-svg';
 import IconButton from '@/components/atoms/IconButton';
 import { hs, ms, vs, useTheme } from '@/theme';
+import { imageSource } from '@/services/media';
 
 interface Props {
-  uri: string;
+  uri: string | ImageSourcePropType;
   aspectRatio?: number;
   maxHeight?: number;
+  showHint?: boolean;
+  style?: StyleProp<ViewStyle>;
+  accessibilityLabel?: string;
 }
 
 export const ReadingPracticeImage = ({
   uri,
   aspectRatio = 1,
   maxHeight,
+  showHint = true,
+  style,
+  accessibilityLabel = 'Phóng to hình bài tập',
 }: Props) => {
   const { colors } = useTheme();
-  const [ratio, setRatio] = useState(aspectRatio);
+  const source = useMemo(() => imageSource(uri), [uri]);
+  const resolvedSource = source ? Image.resolveAssetSource(source) : undefined;
+  const resolvedUri = resolvedSource?.uri || '';
+  const initialRatio = resolvedSource && resolvedSource.width > 0 && resolvedSource.height > 0
+    ? resolvedSource.width / resolvedSource.height : aspectRatio;
+  const [ratio, setRatio] = useState(initialRatio);
+  const [width, setWidth] = useState(0);
   const [failed, setFailed] = useState(false);
   const [attempt, setAttempt] = useState(0);
   const [expanded, setExpanded] = useState(false);
-  const escapedUri = uri.replace(
+  useEffect(() => {
+    setRatio(initialRatio > 0 ? initialRatio : 1);
+    setFailed(false);
+    setExpanded(false);
+  }, [initialRatio, resolvedUri]);
+  useEffect(() => {
+    let cancelled = false;
+    if (resolvedUri) {
+      // Android's onLoad dimensions can describe the resized preview. Read the
+      // actual file size so wide scans do not reserve a square of empty space.
+      Image.getSize(resolvedUri, (imageWidth, imageHeight) => {
+        if (!cancelled && imageWidth > 0 && imageHeight > 0) {
+          setRatio(imageWidth / imageHeight);
+        }
+      }, () => {});
+    }
+    return () => { cancelled = true; };
+  }, [attempt, resolvedUri]);
+  const escapedUri = resolvedUri.replace(
     /[&<>"']/g,
     (value) =>
       ({
@@ -52,7 +84,7 @@ export const ReadingPracticeImage = ({
   );
 
   return (
-    <View style={{ marginVertical: vs(12) }}>
+    <View style={[{ alignSelf: 'stretch', marginVertical: showHint ? vs(12) : 0 }, style]}>
       {failed ? (
         <TouchableOpacity
           onPress={() => {
@@ -61,37 +93,33 @@ export const ReadingPracticeImage = ({
           }}
           style={{ padding: ms(16) }}
         >
-          <Text style={{ fontSize: ms(14), color: '#4B5563' }}>
+          <Text style={{ fontSize: ms(14), color: colors.gray400 }}>
             Không tải được hình bài tập. Chạm để thử lại.
           </Text>
         </TouchableOpacity>
       ) : (
         <TouchableOpacity
           accessibilityRole="button"
-          accessibilityLabel="Phóng to hình bài tập"
+          accessibilityLabel={accessibilityLabel}
           onPress={() => setExpanded(true)}
+          onLayout={event => setWidth(event.nativeEvent.layout.width)}
         >
           <Image
             key={attempt}
-            source={{ uri }}
+            source={source}
             resizeMode="contain"
             style={{
               width: '100%',
-              aspectRatio: ratio,
-              maxHeight,
-              backgroundColor: '#FFFFFF',
-            }}
-            onLoad={({ nativeEvent }) => {
-              const { width, height } = nativeEvent.source;
-              if (width > 0 && height > 0) setRatio(width / height);
+              height: Math.min((width || ms(240)) / (ratio > 0 ? ratio : 1), maxHeight ?? Infinity),
+              backgroundColor: colors.surface,
             }}
             onError={() => setFailed(true)}
           />
-          <Text
-            style={{ fontSize: ms(12), color: '#1E3A8A', marginTop: vs(8) }}
+          {showHint ? <Text
+            style={{ fontSize: ms(12), color: colors.primaryAction, marginTop: vs(8) }}
           >
             Chạm vào hình để phóng to
-          </Text>
+          </Text> : null}
         </TouchableOpacity>
       )}
       {expanded ? (

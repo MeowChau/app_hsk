@@ -1,8 +1,7 @@
 import { QuestionAudioPlayer } from '../../components/QuestionAudioPlayer';
 import { PracticeBookmarkButton } from '../../components/PracticeBookmarkButton';
-import { imageSource } from '@/services/media';
 import React, { memo } from 'react';
-import { View, Text, TouchableOpacity, Image, TextInput } from 'react-native';
+import { View, Text, TouchableOpacity, TextInput } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { ListeningPracticeQuestion, ListeningPracticeOption } from '../../types';
 import { ms, hs, vs } from '@/theme';
@@ -46,10 +45,8 @@ const ImageSelectOptions = ({ question, selectedOptionId, onSelectOption }: any)
     {question.options.map((opt: ListeningPracticeOption) => {
       const isSelected = selectedOptionId === opt.id;
       return (
-        <TouchableOpacity
+        <View
           key={opt.id}
-          onPress={() => onSelectOption(question.id, opt.id)}
-          activeOpacity={0.8}
           style={{
             width: '48%',
             borderWidth: 1,
@@ -60,8 +57,16 @@ const ImageSelectOptions = ({ question, selectedOptionId, onSelectOption }: any)
             minHeight: vs(100),
           }}
         >
-          {/* Label tag - top left corner */}
-          <View style={{ position: 'absolute', top: ms(8), left: ms(8), zIndex: 1 }}>
+          {opt.imageUrl ? (
+            <ReadingPracticeImage uri={opt.imageUrl} showHint={false} accessibilityLabel={`Phóng to ảnh đáp án ${opt.label} câu ${question.index}`} style={{ margin: ms(8) }} />
+          ) : null}
+          <TouchableOpacity
+            onPress={() => onSelectOption(question.id, opt.id)}
+            accessibilityRole="radio"
+            accessibilityLabel={`Đáp án ${opt.label} câu ${question.index}`}
+            accessibilityState={{ checked: isSelected }}
+            style={{ minHeight: ms(44), padding: ms(8), flexDirection: 'row', alignItems: 'center', gap: ms(8) }}
+          >
             <View style={{
               width: ms(24), height: ms(24), borderRadius: ms(12),
               backgroundColor: isSelected ? '#1E3A8A' : '#F3F4F6',
@@ -70,20 +75,9 @@ const ImageSelectOptions = ({ question, selectedOptionId, onSelectOption }: any)
             }}>
               <Text style={{ color: isSelected ? '#FFFFFF' : '#4B5563', fontWeight: '700', fontSize: ms(13) }}>{opt.label}</Text>
             </View>
-          </View>
-          {/* Image fills card */}
-          {opt.imageUrl ? (
-            <Image
-              source={imageSource(opt.imageUrl)}
-              style={{ width: '100%', height: vs(110) }}
-              resizeMode="contain"
-            />
-          ) : (
-            <View style={{ height: vs(110), justifyContent: 'center', alignItems: 'center' }}>
-              <Text style={{ color: '#9CA3AF', fontSize: ms(12) }}>Ảnh</Text>
-            </View>
-          )}
-        </TouchableOpacity>
+            <Text style={{ color: '#1E3A8A', fontSize: ms(13) }}>{opt.text || 'Chọn đáp án'}</Text>
+          </TouchableOpacity>
+        </View>
       );
     })}
   </View>
@@ -233,12 +227,12 @@ export const ListeningQuestionCard = memo(({ question, selectedOptionId, onSelec
 
       {/* Group images (chỉ loại GROUP_SELECT có groupImages) */}
       {question.type === 'GROUP_SELECT' && question.groupImages && (
-        <View style={{ flexDirection: 'row', gap: ms(4), marginBottom: vs(8) }}>
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: ms(8), marginBottom: vs(8) }}>
           {question.groupImages.map((img: ListeningPracticeOption) => (
-            <View key={img.id} style={{ flex: 1, alignItems: 'center' }}>
+            <View key={img.id} style={{ width: '30%', alignItems: 'center' }}>
               <Text style={{ fontSize: ms(10), fontWeight: '700', color: '#4B5563', marginBottom: vs(2) }}>{img.label}</Text>
               {img.imageUrl ? (
-                <Image source={img.imageUrl} style={{ width: '100%', height: vs(52), borderRadius: ms(4) }} resizeMode="cover" />
+                <ReadingPracticeImage uri={img.imageUrl} showHint={false} accessibilityLabel={`Phóng to ảnh ${img.label}`} />
               ) : (
                 <View style={{ width: '100%', height: vs(52), backgroundColor: '#F3F4F6', borderRadius: ms(4) }} />
               )}

@@ -19,8 +19,6 @@ interface Props {
   onSubmit?: (result: { score: number, correctCount: number, totalCount: number, answers: Record<string, string>, questions: ReadingPracticeQuestion[], durationInSeconds: number }) => void;
 }
 
-import { Image } from 'react-native';
-
 interface ReadingInstructionGroup {
   startIndex: number;
   endIndex: number;
@@ -148,11 +146,11 @@ const ReadingQuestionCard = React.memo(({ question, instructionGroup, isGroupSta
         {question.groupImages && (
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', gap: hs(8), marginBottom: vs(16) }}>
             {question.groupImages.map(img => (
-              <View key={img.id} style={{ width: '31%', aspectRatio: 1, backgroundColor: '#FFFFFF', borderRadius: ms(8), borderWidth: 1, borderColor: '#E5E7EB', overflow: 'hidden' }}>
-                <View style={{ position: 'absolute', top: 4, left: 4, zIndex: 10, backgroundColor: '#1E3A8A', borderRadius: 10, width: 20, height: 20, justifyContent: 'center', alignItems: 'center' }}>
+              <View key={img.id} style={{ width: '31%', backgroundColor: '#FFFFFF', borderRadius: ms(8), borderWidth: 1, borderColor: '#E5E7EB' }}>
+                <View style={{ margin: ms(4), backgroundColor: '#1E3A8A', borderRadius: 10, width: 20, height: 20, justifyContent: 'center', alignItems: 'center' }}>
                   <Text style={{ color: '#FFF', fontSize: 10, fontWeight: 'bold' }}>{img.label}</Text>
                 </View>
-                {img.imageUrl && <Image source={{ uri: img.imageUrl }} style={{ width: '100%', height: '100%', resizeMode: 'cover' }} />}
+                {img.imageUrl && <ReadingPracticeImage uri={img.imageUrl} showHint={false} accessibilityLabel={`Phóng to ảnh ${img.label}`} />}
               </View>
             ))}
           </View>
@@ -254,8 +252,8 @@ const ReadingQuestionCard = React.memo(({ question, instructionGroup, isGroupSta
               {renderFlag()}
             </View>
             <View style={{ flexDirection: 'row', marginTop: vs(12) }}>
-              <View style={{ width: ms(100), height: ms(100), backgroundColor: '#FFFFFF', borderRadius: ms(8), borderWidth: 1, borderColor: '#E5E7EB', justifyContent: 'center', alignItems: 'center', padding: ms(8) }}>
-                {question.imageUrl && <Image source={{ uri: question.imageUrl }} style={{ width: '100%', height: '100%', resizeMode: 'contain' }} />}
+              <View style={{ width: '42%', backgroundColor: '#FFFFFF', borderRadius: ms(8), borderWidth: 1, borderColor: '#E5E7EB', justifyContent: 'center', padding: ms(8) }}>
+                {question.imageUrl && <ReadingPracticeImage uri={question.imageUrl} showHint={false} accessibilityLabel={`Phóng to ảnh câu ${question.index}`} />}
               </View>
               <View style={{ flex: 1, marginLeft: hs(16), justifyContent: 'space-evenly' }}>
                 {question.options.map(opt => {
@@ -300,16 +298,18 @@ const ReadingQuestionCard = React.memo(({ question, instructionGroup, isGroupSta
               {question.options.map(opt => {
                 const isSelected = selectedOptionId === opt.id;
                 return (
-                  <TouchableOpacity key={opt.id} onPress={() => onSelectOption(question.id, opt.id)} style={{ width: '48%', flexDirection: 'row', alignItems: 'center', backgroundColor: isSelected ? '#EFF6FF' : '#FFFFFF', borderWidth: 1, borderColor: isSelected ? '#1E3A8A' : '#E5E7EB', borderRadius: ms(8), paddingVertical: vs(12), paddingHorizontal: hs(12), marginBottom: vs(8) }}>
+                  <View key={opt.id} style={{ width: '48%', backgroundColor: isSelected ? '#EFF6FF' : '#FFFFFF', borderWidth: 1, borderColor: isSelected ? '#1E3A8A' : '#E5E7EB', borderRadius: ms(8), marginBottom: vs(8) }}>
+                    {opt.imageUrl ? <ReadingPracticeImage uri={opt.imageUrl} showHint={false} accessibilityLabel={`Phóng to ảnh đáp án ${opt.label} câu ${question.index}`} style={{ margin: ms(8) }} /> : null}
+                    <TouchableOpacity onPress={() => onSelectOption(question.id, opt.id)} accessibilityRole="radio" accessibilityLabel={`Đáp án ${opt.label} câu ${question.index}`} accessibilityState={{ checked: isSelected }} style={{ minHeight: ms(44), flexDirection: 'row', alignItems: 'center', paddingVertical: vs(12), paddingHorizontal: hs(12) }}>
                     <View style={{ width: ms(24), height: ms(24), borderRadius: ms(12), backgroundColor: isSelected ? '#1E3A8A' : '#F3F4F6', justifyContent: 'center', alignItems: 'center', marginRight: hs(8) }}>
                       <Text style={{ color: isSelected ? '#FFFFFF' : '#6B7280', fontWeight: '700', fontSize: ms(14) }}>{opt.label}</Text>
                     </View>
                     <View style={{ flex: 1 }}>
-                      {opt.imageUrl ? <Image source={{ uri: opt.imageUrl }} style={{ width: '100%', aspectRatio: 1, resizeMode: 'contain' }} /> : null}
                       {opt.text ? <Text style={{ fontSize: ms(14), color: isSelected ? '#1E3A8A' : '#4B5563', fontWeight: isSelected ? '700' : '500' }}>{opt.text}</Text> : null}
                       {opt.pinyin && opt.pinyin !== opt.text ? <Text style={{ fontSize: ms(12), color: '#4B5563', lineHeight: vs(18), marginTop: vs(4) }}>{opt.pinyin}</Text> : null}
                     </View>
-                  </TouchableOpacity>
+                    </TouchableOpacity>
+                  </View>
                 );
               })}
             </View>

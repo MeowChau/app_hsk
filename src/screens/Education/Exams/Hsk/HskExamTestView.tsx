@@ -38,7 +38,7 @@ const ExamTimer = ({ durationMin }: { durationMin: number }) => {
   const s = timeLeft % 60;
   
   return (
-    <Text style={{ fontSize: ms(14), fontWeight: '700', color: '#111827' }}>
+    <Text style={{ fontSize: ms(14), fontWeight: '700', fontVariant: ['tabular-nums'], color: '#111827' }}>
       {`${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`}
     </Text>
   );

@@ -6,11 +6,10 @@ import { SharedAudioHeader, SharedAudioEnd } from '../../components/SharedAudioH
 import { buildSharedAudioRows, audioStickyHeaderIndices } from '../../components/sharedAudioRows';
 import type { SharedAudioRow } from '../../components/sharedAudioRows';
 import { useAudioListScroll } from '../../components/useAudioListScroll';
-import { imageSource } from '@/services/media';
 import { useStudyTimer } from '@/hooks/useStudyTimer';
 import { useScreenBackHandler } from '@/navigation/useScreenBackHandler';
 import React, { useState, useCallback, useMemo, memo, useRef, useEffect } from 'react';
-import { View, Text, SafeAreaView, FlatList, TouchableOpacity, Image } from 'react-native';
+import { View, Text, SafeAreaView, FlatList, TouchableOpacity } from 'react-native';
 import { AppAlert } from '@/services/feedback/appAlert';
 import { ListeningQuestionCard } from './ListeningQuestionCard';
 import { ReadingPracticeImage } from '../Reading/ReadingPracticeImage';
@@ -35,12 +34,12 @@ const GroupHeader = memo(({ images, exampleDialogue, exampleAnswer }: {
 }) => (
   <View style={{ marginBottom: vs(12) }}>
     {/* Image row A-F */}
-    <View style={{ flexDirection: 'row', gap: ms(6), marginBottom: vs(10) }}>
+    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: ms(8), marginBottom: vs(10) }}>
       {images.map((img) => (
         <View
           key={img.id}
           style={{
-            flex: 1, backgroundColor: '#FFFFFF',
+            width: '30%', backgroundColor: '#FFFFFF',
             borderRadius: ms(8), borderWidth: 1, borderColor: '#E5E7EB',
             alignItems: 'center', paddingTop: ms(4), paddingBottom: ms(4),
             overflow: 'hidden',
@@ -48,7 +47,7 @@ const GroupHeader = memo(({ images, exampleDialogue, exampleAnswer }: {
         >
           <Text style={{ fontSize: ms(10), fontWeight: '700', color: '#4B5563', marginBottom: vs(2) }}>{img.label}</Text>
           {img.imageUrl ? (
-            <Image source={imageSource(img.imageUrl)} style={{ width: '100%', height: vs(52) }} resizeMode="cover" />
+            <ReadingPracticeImage uri={img.imageUrl} showHint={false} accessibilityLabel={`Phóng to ảnh ${img.label}`} />
           ) : (
             <View style={{ width: '100%', height: vs(52), backgroundColor: '#F3F4F6' }} />
           )}
