@@ -153,7 +153,7 @@ export function EducationContent({ navigation, route }: any) {
   }
 
   if (viewMode === 'examReview' && activeExamId) {
-    return <HskExamTestView examId={activeExamId} durationMin={examDuration} onBack={() => setViewMode('examResult')} isReviewMode={true} reviewAnswers={examResults[activeExamId]?.answers} />;
+    return <HskExamTestView examId={activeExamId} durationMin={examDuration} onBack={() => setViewMode('examResult')} isReviewMode={true} reviewAnswers={examResults[activeExamId]?.answers} reviewQuestions={examResults[activeExamId]?.questions} />;
   }
 
   if (viewMode === 'examTest' && activeExamId) {

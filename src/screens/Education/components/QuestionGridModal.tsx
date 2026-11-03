@@ -17,6 +17,7 @@ export interface QuestionGridItem {
   isBookmarked?: boolean;
   isCurrent?: boolean;
   isCorrect?: boolean;
+  requiresManualReview?: boolean;
 }
 
 export interface QuestionGridSection {
@@ -67,7 +68,10 @@ export const QuestionGridModal: React.FC<QuestionGridModalProps> = ({
     let borderStyle = 'solid';
 
     if (isReviewMode) {
-      if (item.isAnswered) {
+      if (item.requiresManualReview) {
+        bgColor = colors.gray50;
+        textColor = colors.dialogText;
+      } else if (item.isAnswered) {
         bgColor = item.isCorrect ? colors.success : colors.red500;
         textColor = colors.onPrimary;
       } else {
@@ -230,6 +234,9 @@ export const QuestionGridModal: React.FC<QuestionGridModalProps> = ({
               {showLegend && (
                 isReviewMode ? (
                   <View style={{ marginTop: vs(16), gap: vs(8) }}>
+                    {(items ?? sections?.flatMap(section => section.items) ?? []).some(item => item.requiresManualReview) && (
+                      <Text style={{ fontSize: ms(14), color: colors.dialogText }}>Ô xám: tự đối chiếu, không tính vào điểm tự động</Text>
+                    )}
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: hs(8) }}>
                       <View
                         style={{

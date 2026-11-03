@@ -9,7 +9,7 @@ import { useScreenBackHandler } from '@/navigation/useScreenBackHandler';
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { View, Text, SafeAreaView, FlatList, TouchableOpacity, KeyboardAvoidingView, Platform, Keyboard } from 'react-native';
 import { AppAlert } from '@/services/feedback/appAlert';
-import { hasExamAnswer, isExamAnswerCorrect } from '@/services/exams/answers';
+import { hasExamAnswer, hasExamAnswerKey, isExamAnswerCorrect } from '@/services/exams/answers';
 import { HskExamQuestionCard } from './HskExamQuestionCard';
 import { ms, hs, vs, useTheme } from '@/theme';
 import { SubmitConfirmModal, QuestionGridModal, QuestionGridSection } from '@/screens/Education/components';
@@ -21,6 +21,7 @@ interface Props {
   onSubmit?: (result: any) => void;
   isReviewMode?: boolean;
   reviewAnswers?: Record<string, string>;
+  reviewQuestions?: ExamQuestion[];
 }
 
 const ExamTimer = ({ durationMin }: { durationMin: number }) => {
@@ -49,10 +50,12 @@ import { examsApi, ExamResponseMismatchError } from '@/services/exams/api';
 import { transformBackendExamToApp } from '@/services/exams/transformers';
 import { HskExam, ExamQuestion } from '../../types';
 
-export const HskExamTestView = ({ examId, durationMin, onBack, onSubmit, isReviewMode, reviewAnswers }: Props) => {
+export const HskExamTestView = ({ examId, durationMin, onBack, onSubmit, isReviewMode, reviewAnswers, reviewQuestions }: Props) => {
   const { colors } = useTheme();
   const [fullExam, setFullExam] = useState<HskExam | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const onBackRef = React.useRef(onBack);
+  onBackRef.current = onBack;
 
   const examLevel = fullExam?.level || 1;
 
@@ -65,22 +68,23 @@ export const HskExamTestView = ({ examId, durationMin, onBack, onSubmit, isRevie
         const examApp = transformBackendExamToApp(res);
         if (cancelled) return;
         if (examApp.unsupportedSkills?.length || !examApp.questions?.length) {
-          AppAlert.warning('Đề thi chưa được hỗ trợ', examApp.unsupportedSkills?.length ? 'Đề này có kỹ năng Nói mà giao diện hiện tại chưa hỗ trợ.' : 'Đề thi chưa có câu hỏi.', [{ text: 'OK', onPress: onBack }]);
+          AppAlert.warning('Đề thi chưa được hỗ trợ', examApp.unsupportedSkills?.length ? 'Đề này có kỹ năng Nói mà giao diện hiện tại chưa hỗ trợ.' : 'Đề thi chưa có câu hỏi.', [{ text: 'OK', onPress: () => onBackRef.current() }]);
           setFullExam(null);
           return;
         }
-        setFullExam(examApp);
+        const hasGradedReview = reviewQuestions?.length && reviewQuestions.every(question => question.requiresManualReview || hasExamAnswerKey(question));
+        setFullExam(isReviewMode && hasGradedReview ? { ...examApp, questions: reviewQuestions } : examApp);
         setAnswers(reviewAnswers || {});
         setBookmarks({});
       } catch (err) {
-        if (!cancelled) { setFullExam(null); AppAlert.error('Không thể tải đề thi', err instanceof ExamResponseMismatchError ? err.message : 'Vui lòng kiểm tra kết nối.', [{ text: 'OK', onPress: onBack }]); }
+        if (!cancelled) { setFullExam(null); AppAlert.error('Không thể tải đề thi', err instanceof ExamResponseMismatchError ? err.message : 'Vui lòng kiểm tra kết nối.', [{ text: 'OK', onPress: () => onBackRef.current() }]); }
       } finally {
         if (!cancelled) setIsLoading(false);
       }
     };
     fetchExam();
     return () => { cancelled = true; };
-  }, [examId]);
+  }, [examId, isReviewMode, reviewQuestions, reviewAnswers]);
 
   const studyTimer = useStudyTimer(!isLoading && !isReviewMode && (fullExam?.questions?.length ?? 0) > 0, 'hsk_exam');
   const questions = useMemo(() => fullExam?.questions || [], [fullExam]);
@@ -116,6 +120,11 @@ export const HskExamTestView = ({ examId, durationMin, onBack, onSubmit, isRevie
   const handleConfirmSubmit = () => {
     setShowSubmitModal(false);
     if (!onSubmit || !questions.length) return;
+    const gradedQuestions = questions.filter(question => !question.requiresManualReview);
+    if (gradedQuestions.some(question => !hasExamAnswerKey(question))) {
+      AppAlert.error('Chưa chấm được bài thi', 'Đề thi chưa có đủ đáp án để chấm. Bài làm vẫn được giữ; bạn có thể thử nộp lại.');
+      return;
+    }
     
     let correct = 0;
     let listCorrect = 0;
@@ -133,7 +142,9 @@ export const HskExamTestView = ({ examId, durationMin, onBack, onSubmit, isRevie
 
     const result = {
       examId,
-      score: Math.round((correct / questions.length) * 100),
+      score: gradedQuestions.length ? Math.round((correct / gradedQuestions.length) * 100) : null,
+      gradedCount: gradedQuestions.length,
+      manualCount: questions.length - gradedQuestions.length,
       correctCount: correct,
       totalCount: questions.length,
       listeningCorrect: listCorrect,
@@ -165,7 +176,7 @@ export const HskExamTestView = ({ examId, durationMin, onBack, onSubmit, isRevie
       const isBookmarked = !!bookmarks[q.id];
       const isCurrent = q.id === currentQuestionId;
       let isCorrect: boolean | undefined = undefined;
-      if (isReviewMode && isAnswered) {
+      if (isReviewMode && isAnswered && !q.requiresManualReview) {
         isCorrect = isExamAnswerCorrect(q, answers[q.id]);
       }
       return {
@@ -175,6 +186,7 @@ export const HskExamTestView = ({ examId, durationMin, onBack, onSubmit, isRevie
         isBookmarked,
         isCurrent,
         isCorrect,
+        requiresManualReview: q.requiresManualReview,
       };
     };
 
@@ -273,7 +285,7 @@ export const HskExamTestView = ({ examId, durationMin, onBack, onSubmit, isRevie
             {isReviewMode ? (
               <>
                 <Text style={{ fontSize: ms(14), color: '#6B7280', fontWeight: '500', marginBottom: vs(16) }}>
-                  Đúng <Text style={{ fontWeight: '800', color: '#111827' }}>{questions.filter(q => isExamAnswerCorrect(q, answers[q.id])).length}</Text>/{totalCount} câu.
+                  Đúng <Text style={{ fontWeight: '800', color: '#111827' }}>{questions.filter(q => isExamAnswerCorrect(q, answers[q.id])).length}</Text>/{questions.filter(q => !q.requiresManualReview).length} câu chấm tự động.
                 </Text>
                 <TouchableOpacity onPress={onBack} style={{ backgroundColor: '#1E3A8A', borderRadius: ms(8), paddingVertical: vs(12), paddingHorizontal: hs(36) }}>
                   <Text style={{ color: '#FFFFFF', fontSize: ms(16), fontWeight: '700' }}>Về trang kết quả</Text>

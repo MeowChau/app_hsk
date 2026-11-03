@@ -18,18 +18,22 @@ export const transformSectionQuestionToExamQuestion = (
   const type = q.skill;
 
   const options: QuestionOption[] = Array.isArray(payload.options)
-    ? payload.options.map((opt: any, idx: number) => ({
-        id: String(opt.id ?? String.fromCharCode(65 + idx)),
-        label: String(opt.label ?? String.fromCharCode(65 + idx)),
-        text: opt.text,
-        imageUrl: resolveMediaUrl(opt.imageUrl),
-      }))
+    ? payload.options.map((opt: any, idx: number) => {
+        const value = typeof opt === 'string' ? { text: opt } : (opt ?? {});
+        return {
+          id: String(value.id ?? String.fromCharCode(65 + idx)),
+          label: String(value.label ?? String.fromCharCode(65 + idx)),
+          text: value.text,
+          imageUrl: resolveMediaUrl(value.imageUrl || payload.optionImages?.[idx]),
+        };
+      })
     : [];
 
   const correctOptionId = String(
     correctAnswer.optionId ??
       correctAnswer.id ??
       correctAnswer.correctOptionId ??
+      correctAnswer.answer ??
       payload.correctOptionId ??
       '',
   );
@@ -40,10 +44,13 @@ export const transformSectionQuestionToExamQuestion = (
     index: payload.index ?? fallbackIndex,
     audioUrl: resolveMediaUrl(payload.audioUrl || fallbackAudioUrl),
     sharedAudio: type === 'LISTENING' && (payload.audioScope === 'source-track' || Boolean(!payload.audioUrl && fallbackAudioUrl)),
-    imageUrl: resolveMediaUrl(payload.imageUrl),
+    imageUrl: (payload.presentation === 'options' || payload.templateId === 'listen-image-choice')
+      && options.length > 0 && options.every(option => option.imageUrl)
+      ? undefined : resolveMediaUrl(payload.contextImageUrl || payload.imageUrl),
     text: payload.text || payload.sentence || payload.questionText,
     options,
     correctOptionId,
+    requiresManualReview: type === 'WRITING' && Boolean(payload.manualGrading || correctAnswer.rubric),
     ...(type === 'WRITING' ? { writing: {
       instruction: typeof payload.instruction === 'string' ? payload.instruction : undefined,
       // Some seed prompts include the solution after an arrow or inside pinyin parentheses.

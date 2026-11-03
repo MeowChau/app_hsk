@@ -36,7 +36,7 @@ export const HskExamQuestionCard = memo(({ question, selectedOptionId, onSelectO
           </View>
           {isReviewMode && (
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              {hasExamAnswer(selectedOptionId) ? (
+              {question.requiresManualReview ? <Text style={{ fontSize: ms(14), color: '#4B5563', fontWeight: '700' }}>Tự đối chiếu</Text> : hasExamAnswer(selectedOptionId) ? (
                 isExamAnswerCorrect(question, selectedOptionId) ? (
                   <>
                     <Svg height={ms(16)} viewBox="0 0 24 24" width={ms(16)} style={{ marginRight: hs(4) }}>
@@ -128,7 +128,7 @@ export const HskExamQuestionCard = memo(({ question, selectedOptionId, onSelectO
             <View style={{ backgroundColor: '#F0FDF4', padding: ms(12), borderRadius: ms(8), gap: vs(6) }}>
               <Text style={{ fontSize: ms(14), fontWeight: '700', color: '#15803D' }}>Đáp án mẫu</Text>
               <Text selectable style={{ fontSize: ms(20), color: '#15803D' }}>{question.writing?.correctAnswers.join(' / ') || 'Chưa có đáp án mẫu'}</Text>
-              <Text style={{ fontSize: ms(12), color: '#4B5563' }}>Phần Viết được đối chiếu với đáp án mẫu, bỏ qua khoảng trắng và dấu câu cuối. Câu khác đáp án mẫu chưa được chấm theo ý nghĩa.</Text>
+              <Text style={{ fontSize: ms(12), color: '#4B5563' }}>{question.requiresManualReview ? 'Câu này cần tự đối chiếu, không tính vào điểm chấm tự động.' : 'Phần Viết được đối chiếu với đáp án mẫu, bỏ qua khoảng trắng và dấu câu cuối. Câu khác đáp án mẫu chưa được chấm theo ý nghĩa.'}</Text>
             </View>
           )}
         </View>

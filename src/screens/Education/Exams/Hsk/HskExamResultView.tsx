@@ -20,7 +20,8 @@ export const HskExamResultView = ({ result, onBack, onReview, onRetake }: Props)
 
   const questions = result.questions || [];
 
-  const wrongCount = result.totalCount - result.correctCount;
+  const gradedCount = result.gradedCount ?? result.totalCount;
+  const wrongCount = gradedCount - result.correctCount;
   const sections = [
     { type: 'LISTENING', title: 'Nghe', correct: result.listeningCorrect },
     { type: 'READING', title: 'Đọc', correct: result.readingCorrect },
@@ -50,11 +51,12 @@ export const HskExamResultView = ({ result, onBack, onReview, onRetake }: Props)
 
           <View style={{ backgroundColor: '#F4EBE6', borderRadius: ms(8), paddingVertical: vs(24), alignItems: 'center', marginBottom: vs(20) }}>
             <Text style={{ fontSize: ms(40), fontWeight: '900', color: '#DC2626', marginBottom: vs(4) }}>
-              {result.score}%
+              {result.score === null ? 'Chưa chấm tự động' : `${result.score}%`}
             </Text>
             <Text style={{ fontSize: ms(16), color: '#4B5563', fontWeight: '600' }}>
-              Đúng {result.correctCount}/{result.totalCount} câu
+              Đúng {result.correctCount}/{gradedCount} câu chấm tự động
             </Text>
+            {!!result.manualCount && <Text style={{ fontSize: ms(13), color: '#4B5563', marginTop: vs(8) }}>{result.manualCount} câu Viết tự đối chiếu, không tính vào điểm này.</Text>}
           </View>
 
           <Text style={{ fontSize: ms(20), color: '#6B7280', fontWeight: '500', marginBottom: vs(4) }}>Kết quả của bạn</Text>
@@ -63,7 +65,7 @@ export const HskExamResultView = ({ result, onBack, onReview, onRetake }: Props)
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: hs(12), marginBottom: vs(24) }}>
             {sections.map(section => (
               <View key={section.type} style={{ backgroundColor: '#FDF8F6', paddingHorizontal: hs(12), paddingVertical: vs(6), borderRadius: ms(16), borderWidth: 1, borderColor: '#F5E6E1' }}>
-                <Text style={{ fontSize: ms(14), color: '#374151', fontWeight: '700' }}>{section.title}: {section.correct}/{section.questions.length}</Text>
+                <Text style={{ fontSize: ms(14), color: '#374151', fontWeight: '700' }}>{section.title}: {section.correct}/{section.questions.filter(q => !q.requiresManualReview).length}</Text>
               </View>
             ))}
           </View>
@@ -113,15 +115,15 @@ export const HskExamResultView = ({ result, onBack, onReview, onRetake }: Props)
 
           {sections.map(section => (
             <View key={section.type}>
-              <Text style={{ fontSize: ms(16), fontWeight: '700', color: '#111827', marginBottom: vs(12), borderLeftWidth: 3, borderLeftColor: '#1E3A8A', paddingLeft: hs(8) }}>{section.title} <Text style={{ color: '#6B7280', fontWeight: '500' }}>{section.correct}/{section.questions.length}</Text></Text>
+              <Text style={{ fontSize: ms(16), fontWeight: '700', color: '#111827', marginBottom: vs(12), borderLeftWidth: 3, borderLeftColor: '#1E3A8A', paddingLeft: hs(8) }}>{section.title} <Text style={{ color: '#6B7280', fontWeight: '500' }}>{section.correct}/{section.questions.filter(q => !q.requiresManualReview).length}</Text></Text>
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: ms(8), marginBottom: vs(24) }}>
                 {section.questions.map(q => {
                   const ans = result.answers[q.id];
                   const isCorrect = isExamAnswerCorrect(q, ans);
                   const isUnanswered = !hasExamAnswer(ans);
-                  if (filterMode === 'WRONG' && isCorrect) return null;
-                  const color = isCorrect ? '#22C55E' : isUnanswered ? '#D1D5DB' : '#EF4444';
-                  const bgColor = isCorrect ? '#F0FDF4' : isUnanswered ? '#FFFFFF' : '#FEF2F2';
+                  if (filterMode === 'WRONG' && (isCorrect || q.requiresManualReview)) return null;
+                  const color = q.requiresManualReview ? colors.gray400 : isCorrect ? '#22C55E' : isUnanswered ? '#D1D5DB' : '#EF4444';
+                  const bgColor = q.requiresManualReview ? colors.gray50 : isCorrect ? '#F0FDF4' : isUnanswered ? '#FFFFFF' : '#FEF2F2';
                   return (
                     <View key={q.id} style={{ width: ms(40), height: ms(40), borderRadius: ms(8), borderWidth: 1, borderColor: color, backgroundColor: bgColor, justifyContent: 'center', alignItems: 'center' }}>
                       <Text style={{ color: color === '#D1D5DB' ? '#4B5563' : color, fontWeight: '700', fontSize: ms(16) }}>{q.index}</Text>
@@ -133,6 +135,7 @@ export const HskExamResultView = ({ result, onBack, onReview, onRetake }: Props)
           ))}
 
           <View style={{ marginTop: vs(8), flexDirection: 'row', flexWrap: 'wrap', gap: hs(12) }}>
+            {!!result.manualCount && <Text style={{ fontSize: ms(14), color: colors.gray400 }}>Xám: tự đối chiếu</Text>}
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: hs(4) }}><View style={{ width: 10, height: 10, borderRadius: 2, backgroundColor: '#22C55E' }} /><Text style={{ fontSize: ms(14), color: '#4B5563', fontWeight: '500' }}>Đúng</Text></View>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: hs(4) }}><View style={{ width: 10, height: 10, borderRadius: 2, backgroundColor: '#EF4444' }} /><Text style={{ fontSize: ms(14), color: '#4B5563', fontWeight: '500' }}>Sai</Text></View>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: hs(4) }}><View style={{ width: 10, height: 10, borderRadius: 2, borderWidth: 1, borderColor: '#D1D5DB', backgroundColor: '#FFFFFF' }} /><Text style={{ fontSize: ms(14), color: '#4B5563', fontWeight: '500' }}>Chưa trả lời</Text></View>

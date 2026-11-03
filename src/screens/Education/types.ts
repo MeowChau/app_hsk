@@ -56,6 +56,7 @@ export interface ExamQuestion {
   text?: string;
   options: QuestionOption[];
   correctOptionId: string;
+  requiresManualReview?: boolean;
   writing?: {
     instruction?: string;
     pinyin?: string;
@@ -83,7 +84,9 @@ export interface HskExam {
 export interface ExamResult {
   durationInSeconds?: number;
   examId: string;
-  score: number;
+  score: number | null;
+  gradedCount?: number;
+  manualCount?: number;
   correctCount: number;
   totalCount: number;
   listeningCorrect: number;

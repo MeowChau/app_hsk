@@ -129,7 +129,7 @@ export const HskExamCard = ({ item, onPress, result, onHistoryPress }: Props) =>
             <Text style={{ fontSize: ms(12), color: '#059669', fontWeight: '700', marginLeft: hs(4) }}>Lịch sử</Text>
           </View>
           <Text style={{ fontSize: ms(14), color: '#DC2626', fontWeight: '800' }}>
-            {result.score}%
+            {result.score === null ? 'Chưa chấm tự động' : `${result.score}%`}
           </Text>
         </TouchableOpacity>
       )}
