@@ -4,7 +4,7 @@ import { resolveMediaUrl } from '../media';
 
 export const transformSectionQuestionToExamQuestion = (
   sq: BackendExamSectionQuestion,
-  fallbackIndex: number,
+  questionNumber: number,
   fallbackAudioUrl?: string | null,
 ): ExamQuestion => {
   const q = sq.question;
@@ -41,7 +41,7 @@ export const transformSectionQuestionToExamQuestion = (
   return {
     id: String(q.id),
     type,
-    index: payload.index ?? fallbackIndex,
+    index: questionNumber,
     audioUrl: resolveMediaUrl(payload.audioUrl || fallbackAudioUrl),
     sharedAudio: type === 'LISTENING' && (payload.audioScope === 'source-track' || Boolean(!payload.audioUrl && fallbackAudioUrl)),
     imageUrl: (payload.presentation === 'options' || payload.templateId === 'listen-image-choice')

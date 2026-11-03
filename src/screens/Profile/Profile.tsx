@@ -18,6 +18,7 @@ import { DisplaySettingsCard } from './components/DisplaySettingsCard';
 import { PrivacySettingsCard } from './components/PrivacySettingsCard';
 import { HskLevelSettingsCard } from './components/HskLevelSettingsCard';
 import { SafeScreen } from '@/components/templates';
+import { ScreenHeader } from '@/components/molecules';
 import { Paths } from '@/navigation/paths';
 import { useTheme, hs, vs, ms } from '@/theme';
 import { filesApi } from '@/services/files/api';
@@ -154,30 +155,7 @@ export function ProfileContent({ onLogout }: { onLogout?: () => void }) {
       showsVerticalScrollIndicator={false}
     >
       {/* ================= HEADER ================= */}
-      <View style={{ paddingHorizontal: hs(16), paddingTop: vs(16), paddingBottom: vs(16) }}>
-        {/* Title */}
-        <Text
-          style={{
-            color: '#000000',
-            fontSize: ms(28),
-            fontWeight: '800',
-            marginBottom: vs(4),
-          }}
-        >
-          Tài khoản người dùng
-        </Text>
-
-        {/* Subtitle */}
-        <Text
-          style={{
-            color: '#000000',
-            fontSize: ms(16),
-            lineHeight: ms(18),
-          }}
-        >
-          Thông tin tài khoản, cài đặt & cập nhật thông tin
-        </Text>
-      </View>
+      <ScreenHeader variant="page" title="Tài khoản người dùng" subtitle="Thông tin tài khoản, cài đặt & cập nhật thông tin" />
 
       {/* ================= CARD 1: HỒ SƠ ================= */}
       <View style={{ paddingHorizontal: hs(16), marginBottom: vs(16) }}>

@@ -6,7 +6,8 @@ import { ms, hs, vs } from '@/theme';
 export interface ScreenHeaderProps {
   title?: string;
   subtitle?: string;
-  onBack: () => void;
+  onBack?: () => void;
+  variant?: 'detail' | 'page';
   rightElement?: React.ReactNode;
   style?: StyleProp<ViewStyle>;
   titleColor?: string;
@@ -18,12 +19,14 @@ export const ScreenHeader = ({
   title,
   subtitle,
   onBack,
+  variant = 'detail',
   rightElement,
   style,
   titleColor = '#111827',
   titleStyle,
-  titleNumberOfLines = 1,
+  titleNumberOfLines,
 }: ScreenHeaderProps) => {
+  const isPage = variant === 'page';
   return (
     <View
       style={[
@@ -32,8 +35,8 @@ export const ScreenHeader = ({
           alignItems: 'center',
           justifyContent: 'space-between',
           paddingHorizontal: hs(16),
-          paddingTop: vs(8),
-          paddingBottom: vs(12),
+          paddingTop: vs(isPage ? 16 : 8),
+          paddingBottom: vs(isPage ? 16 : 12),
         },
         style,
       ]}
@@ -46,17 +49,19 @@ export const ScreenHeader = ({
           minWidth: 0,
         }}
       >
-        <BackButton
+        {onBack ? <BackButton
           onPress={onBack}
           style={{ marginRight: hs(8), marginLeft: hs(-6) }}
-        />
+        /> : null}
         {title ? (
           <View style={{ flex: 1 }}>
             <Text
-              numberOfLines={titleNumberOfLines}
+              accessibilityRole="header"
+              numberOfLines={titleNumberOfLines ?? (isPage ? undefined : 1)}
               style={[
                 {
-                  fontSize: ms(20),
+                  fontSize: ms(isPage ? 28 : 20),
+                  ...(isPage ? { lineHeight: ms(36) } : {}),
                   fontWeight: '800',
                   color: titleColor,
                 },
@@ -68,10 +73,11 @@ export const ScreenHeader = ({
             {subtitle ? (
               <Text
                 style={{
-                  fontSize: ms(14),
+                  fontSize: ms(isPage ? 16 : 14),
+                  ...(isPage ? { lineHeight: ms(22) } : {}),
                   color: '#4B5563',
-                  fontWeight: '500',
-                  marginTop: vs(2),
+                  fontWeight: isPage ? '400' : '500',
+                  marginTop: vs(isPage ? 4 : 2),
                 }}
               >
                 {subtitle}

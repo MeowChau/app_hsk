@@ -8,6 +8,7 @@ import { View, Text, TouchableOpacity, ScrollView, SafeAreaView, useWindowDimens
 import { AppAlert } from '@/services/feedback/appAlert';
 import Svg, { Path, Circle } from 'react-native-svg';
 import { UserAvatar } from '@/components/atoms';
+import { ScreenHeader } from '@/components/molecules';
 import { hs, vs, ms, useTheme } from '@/theme';
 import { LeaderboardRow } from './components/LeaderboardRow';
 import { GameMatchCard } from './components/GameMatchCard';
@@ -303,11 +304,9 @@ export function GameContent({ navigation, route, targetView: propTargetView }: a
   // Màn hình chính Game PK
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
-      <ScrollView contentContainerStyle={{ padding: ms(16), paddingTop: vs(16) }} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={{ paddingHorizontal: hs(16), paddingBottom: ms(16), paddingTop: vs(16) }} showsVerticalScrollIndicator={false}>
         {/* Header */}
-        <View style={{ marginBottom: screenHeight > 750 ? vs(28) : vs(20) }}>
-          <Text style={{ fontSize: ms(26), fontWeight: '900', color: '#111827' }}>Game PK (1 vs 1)</Text>
-        </View>
+        <ScreenHeader variant="page" title="Game PK (1 vs 1)" style={{ paddingHorizontal: 0, paddingTop: 0, paddingBottom: 0, marginBottom: screenHeight > 750 ? vs(28) : vs(20) }} />
 
         {/* Cụm Bắt đầu tìm người */}
         <GameMatchCard onSearch={handleSearch} />

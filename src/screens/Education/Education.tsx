@@ -1,7 +1,6 @@
 // @refresh reset
 import React, { useEffect, useRef, useState } from 'react';
 import type { LearnScreenParams } from '@/navigation/types';
-import { Paths } from '@/navigation/paths';
 import { useScrollToTop } from '@react-navigation/native';
 import { useScreenBackHandler } from '@/navigation/useScreenBackHandler';
 import { SafeAreaView, ScrollView } from 'react-native';
@@ -28,7 +27,7 @@ import { WritingPracticeResultView } from './Skills/Writing/WritingPracticeResul
 // import { generateWritingWords } from './Skills/Writing/writingMockData';
 import type { SkillType, EducationViewMode, ExamResult, SpeakingPracticeResult } from './types';
 
-export function EducationContent({ navigation, route }: any) {
+export function EducationContent({ route }: any) {
   const [viewMode, setViewMode] = useState<EducationViewMode>('main');
   const [activeTab, setActiveTab] = useState<number>(1);
   const [selectedSkill, setSelectedSkill] = useState<SkillType>('NGHE');
@@ -126,18 +125,6 @@ export function EducationContent({ navigation, route }: any) {
   const handleViewResult = (examId: string) => {
     setActiveExamId(examId);
     setViewMode('examResult');
-  };
-
-  const handleMainBack = () => {
-    if (viewMode === 'skillSetup') {
-      setViewMode('main');
-      return;
-    }
-    if (navigation?.canGoBack?.()) {
-      navigation.goBack();
-    } else {
-      navigation?.navigate?.(Paths.Home);
-    }
   };
 
   useScreenBackHandler(() => {
@@ -355,7 +342,7 @@ export function EducationContent({ navigation, route }: any) {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
-      <EducationHeader onBack={handleMainBack} />
+      <EducationHeader />
       
       <ScrollView ref={mainScroll} contentContainerStyle={{ paddingBottom: 32 }} showsVerticalScrollIndicator={false}>
         <EducationSegment
